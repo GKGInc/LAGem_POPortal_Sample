@@ -1,0 +1,21 @@
+/*.suo
+/i2Catalog/bin
+/i2Catalog/obj
+/i2CatalogBOLib/bin
+/i2CatalogBOLib/obj
+/i2CatalogReports/bin
+/i2CatalogReports/obj
+/i2Client/Debug
+/i2Client/Release
+/i2CatalogExternalBOLib/bin
+/i2CatalogExternalBOLib/obj
+/.vs
+/packages
+/Updates
+
+i2CatalogReports/ItemSpecSheet/ItemSpecSheetXR - Copy.cs
+
+i2CatalogReports/ItemSpecSheet/ItemSpecSheetXR - Copy.resx
+
+i2CatalogReports/ItemSpecSheet/ItemSpecSheetXR.Designer - Copy.cs
+bin

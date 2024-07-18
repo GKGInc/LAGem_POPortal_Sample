@@ -1,0 +1,301 @@
+﻿@* @page "/PODetailDataPage" *@
+@using DevExpress.Blazor;
+@inject IJSRuntime js
+@* @inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@inject UserAccountService userAccountService *@
+
+@using MasterDetail.Data
+@using MasterDetail.Models
+@using Microsoft.EntityFrameworkCore
+
+<DxTabs>
+    <DxTabPage Text="Labor Data">
+        <br />
+        <div class="mb-2">
+            PONumber: @POData.PONumber
+        </div>
+
+        <DxGrid @ref="LaborGrid"
+                Data="LaborGridData"
+                PageSize="5"
+                AutoExpandAllGroupRows="true"
+                KeyFieldName="Id"
+                ValidationEnabled="false"
+                EditMode="GridEditMode.EditRow"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                ShowFilterRow="true"
+                EditModelSaving="Grid_EditModelSaving"
+                DataItemDeleting="Grid_DataItemDeleting"
+                CustomizeEditModel="Grid_CustomizeEditModel"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn"
+                TextWrapEnabled="false"
+                HighlightRowOnHover="true">
+            <Columns>
+                @* <DxGridDataColumn FieldName="Id" Caption="Id" Width="40" /> *@
+                <DxGridDataColumn FieldName="Program" Caption="Program" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="CardToUse" Caption="Card to Use" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="BoxStyle" Caption="Box Style" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="Accessories" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="TicketProofApproval" Caption="Ticket Proof Approval" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" MinWidth="100" />
+                <DxGridCommandColumn Width="150px"
+                                     EditButtonVisible="true"
+                                     CancelButtonVisible="true"
+                                     SaveButtonVisible="true"
+                                     NewButtonVisible="true" />
+            </Columns>
+        </DxGrid>
+
+    </DxTabPage>
+
+    <DxTabPage Text="Freight Data">
+        <br />
+        <div class="mb-2">
+            PONumber: @POData.PONumber
+        </div>
+
+        <DxGrid @ref="FreightGrid"
+                Data="FreightGridData"
+                PageSize="5"
+                AutoExpandAllGroupRows="true"
+                KeyFieldName="Id"
+                ValidationEnabled="false"
+                EditMode="GridEditMode.EditRow"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                EditModelSaving="Grid_EditModelSaving"
+                DataItemDeleting="Grid_DataItemDeleting"
+                CustomizeEditModel="Grid_CustomizeEditModel"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn"
+                TextWrapEnabled="false"
+                HighlightRowOnHover="true">
+            <Columns>
+                @* <DxGridDataColumn FieldName="pk" DisplayFormat="d" GroupIndex="0" /> *@
+                @* <DxGridDataColumn FieldName="Id" Caption="Id" Width="20%" /> *@
+                <DxGridDataColumn FieldName="ShipMethod" Caption="Ship Method" Width="20%" />
+                <DxGridDataColumn FieldName="InvoiceNo" Caption="Invoice No" Width="20%" />
+                <DxGridDataColumn FieldName="Tracking" Width="20%" />
+                <DxGridDataColumn FieldName="UnitsShipped" Caption="Units Shipped" DisplayFormat="n3" Width="10%" />
+                <DxGridDataColumn FieldName="DateShipped" Caption="Date Shipped" DisplayFormat="d" Width="20%" />
+                <DxGridDataColumn FieldName="ETA_LA" Caption="ETA LA" DisplayFormat="d" Width="20%" />
+                <DxGridCommandColumn Width="150px"
+                                     EditButtonVisible="true"
+                                     CancelButtonVisible="true"
+                                     SaveButtonVisible="true"
+                                     NewButtonVisible="true" />
+                @* <DxGridCommandColumn Width="30px">
+                <HeaderTemplate>
+                <DxButton IconCssClass="grid-icon grid-icon-new"
+                RenderStyle="ButtonRenderStyle.Link"
+                aria-label="Add"
+                Click="@(() => Grid.StartEditNewRowAsync())" />
+                </HeaderTemplate>
+                <CellDisplayTemplate>
+                <div class="grid-cell-align-center">
+                <DxButton IconCssClass="grid-icon grid-icon-delete"
+                RenderStyle="ButtonRenderStyle.Link"
+                aria-label="Delete"
+                Click="@(() => Grid.ShowRowDeleteConfirmation(context.VisibleIndex))"/>
+                </div>
+                </CellDisplayTemplate>
+                <CellEditTemplate>
+                <div class="grid-cell-align-center">
+                <DxButton Enabled="false"
+                CssClass="grid-disabled-button"
+                IconCssClass="grid-icon grid-icon-delete"
+                aria-label="Delete"
+                RenderStyle="ButtonRenderStyle.Link"/>
+                </div>
+                </CellEditTemplate>
+                </DxGridCommandColumn> *@
+            </Columns>
+        </DxGrid>
+
+    </DxTabPage>
+
+    <DxTabPage Text="Invoice Data">
+        <br />
+        <p>Sorry, I got nothing</p>
+
+    </DxTabPage>
+
+    <DxTabPage Text="Some Other Info">
+        <br />
+        <p>Come back later for Some Other Info</p>
+    </DxTabPage>
+
+    <DxTabPage Text="Nothing to See Here">
+        <br />
+        <p>I Said, nothing to see here!</p>
+    </DxTabPage>
+</DxTabs>
+
+
+@code {
+    // ============================================================ \\
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    IGrid LaborGrid { get; set; }
+    IGrid FreightGrid { get; set; }
+
+    bool AutoCollapseDetailRow { get; set; }
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    [Parameter]
+    public POData POData { get; set; }
+    // [Parameter]
+    // public IEnumerable<Labor> LaborData { get; set; }
+    // [Parameter]
+    // public IEnumerable<Freight> FreightData { get; set; }
+
+    // object DetailGridData { get; set; }
+    // object LocationGridData { get; set; }
+    IEnumerable<Labor> LaborGridData { get; set; }
+    IEnumerable<Freight> FreightGridData { get; set; }
+
+    // ============================================================ \\
+
+    protected async override Task OnInitializedAsync()
+    {
+        // base.OnInitialized();
+        // var user = (await authenticationState).User;
+        // if (!user.Identity.IsAuthenticated)
+        // {
+        //     //NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
+        //     //navManager.NavigateTo("/Login", true);
+        //     //navManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(navManager.Uri)}");
+        // }
+        // else { }
+
+        // var authstate = await authStateProvider.GetAuthenticationStateAsync();
+        // var userClaimsPrincipal = authstate.User; // ClaimsPrincipal
+        // var userClaimsPrincipalName = userClaimsPrincipal.Identity.Name;
+
+        // if (userClaimsPrincipalName != null)
+        // {
+        //     var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
+
+        //     if (userData != null)
+        //     {
+        //         if (userData.Role == "Administrator") { }
+        //     }
+        //     else { }
+        // }
+
+        // DetailGridData = QueueProcesses.Where(i => i.FOID == DepartmentQueue.OID).ToArray();
+        // LocationGridData = QueueLocations.Where(i => i.DepartmentQueueOID == DepartmentQueue.OID).ToArray();
+
+        SqlData sqlData = new SqlData();
+        LaborGridData = await sqlData.GetLaborData(POData.PONumber);
+        FreightGridData = await sqlData.GetFreightData(POData.PONumber);
+
+    }
+
+    // ============================================================ \\
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task; // Waits for grid data to load
+                                      // Grid.ExpandDetailRow(0);
+        }
+    }
+
+    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            if (e.EditModel.GetType() == typeof(Labor))
+            {
+                var newObject = (Labor)e.EditModel;
+                // newDepartmentQueueLocations.DepartmentQueueOID = DepartmentQueue.OID;
+                // newDepartmentQueueLocations.Workcenter = DepartmentQueue.workcenter;
+
+            }
+            if (e.EditModel.GetType() == typeof(Freight))
+            {
+                var newObject = (Freight)e.EditModel;
+                // newDepartmentQueueProcesses.FOID = DepartmentQueue.OID;
+                // newDepartmentQueueProcesses.workcenter = DepartmentQueue.workcenter;
+
+            }
+            // var newEmployee = (EditableEmployee)e.EditModel;
+            // newEmployee.FirstName = "John";
+            // newEmployee.LastName = "Doe";
+        }
+    }
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        if (e.EditModel.GetType() == typeof(Labor))
+        {
+            var editableObject = (Labor)e.EditModel;
+
+            // if (e.IsNew)
+            //...
+        }
+        if (e.EditModel.GetType() == typeof(Freight))
+        {
+            var editableObject = (Freight)e.EditModel;
+
+            // if (e.IsNew)
+            //...
+        }
+
+        // var editableEmployee = (EditableEmployee)e.EditModel;
+        // if (e.IsNew)
+        //     await NwindDataService.InsertEmployeeAsync(editableEmployee);
+        // else
+        //     await NwindDataService.UpdateEmployeeAsync((EditableEmployee)e.DataItem, editableEmployee);
+        await UpdateDataAsync();
+    }
+    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        if (e.DataItem.GetType() == typeof(Labor))
+        {
+            var deletingObject = (Labor)e.DataItem;
+
+        }
+        if (e.DataItem.GetType() == typeof(Freight))
+        {
+            var deletingObject = (Freight)e.DataItem;
+
+        }
+
+        // await NwindDataService.RemoveEmployeeAsync((EditableEmployee)e.DataItem);
+        await UpdateDataAsync();
+    }
+    async Task UpdateDataAsync()
+    {
+        // DataSource = await NwindDataService.GetEmployeesEditableAsync();
+    }
+
+    // ============================================================ \\
+
+    // public void OnDashboardScriptsLoading(ScriptsLoadingEventArgs e)
+    // {
+    //     //e.Scripts.Add("/parameter-item.js");
+    //     e.Scripts.Add("/parameter-item-ver2.js");
+    // }
+
+    // private async void RefreshDashboard()
+    // {
+    //     await js.InvokeVoidAsync("refresh");
+    // }
+
+    // public string GetCapitalizedName(string input)
+    // {
+    //     return input[0].ToString().ToUpper() + input.Substring(1);
+    // }
+
+    // public async Task DisplayGreetingAlert()
+    // {
+    //     //var authState = await authenticationState;
+    //     //var message = $"Hello {authState.User.Identity.Name}";
+
+    //     //await js.InvokeVoidAsync("alert", message);
+    // }
+
+    // ============================================================ \\
+}

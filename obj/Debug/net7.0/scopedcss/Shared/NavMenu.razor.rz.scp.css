@@ -1,0 +1,52 @@
+.sidebar[b-7d4e8ur9k6] {
+    min-width: 300px;
+    max-width: 300px;
+    box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.16);
+    transition: transform 0.1s ease-out;
+    height: 100%;
+    max-height: 100%;
+    overflow: auto;
+    background-color: var(--bs-body-bg, var(--dxbl-body-bg, #fff));
+}
+
+.sidebar.collapse[b-7d4e8ur9k6] {
+    display: none;
+}
+
+.sidebar.expand[b-7d4e8ur9k6] {
+    display: block;
+}
+
+@media (max-width: 1199.98px) {
+    .sidebar[b-7d4e8ur9k6] {
+        display: none;
+    }
+
+    .sidebar.expand[b-7d4e8ur9k6] {
+        position: fixed;
+        top: 3.5rem;
+        left: 0;
+        height: auto;
+        min-width: 100%;
+        z-index: 1050;
+    }
+}
+
+[b-7d4e8ur9k6] .app-sidebar {
+    --dxbl-treeview-spacing-x: 0.5rem;
+    --dxbl-treeview-spacing-y: 1rem;
+}
+
+[b-7d4e8ur9k6] .app-sidebar > .dxbl-scroll-viewer > .dxbl-scroll-viewer-content > .dxbl-treeview-items-container > .dxbl-treeview-item > .dxbl-treeview-item-content > .dxbl-treeview-item-container {
+    --dxbl-treeview-font-weight: 600;
+}          
+
+[b-7d4e8ur9k6] .app-sidebar > .dxbl-scroll-viewer > .dxbl-scroll-viewer-content > .dxbl-treeview-items-container > .dxbl-treeview-item > .dxbl-treeview-item-content > .dxbl-btn.dxbl-invisible {
+    display: none;
+}
+
+@media (max-width: 1199.98px) {
+    [b-7d4e8ur9k6] .app-sidebar {
+        padding-bottom: 0;
+    }
+}
