@@ -11,6 +11,13 @@
 
 <DxGrid @ref="POGrid"
         Data="POGridData"
+        PagerPosition="GridPagerPosition.Bottom"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        @bind-PageIndex="@ActivePageIndex"
+        FooterDisplayMode="GridFooterDisplayMode.Auto"
+        PageSize="@PageSize"
         AutoCollapseDetailRow="true"
         KeyFieldName="PONumber"
         ValidationEnabled="false"
@@ -47,6 +54,18 @@
         <Grid_MasterDetail_NestedGrid_DetailContent POData="(POData)context.DataItem" />
     </DetailRowTemplate>
 </DxGrid>
+<div class="pager-container">
+    @* <DxPager PageCount="@PageCount" @bind-ActivePageIndex="@ActivePageIndex" /> *@
+    @* <div>
+        Total: @TotalRecords records
+    </div> *@
+</div>
+
+<style>
+    .highlighted-item > td {
+        background-color: rgba(245, 198, 203, 0.5);
+    }
+</style>
 
 @code {
     // ============================================================ \\
@@ -59,6 +78,11 @@
 
     IGrid POGrid { get; set; }
     IEnumerable<POData> POGridData { get; set; }
+
+    int PageCount { get; set; } = 0;
+    int TotalRecords { get; set; } = 0;
+    int PageSize { get; set; } = 20;
+    int ActivePageIndex { get; set; } = 0;
 
     Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
         { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
@@ -104,6 +128,7 @@
 
         SqlData sqlData = new SqlData();
         POGridData = await sqlData.GetPOData();
+
     }
 
     // ============================================================ \\
@@ -122,10 +147,17 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        //TotalRecords = (int)(POGrid.GetTotalSummaryValue(POGrid?.GetTotalSummaryItems().First()));
+        TotalRecords = POGridData.Count();
+        PageCount = (int)Math.Ceiling((decimal)TotalRecords / PageSize);
+        StateHasChanged();
+        base.OnAfterRender(firstRender);
+
         if (firstRender)
         {
-            await DataLoadedTcs.Task; // Waits for grid data to load
-                                      // Grid.ExpandDetailRow(0);
+            await DataLoadedTcs.Task;
+            // Waits for grid data to load
+            // Grid.ExpandDetailRow(0);
         }
     }
 
@@ -137,22 +169,10 @@
         // }
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
         {
-            // int temperatureC = (int)e.Grid.GetRowValue(e.VisibleIndex, "TemperatureC");
-            // if (temperatureC < 0)
-            //     e.CssClass = "blue-bg";
-            // if (temperatureC > 20)
-            //     e.CssClass = "red-bg";
-
             e.Style = "font-weight: 800";
         }
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
         {
-            // int temperatureC = (int)e.Grid.GetRowValue(e.VisibleIndex, "TemperatureC");
-            // if (temperatureC < 0)
-            //     e.CssClass = "blue-bg";
-            // if (temperatureC > 20)
-            //     e.CssClass = "red-bg";
-
             e.Style = "font-weight: 800";
         }
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
@@ -210,32 +230,6 @@
     {
         // Northwind?.Dispose();
     }
-
-    // ============================================================ \\
-
-    // public void OnDashboardScriptsLoading(ScriptsLoadingEventArgs e)
-    // {
-    //     //e.Scripts.Add("/parameter-item.js");
-    //     e.Scripts.Add("/parameter-item-ver2.js");
-    // }
-
-    // private async void RefreshDashboard()
-    // {
-    //     await js.InvokeVoidAsync("refresh");
-    // }
-
-    // public string GetCapitalizedName(string input)
-    // {
-    //     return input[0].ToString().ToUpper() + input.Substring(1);
-    // }
-
-    // public async Task DisplayGreetingAlert()
-    // {
-    //     //var authState = await authenticationState;
-    //     //var message = $"Hello {authState.User.Identity.Name}";
-
-    //     //await js.InvokeVoidAsync("alert", message);
-    //}
 
     // ============================================================ \\
 }
