@@ -1,0 +1,40 @@
+﻿@page
+@model LAGem_POPortal.Areas.Identity.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h1>@ViewData["Title"]</h1>
+<div class="row" style="margin:50px">
+    <div class="col-md-4">
+        <section>
+            <form id="account" method="post">
+                <h2>Register a new user</h2>
+                <hr />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                @*<div class="form-floating" style="margin:10px">
+                        <input asp-for="Input.Email" class="form-control" autocomplete="email" aria-required="true" />
+                        <label asp-for="Input.Email" class="form-label"></label>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>*@
+                <div class="form-floating" style="margin:10px">
+                    <label class="form-label">UserName</label>
+                    <input asp-for="Input.UserName" class="form-control" autocomplete="username" aria-required="true" />
+                    @*<label asp-for="Input.UserName" class="form-label"></label>*@
+                    <span asp-validation-for="Input.UserName" class="text-danger"></span>
+                </div>
+                <div class="form-floating" style="margin:10px">
+                    <label class="form-label">Password</label>
+                    <input asp-for="Input.Password" class="form-control" autocomplete="curent-password" aria-required="true" />
+                    @*<label asp-for="Input.Password" class="form-label"></label>*@
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+                <div style="margin:10px">
+                    <button id="login-submit" type="submit" class="w-100 btn-lg btn-lg btn-primary">Register</button>
+                    @*<button id="login-register" onclick="Submit" class="w-100 btn-lg btn-lg btn-primary">Register</button>*@
+                    @Html.AntiForgeryToken();
+                </div>
+            </form>
+        </section>
+    </div>
+</div>

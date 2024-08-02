@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 #nullable disable
 
-namespace MasterDetail.Models {
+namespace LAGem_POPortal.Models {
     public partial class Employee {
         public int EmployeeId { get; set; }
         [Required]

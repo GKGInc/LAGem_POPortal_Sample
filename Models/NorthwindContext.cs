@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 #nullable disable
 
-namespace MasterDetail.Models {
+namespace LAGem_POPortal.Models {
     public partial class NorthwindContext : DbContext {
 
         public NorthwindContext(DbContextOptions<NorthwindContext> options)

@@ -5,19 +5,19 @@
 @inject NavigationManager navManager
 @inject UserAccountService userAccountService *@
 
-@using MasterDetail.Data
-@using MasterDetail.Models
+@using LAGem_POPortal.Data
+@using LAGem_POPortal.Models
 @using Microsoft.EntityFrameworkCore
 
 <DxTabs>
-    <DxTabPage Text="Labor Data">
+    <DxTabPage Text="Program Data">
         <br />
         <div class="mb-2">
             PONumber: @POData.PONumber
         </div>
 
-        <DxGrid @ref="LaborGrid"
-                Data="LaborGridData"
+        <DxGrid @ref="ProgramGrid"
+                Data="ProgramGridData"
                 PageSize="5"
                 AutoExpandAllGroupRows="true"
                 KeyFieldName="Id"
@@ -33,11 +33,57 @@
                 HighlightRowOnHover="true">
             <Columns>
                 @* <DxGridDataColumn FieldName="Id" Caption="Id" Width="40" /> *@
-                <DxGridDataColumn FieldName="Program" Caption="Program" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
-                <DxGridDataColumn FieldName="CardToUse" Caption="Card to Use" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="ProgramName" Caption="Program" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="Product" Caption="Card to Use" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
                 <DxGridDataColumn FieldName="BoxStyle" Caption="Box Style" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
-                <DxGridDataColumn FieldName="Accessories" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
-                <DxGridDataColumn FieldName="TicketProofApproval" Caption="Ticket Proof Approval" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" MinWidth="100" />
+                <DxGridDataColumn FieldName="Accessories" Caption="Accessories" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="TicketEdiStyle" Caption="Ticket / EDI Style# (PID)	" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="TicketInfo" Caption="Ticket Info(Retail Barcode#, SKU)" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="TicketTypeDestination" Caption="Ticket Type + Destination" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="TicketSource" Caption="Ticket Source" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                @* <DxGridDataColumn FieldName="TicketProofApproval" Caption="Ticket Proof Approval" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" MinWidth="100" /> *@
+                <DxGridDataColumn FieldName="TicketProofApproval" Caption="Ticket Proof Approval & Order Date + ETA/Tracking" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" MinWidth="100" />
+                <DxGridDataColumn FieldName="BoxPONo" Caption="Box PO# + ETA" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="CardsManufacturer" Caption="Cards Manufacturer + PO + ETA" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+
+                <DxGridCommandColumn Width="150px"
+                                     EditButtonVisible="true"
+                                     CancelButtonVisible="true"
+                                     SaveButtonVisible="true"
+                                     NewButtonVisible="true" />
+            </Columns>
+        </DxGrid>
+
+    </DxTabPage>
+
+    <DxTabPage Text="Comments Data">
+        <br />
+        <div class="mb-2">
+            PONumber: @POData.PONumber
+        </div>
+
+        <DxGrid @ref="CommentsGrid"
+                Data="CommentsGridData"
+                PageSize="5"
+                AutoExpandAllGroupRows="true"
+                KeyFieldName="Id"
+                ValidationEnabled="false"
+                EditMode="GridEditMode.EditRow"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                ShowFilterRow="true"
+                EditModelSaving="Grid_EditModelSaving"
+                DataItemDeleting="Grid_DataItemDeleting"
+                CustomizeEditModel="Grid_CustomizeEditModel"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn"
+                TextWrapEnabled="false"
+                HighlightRowOnHover="true">
+            <Columns>
+                @* <DxGridDataColumn FieldName="Id" Caption="Id" Width="40" /> *@
+                <DxGridDataColumn FieldName="Comments" Caption="Comments" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="SamplesApproval" Caption="PP samples Approval" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="DisneyStatus" Caption="Disney Status" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="ImageApproval" Caption="TOP Image  Approval" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" MinWidth="100" />
+
                 <DxGridCommandColumn Width="150px"
                                      EditButtonVisible="true"
                                      CancelButtonVisible="true"
@@ -74,9 +120,10 @@
                 <DxGridDataColumn FieldName="ShipMethod" Caption="Ship Method" Width="20%" />
                 <DxGridDataColumn FieldName="InvoiceNo" Caption="Invoice No" Width="20%" />
                 <DxGridDataColumn FieldName="Tracking" Width="20%" />
-                <DxGridDataColumn FieldName="UnitsShipped" Caption="Units Shipped" DisplayFormat="n3" Width="10%" />
-                <DxGridDataColumn FieldName="DateShipped" Caption="Date Shipped" DisplayFormat="d" Width="20%" />
-                <DxGridDataColumn FieldName="ETA_LA" Caption="ETA LA" DisplayFormat="d" Width="20%" />
+                <DxGridDataColumn FieldName="ShipmentQty" Caption="Units Shipped" DisplayFormat="n3" Width="10%" />
+                <DxGridDataColumn FieldName="ShipmentDate" Caption="Date Shipped" DisplayFormat="d" Width="20%" />
+                <DxGridDataColumn FieldName="ShipToETA" Caption="ETA LA" DisplayFormat="d" Width="20%" />
+
                 <DxGridCommandColumn Width="150px"
                                      EditButtonVisible="true"
                                      CancelButtonVisible="true"
@@ -112,21 +159,60 @@
 
     </DxTabPage>
 
-    <DxTabPage Text="Invoice Data">
+    <DxTabPage Text="Cost Data">
         <br />
-        <p>Sorry, I got nothing</p>
+        <div class="mb-2">
+            PONumber: @POData.PONumber
+        </div>
 
+        <DxGrid @ref="CostGrid"
+                Data="CostGridData"
+                PageSize="5"
+                AutoExpandAllGroupRows="true"
+                KeyFieldName="Id"
+                ValidationEnabled="false"
+                EditMode="GridEditMode.EditRow"
+                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                ShowFilterRow="true"
+                EditModelSaving="Grid_EditModelSaving"
+                DataItemDeleting="Grid_DataItemDeleting"
+                CustomizeEditModel="Grid_CustomizeEditModel"
+                ColumnResizeMode="GridColumnResizeMode.NextColumn"
+                TextWrapEnabled="false"
+                HighlightRowOnHover="true">
+            <Columns>
+                @* <DxGridDataColumn FieldName="Id" Caption="Id" Width="40" /> *@
+                <DxGridDataColumn FieldName="FirstCost" Caption="Jewelry First Cost" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="JewelryCost" Caption="Jewelry Cost Amount" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="PackagingCost" Caption="Packaging Cost Amount" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="TotalCost" Caption="Jewelry + packaging" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" MinWidth="100" />
+
+                <DxGridDataColumn FieldName="Price" Caption="Sell Price" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="SellAmount" Caption="Sell Price Amount" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="AttributeValue" Caption="Metal" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+
+                <DxGridDataColumn FieldName="DutyPercent" Caption="Duty %" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="DutyAmount" Caption="Duty Amount" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                
+                <DxGridDataColumn FieldName="LaborFreight" Caption="Labor + Freight" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="LaborAmount" Caption="Labor Amount" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="DisneyRoyalty" Caption="Disney Royalty 16%" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="TotalCostLanded" Caption="Total cost landed" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+                <DxGridDataColumn FieldName="COGPercent" Caption="COG %" FilterRowOperatorType="GridFilterRowOperatorType.Contains" Width="20%" />
+
+                <DxGridCommandColumn Width="150px"
+                                     EditButtonVisible="true"
+                                     CancelButtonVisible="true"
+                                     SaveButtonVisible="true"
+                                     NewButtonVisible="true" />
+            </Columns>
+        </DxGrid>
     </DxTabPage>
 
-    <DxTabPage Text="Some Other Info">
-        <br />
-        <p>Come back later for Some Other Info</p>
-    </DxTabPage>
-
-    <DxTabPage Text="Nothing to See Here">
+    @* <DxTabPage Text="Nothing to See Here">
         <br />
         <p>I Said, nothing to see here!</p>
-    </DxTabPage>
+    </DxTabPage> *@
 </DxTabs>
 
 
@@ -136,8 +222,10 @@
     [CascadingParameter]
     private Task<AuthenticationState> authenticationState { get; set; }
 
-    IGrid LaborGrid { get; set; }
+    IGrid ProgramGrid { get; set; }
+    IGrid CommentsGrid { get; set; }
     IGrid FreightGrid { get; set; }
+    IGrid CostGrid { get; set; }
 
     bool AutoCollapseDetailRow { get; set; }
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -151,8 +239,10 @@
 
     // object DetailGridData { get; set; }
     // object LocationGridData { get; set; }
-    IEnumerable<Labor> LaborGridData { get; set; }
-    IEnumerable<Freight> FreightGridData { get; set; }
+    IEnumerable<ProgramData> ProgramGridData { get; set; }
+    IEnumerable<CommentsData> CommentsGridData { get; set; }
+    IEnumerable<FreightData> FreightGridData { get; set; }
+    IEnumerable<CostData> CostGridData { get; set; }
 
     // ============================================================ \\
 
@@ -187,8 +277,10 @@
         // LocationGridData = QueueLocations.Where(i => i.DepartmentQueueOID == DepartmentQueue.OID).ToArray();
 
         SqlData sqlData = new SqlData();
-        LaborGridData = await sqlData.GetLaborData(POData.PONumber);
+        // ProgramGridData = await sqlData.GetProgramData(POData.PONumber);
+        CommentsGridData = await sqlData.GetCommentsData(POData.PONumber);
         FreightGridData = await sqlData.GetFreightData(POData.PONumber);
+        CostGridData = await sqlData.GetCostData(POData.PONumber);
 
     }
 
@@ -207,16 +299,16 @@
     {
         if (e.IsNew)
         {
-            if (e.EditModel.GetType() == typeof(Labor))
+            if (e.EditModel.GetType() == typeof(ProgramData))
             {
-                var newObject = (Labor)e.EditModel;
+                var newObject = (ProgramData)e.EditModel;
                 // newDepartmentQueueLocations.DepartmentQueueOID = DepartmentQueue.OID;
                 // newDepartmentQueueLocations.Workcenter = DepartmentQueue.workcenter;
 
             }
-            if (e.EditModel.GetType() == typeof(Freight))
+            if (e.EditModel.GetType() == typeof(FreightData))
             {
-                var newObject = (Freight)e.EditModel;
+                var newObject = (FreightData)e.EditModel;
                 // newDepartmentQueueProcesses.FOID = DepartmentQueue.OID;
                 // newDepartmentQueueProcesses.workcenter = DepartmentQueue.workcenter;
 
@@ -228,16 +320,16 @@
     }
     async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-        if (e.EditModel.GetType() == typeof(Labor))
+        if (e.EditModel.GetType() == typeof(ProgramData))
         {
-            var editableObject = (Labor)e.EditModel;
+            var editableObject = (ProgramData)e.EditModel;
 
             // if (e.IsNew)
             //...
         }
-        if (e.EditModel.GetType() == typeof(Freight))
+        if (e.EditModel.GetType() == typeof(FreightData))
         {
-            var editableObject = (Freight)e.EditModel;
+            var editableObject = (FreightData)e.EditModel;
 
             // if (e.IsNew)
             //...
@@ -252,14 +344,14 @@
     }
     async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
     {
-        if (e.DataItem.GetType() == typeof(Labor))
+        if (e.DataItem.GetType() == typeof(ProgramData))
         {
-            var deletingObject = (Labor)e.DataItem;
+            var deletingObject = (ProgramData)e.DataItem;
 
         }
-        if (e.DataItem.GetType() == typeof(Freight))
+        if (e.DataItem.GetType() == typeof(FreightData))
         {
-            var deletingObject = (Freight)e.DataItem;
+            var deletingObject = (FreightData)e.DataItem;
 
         }
 

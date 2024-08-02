@@ -6387,9 +6387,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\MasterDetail.csproj",
-      "projectName": "MasterDetail",
-      "projectPath": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\MasterDetail.csproj",
+      "projectUniqueName": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\LAGem_POPortal.csproj",
+      "projectName": "LAGem_POPortal",
+      "projectPath": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\LAGem_POPortal.csproj",
       "packagesPath": "C:\\Users\\Helder\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\obj\\",
       "projectStyle": "PackageReference",

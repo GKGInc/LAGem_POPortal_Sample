@@ -1,0 +1,25 @@
+﻿@page
+@using LAGem_POPortal.Data
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authentication;
+@attribute [IgnoreAntiforgeryToken]
+@*@inject SignInManager<IdentityUser> SignInManager
+    @inject UserManager<IdentityUser> UserManager*@
+@inject CustomAuthService _auth
+@functions {
+    public async Task<IActionResult> OnPost()
+    {
+        //// Logging: using Microsoft.AspNetCore.Identity custom
+        //if (SignInManager.IsSignedIn(User))
+        //{
+        //    await SignInManager.SignOutAsync();
+        //    //var identity = await UserManager.FindByEmailAsync(User.Identity.Name);
+        //    var identity = await UserManager.FindByNameAsync(User.Identity.Name);
+        //    await UserManager.UpdateSecurityStampAsync(identity);
+        //}
+
+        await HttpContext.SignOutAsync();
+
+        return Redirect("~/");
+    }
+}

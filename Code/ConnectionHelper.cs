@@ -7,7 +7,7 @@ using System.Configuration;
 using DevExpress.Xpo;
 using Microsoft.Extensions.Configuration;
 
-namespace MasterDetail.Code
+namespace LAGem_POPortal.Code
 {
     public class ConnectionHelper
     {

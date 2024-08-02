@@ -11,10 +11,10 @@ using System;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using DevExpress.DashboardAspNetCore;
-using MasterDetail.Data;
-using MasterDetail.Models;
+using LAGem_POPortal.Data;
+using LAGem_POPortal.Models;
 
-namespace MasterDetail.Code
+namespace LAGem_POPortal.Code
 {
     public static class DashboardUtils
     {
@@ -61,11 +61,11 @@ namespace MasterDetail.Code
             //dataSourceStorage.RegisterDataSource("jsonDataSourceUrl", jsonDataSourceUrl.SaveToXml());
 
 
-            // Registers an SQL data source.
-            DashboardObjectDataSource objDataSource1 = new DashboardObjectDataSource("DepartmentQueueProcessesView_all", typeof(DepartmentQueueProcessesView));
-            dataSourceStorage.RegisterDataSource("ediAttendantDataObjectDataSource", objDataSource1.SaveToXml());
-            DashboardObjectDataSource objDataSource2 = new DashboardObjectDataSource("DepartmentQueueProcessesView_thisyear", typeof(DepartmentQueueProcessesView));
-            dataSourceStorage.RegisterDataSource("ediAttendantDataObjectDataSource", objDataSource2.SaveToXml());
+            //// Registers an SQL data source.
+            //DashboardObjectDataSource objDataSource1 = new DashboardObjectDataSource("DepartmentQueueProcessesView_all", typeof(DepartmentQueueProcessesView));
+            //dataSourceStorage.RegisterDataSource("ediAttendantDataObjectDataSource", objDataSource1.SaveToXml());
+            //DashboardObjectDataSource objDataSource2 = new DashboardObjectDataSource("DepartmentQueueProcessesView_thisyear", typeof(DepartmentQueueProcessesView));
+            //dataSourceStorage.RegisterDataSource("ediAttendantDataObjectDataSource", objDataSource2.SaveToXml());
 
             configurator.SetDataSourceStorage(dataSourceStorage);
 
@@ -182,6 +182,7 @@ namespace MasterDetail.Code
             //e.Data = await sqlData.GetDashboardData(e.DashboardId, user, promoCode, e.DataSourceName, e.DataSourceComponentName);
             e.Data = await sqlData.GetDashboardData(e.DashboardId);
         }
+        
         private static void Configurator_ConfigureDataConnection(object sender, ConfigureDataConnectionWebEventArgs e, IFileProvider fileProvider)
         {
             //if (e.ConnectionName == "Excel Data Source Connection Name")

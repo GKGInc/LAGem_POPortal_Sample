@@ -1,8 +1,9 @@
-﻿@inherits LayoutComponentBase
+﻿@using LAGem_POPortal.Authentication
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager NavigationManager
 
-<DxLayoutBreakpoint MaxWidth="1200"
-                    @bind-IsActive="@IsMobileLayout" />
+<DxLayoutBreakpoint MaxWidth="1200" @bind-IsActive="@IsMobileLayout" />
 
 <div class="page">
     <DxGridLayout CssClass="page-layout">
@@ -41,7 +42,32 @@
             </DxGridLayoutItem>
         </Items>
     </DxGridLayout>
+</div>
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4 auth">
+        @*<LoginDisplay />*@
+        @*<a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>*@
+
+      @*   <AuthorizeView Roles="Administrator,User">
+            <Authorized>
+                <div>Hello, @GetCapitalizedName(@context.User.Identity.Name)!</div>
+                <a @onclick="Logout" href="javascript:void(0)">Logout</a>
+            </Authorized>
+            <NotAuthorized>
+                <a href="/login">Login</a>
+            </NotAuthorized>
+        </AuthorizeView> *@
     </div>
+
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
 
 @code{
     string? NavMenuCssClass { get; set; }
@@ -64,18 +90,54 @@
             }
         }
     }
+    
+    // protected override void OnInitialized() {
+    //     NavigationManager.LocationChanged += OnLocationChanged;
+    // }
+    // async void OnLocationChanged(object? sender, LocationChangedEventArgs args) {
+    //     if(IsMobileLayout) {
+    //         IsSidebarExpanded = false;
+    //         await InvokeAsync(StateHasChanged);
+    //     }
+    // }
+    // public void Dispose() {
+    //     NavigationManager.LocationChanged -= OnLocationChanged;
+    // }
 
-    protected override void OnInitialized() {
-        NavigationManager.LocationChanged += OnLocationChanged;
-    }
-    async void OnLocationChanged(object? sender, LocationChangedEventArgs args) {
-        if(IsMobileLayout) {
-            IsSidebarExpanded = false;
-            await InvokeAsync(StateHasChanged);
-        }
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        // var user = (await authenticationState).User;
+        // if (!user.Identity.IsAuthenticated)
+        // {
+        //     //NavigationManager.NavigateTo("/Login", true);
+        //     //NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
+        // }
+        // else
+        // {
+
+        // }
+
+        //AuthenticationState authstate = await authStateProvider.GetAuthenticationStateAsync();
+        //bool isAuth = authstate.User.Identity.IsAuthenticated;
+        //if (!isAuth)
+        //{
+        //    //NavigationManager.NavigateTo("/Login", true);
+        //}
     }
 
-    public void Dispose() {
-        NavigationManager.LocationChanged -= OnLocationChanged;
+    public string GetCapitalizedName(string input)
+    {
+        return input[0].ToString().ToUpper() + input.Substring(1);
+    }
+
+    private async Task Logout()
+    {
+        var customAutStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+        await customAutStateProvider.UpdateAuthenticationState(null);
+        NavigationManager.NavigateTo("/Login", true);
     }
 }

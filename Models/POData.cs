@@ -5,15 +5,21 @@ using System.Linq;
 using System.Text;
 
 
-namespace MasterDetail.Models
+namespace LAGem_POPortal.Models
 {
     public class POData
     {
-        public string PONumber { get; set; }
-        public string SONumber { get; set; }
-        public string ItemCatalog { get; set; }
-        public decimal Units { get; set; }
-        public DateTime OrderDate { get; set; }
-        public DateTime FactoryCancel { get; set; }
+        public int Id { get; set; }
+
+        public string? PONumber { get; set; }        //PO Number
+        //public string? ProductNo { get; set; }       //ITEM CATALOG #
+        public string? VendorName { get; set; }       //Jewelry Factory
+        public string? CountryCode { get; set; }     //Country of origin
+        public string? CustomerName { get; set; }     //Customer
+        //public decimal? QtyOrdered { get; set; }     //Units
+        public DateTime? PODate { get; set; }        //PO Order Date 
+        public DateTime? EndDate { get; set; }       //Factory Cancel Date
+        public DateTime? StartDate { get; set; }     //Customer Ship date
+        public string? SONumber { get; set; }        //SO Number
     }
 }

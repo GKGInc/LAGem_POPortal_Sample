@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 #nullable disable
 
-namespace MasterDetail.Models {
+namespace LAGem_POPortal.Models {
     public partial class Product {
         public Product() {
             OrderDetails = new HashSet<OrderDetail>();

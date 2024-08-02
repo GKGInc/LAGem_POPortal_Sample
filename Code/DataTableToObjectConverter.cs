@@ -9,7 +9,7 @@ using DevExpress.Xpo.DB;
 using DevExpress.Xpo;
 //using NLog;
 
-namespace MasterDetail.Code
+namespace LAGem_POPortal.Code
 {
     public class DataTableToObjectConverter
     {
@@ -31,6 +31,31 @@ namespace MasterDetail.Code
         // ----------------------------------------------------------------------------------
 
         #region Converter Functions
+
+        public async Task<List<T>> GetSqlData<T>(string query)
+        {
+            DataTableToObjectConverter converter = new DataTableToObjectConverter();
+
+            DataTable dt = null;
+            try
+            {
+                dt = await converter.GetDataTableFromQuery(query);
+            }
+            catch (Exception ex)
+            {
+                return new List<T>();
+            }
+
+            if (dt == null)
+            {
+                return new List<T>();
+            }
+
+            List<T> data = new List<T>();
+            data = await converter.GetObjectListFromDataTable<T>(dt, new Dictionary<string, string>());
+
+            return data;
+        }
 
         public async Task<DataTable> GetDataTableFromQuery(string query)
         {

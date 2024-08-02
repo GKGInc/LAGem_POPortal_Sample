@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "MasterDetail": {
+    "LAGem_POPortal": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

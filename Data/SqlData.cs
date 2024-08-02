@@ -1,11 +1,13 @@
-using MasterDetail.Code;
-using MasterDetail.Models;
+using DevExpress.Office.Utils;
+using LAGem_POPortal.Authentication;
+using LAGem_POPortal.Code;
+using LAGem_POPortal.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
-namespace MasterDetail.Data
+namespace LAGem_POPortal.Data
 {
     public class SqlData
     {
@@ -13,156 +15,784 @@ namespace MasterDetail.Data
 
         #region Public Functions
 
+        public async Task<List<T>> GetSqlData<T>(string query)
+        {
+            DataTableToObjectConverter converter = new DataTableToObjectConverter();
+
+            DataTable dt = null;
+            try
+            {
+                dt = await converter.GetDataTableFromQuery(query);
+            }
+            catch (Exception ex)
+            {
+                return new List<T>();
+            }
+
+            if (dt == null)
+            {
+                return new List<T>();
+            }
+
+            List<T> data = new List<T>();
+            data = await converter.GetObjectListFromDataTable<T>(dt, new Dictionary<string, string>());
+
+            return data;
+        }
+
         public async Task<List<POData>> GetPOData()
         {
-            string query = @"SELECT TOP (1000) 
-		[sono]		AS PONumber
-      ,[salesno]	AS SONumber
-      ,[partno]		AS ItemCatalog
-      ,[sqty]		AS Units
-      ,[crea_date]  AS OrderDate
-      ,[ship_date]	AS FactoryCancel
-  FROM [jade01].[dbo].[SOHEADER]
-  ORDER BY 1 DESC ";
-            //string fullQuery = string.Format(query, whereStatement);
-            string fullQuery = query;
-            DataTableToObjectConverter converter = new DataTableToObjectConverter();
-
-            DataTable dt = null;
-            try
-            {
-                dt = await converter.GetDataTableFromQuery(fullQuery);
-            }
-            catch (Exception ex)
-            {
-                //LogError("GetSqlData", ex, ex.Message);
-                return null;
-            }
-
-            if (dt == null)
-            {
-                return new List<POData>();
-            }
-
-            List<POData> data = new List<POData>();
-            foreach (DataRow dr in dt.Rows)
-            {
-                data.Add(new POData()
-                {
-                    PONumber = dr["PONumber"].ToString(),
-                    SONumber = dr["SONumber"].ToString(),
-                    ItemCatalog = dr["ItemCatalog"].ToString(),
-                    Units = decimal.Parse(dr["Units"].ToString()),
-                    OrderDate = DateTime.Parse(dr["OrderDate"].ToString()),
-                    FactoryCancel = DateTime.Parse(dr["FactoryCancel"].ToString())
-                });
-            }
-
-            return data;
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY poh.[PODate]) AS [Id]
+      ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  --,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+	  ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
+	  --,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+      ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  
+  FROM [PIMS].[dbo].[POHeader] poh
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON poh.SoHeaderId = soh.[SOHeaderId]
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON soh.[BusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON poh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON vendor.CountryCodeId = country.LookupDetailId
+  ORDER BY poh.[PODate]
+ ";
+            return await GetSqlData<POData>(query);
+        }
+        public async Task<List<POData>> GetPOData(string sono)
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY poh.[PODate]) AS [Id]
+      ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+	  ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+      ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  
+  FROM [PIMS].[dbo].[POHeader] poh
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON poh.SoHeaderId = soh.[SOHeaderId]
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON soh.[BusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON poh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON vendor.CountryCodeId = country.LookupDetailId
+  WHERE soh.[sONumber] = '{0}'
+  ORDER BY poh.[PODate]
+ ";
+            string fullQuery = string.Format(query, sono);
+            return await GetSqlData<POData>(fullQuery);
         }
 
-        public async Task<List<Labor>> GetLaborData(string sono)
+        public async Task<List<PODetailData>> GetPODetailData(string pono)
         {
-            string query = @"SELECT [sono] AS PONumber
-      --,[opno]
-      ,[descrip] AS Program
-      ,[loadcenter] AS CardToUse
-      ,[laborgrade] AS BoxStyle
-      ,[misc01] AS Accessories
-      ,[note01] AS TicketProofApproval
-	  ,row_number() OVER (ORDER BY [sono], [opno], [timestmp] DESC) AS [Id]
-  FROM [jade01].[dbo].[SOROUTE]
-  WHERE [sono] = '{0}'
-  ORDER BY [opno] ASC ";
-            string fullQuery = string.Format(query, sono);
-            DataTableToObjectConverter converter = new DataTableToObjectConverter();
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY pod.[POLineNo], sod.[SOLineNo],sod.[SOSubLineTypeId]) AS [Id]
+      ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  
+      ,ISNULL(pod.[PODetailId], 0) AS [PODetailId]
+      ,ISNULL(pod.[POLineNo], 0) AS [POLineNo]
+      ,ISNULL(pod.[POSubLineNo], 0) AS [POSubLineNo]
+      ,ISNULL(pod.[POSubLineTypeId], 0) AS [POSubLineTypeId]
+      ,ISNULL(pod.[ProductId], 0) AS [ProductId]
 
-            DataTable dt = null;
-            try
-            {
-                dt = await converter.GetDataTableFromQuery(fullQuery);
-            }
-            catch (Exception ex)
-            {
-                //LogError("GetSqlData", ex, ex.Message);
-                return null;
-            }
+	  ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  ,ISNULL(poh.[BusinessPartnerId], 0) AS [BusinessPartnerId] 
+	  ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+	  ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
 
-            if (dt == null)
-            {
-                return new List<Labor>();
-            }
+	  ,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+      ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  
 
-            List<Labor> data = new List<Labor>();
-            foreach (DataRow dr in dt.Rows)
-            {
-                data.Add(new Labor()
-                {
-                    PONumber = dr["PONumber"].ToString(),
-                    Program = dr["Program"].ToString(),
-                    CardToUse = dr["CardToUse"].ToString(),
-                    BoxStyle = dr["BoxStyle"].ToString(),
-                    Accessories = dr["Accessories"].ToString(),
-                    TicketProofApproval = dr["TicketProofApproval"].ToString(),
-                    Id = int.Parse(dr["Id"].ToString())
-                });
-            }
+	  ,ISNULL(sod.[SOLineNo], 0) AS [SOLineNo]
+      ,ISNULL(sod.[SOSubLineNo], 0) AS [SOSubLineNo]
+      ,ISNULL(sod.[SOSubLineTypeId], 0) AS [SOSubLineTypeId]
+      ,CASE WHEN sod.[SOSubLineTypeId] = 1 THEN 'Factory' 
+		WHEN sod.[SOSubLineTypeId] = 2 THEN 'Packaging' 
+		ELSE '' END AS [SOSubLineType]
 
-            return data;
+  FROM [PIMS].[dbo].[PODetail] pod
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON poh.[POHeaderId] = pod.[POHeaderId]
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON soh.[SOHeaderId] = poh.SoHeaderId		
+	LEFT JOIN [PIMS].[dbo].[SODetail] sod
+		ON sod.[SODetailId] = pod.[SODetailId]	
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON soh.[BusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON poh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON customer.CountryCodeId = country.LookupDetailId
+  WHERE poh.[PONumber] = '{0}'
+  ORDER BY pod.[POLineNo],sod.[SOLineNo],sod.[SOSubLineTypeId] ";
+
+            string fullQuery = string.Format(query, pono);
+            return await GetSqlData<PODetailData>(fullQuery);
         }
 
-        public async Task<List<Freight>> GetFreightData(string sono)
+        public async Task<List<PODetailData>> GetBOMData(string sono, int lineno)
         {
-            string query = @"SELECT [sono] AS PONumber
-      --,[opno]--
-      ,[code] AS ShipMethod
-      ,[t_time] AS InvoiceNo
-      ,[part_grade] AS Tracking
-      ,[qty] AS UnitsShipped
-      ,[timestmp] AS DateShipped
-      --,[lastchg] AS ETA_LA --[timestmp] + 10days
-      ,DATEADD(DAY, 10, [timestmp] ) AS ETA_LA --[timestmp] + 10days
-	  ,row_number() OVER (ORDER BY [sono], [opno], [timestmp] DESC) AS [Id]
-  FROM [jade01].[dbo].[SOTRAN]
-  WHERE [sono] = '{0}'
-  ORDER BY [opno] ASC ";
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY [SOLineNo],[SOSubLineNo]) AS [Id]
+      ,[SONumber]
+      ,[SODate]
+      ,[CustomerName]	
+      ,[CustomerPO]
+      ,[StartDate]
+      ,[EndDate]
+      ,[SOLineNo]
+      ,[SOSubLineNo]
+	  ,CAST(ISNULL([SOLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL([SOSubLineNo], 0) AS VARCHAR(4))  AS [SOLineNoExt]
+      ,[ProgramName]
+      ,[ProductTypeName] AS [SOSubLineType]
+      ,[ProductNo]
+      ,[ProductName]
+      ,[SOQty]
+      ,[Cost]
+      ,[Price]
+      ,ISNULL([VendorPO], '') AS [VendorPO]
+      ,ISNULL([PODate], '1900-01-01') AS [PODate]
+      ,ISNULL([VendorName], '') AS [VendorName]
+      ,ISNULL([POLineNo], 0) AS [POLineNo]
+      ,ISNULL([POQty], 0) AS [POQty]
+      ,ISNULL([POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL([PODetailId], 0) AS [PODetailId]
+  FROM [PIMS].[dbo].[SOPOvw]
+  WHERE SoNumber= 'I-10896' 
+	AND [SOLineNo] = 1
+  ORDER BY [SOLineNo],[SOSubLineNo]";
+
+            string fullQuery = string.Format(query, sono, lineno);
+            return await GetSqlData<PODetailData>(fullQuery);
+        }
+
+        public async Task<List<CommentsData>> GetCommentsData(int poDetailId)
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY qc.[CreatedOn]) AS [Id]
+      ,qc.[QualityControlId]
+      ,qc.[QualityControlTypeId]
+      ,qc.[ProductId]
+      ,qc.[PODetailID]
+      ,qc.[QualityControlStatus]
+
+	  ,0 AS [CommentaryId]
+      ,0 AS [CommentaryTypeId]
+      ,'' AS [Comments]
+
+      ,'' AS [SamplesApproval]
+      ,'' AS [DisneyStatus]
+      ,'' AS [ImageApproval]
+
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+  FROM [PIMS].[dbo].[QualityControl] qc
+	--LEFT JOIN [PIMS].[dbo].[Commentary] com
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON qc.[PODetailId] = pod.[PODetailId] 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON pod.[POHeaderId] = poh.[POHeaderId] 
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON poh.[SOHeaderId] = soh.[SOHeaderId]   
+  WHERE pod.[PODetailId] = {0} ";
+
+            string fullQuery = string.Format(query, poDetailId);
+            return await GetSqlData<CommentsData>(fullQuery);
+        }
+
+        public async Task<List<FreightData>> GetFreightData(int poDetailId)
+        {
+            string query = @"
+SELECT sh.[ShipmentHeaderId] AS [Id]
+
+      ,sh.[ShipMethodId]
+	  ,ISNULL(shipping.[LookupDescripiton], '') AS [ShipMethod]
+
+      ,sh.[InvoiceNo]	  
+      ,sd.[ShipmentQty]
+      ,sh.[TrackingNumber] AS [Tracking]
+      ,sh.[ShipmentDate]
+      ,sh.[ShipToETA]
+
+  FROM [PIMS].[dbo].[ShipmentHeader] sh
+	LEFT JOIN [PIMS].[dbo].[ShipmentDetails] sd
+		ON sh.[ShipmentHeaderId] = sd.ShipmentHeaderId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] shipping
+		ON sh.[ShipMethodId] = shipping.LookupDetailId
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON sd.[PODetailId] = pod.[PODetailId] 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON pod.[POHeaderId] = poh.[POHeaderId] 
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON poh.[SOHeaderId] = soh.[SOHeaderId]  
+  WHERE pod.[PODetailId] = {0}
+  ORDER BY [ShipToETA] ASC ";
+
+            string fullQuery = string.Format(query, poDetailId);
+            return await GetSqlData<FreightData>(fullQuery);
+        }
+
+        public async Task<List<CostData>> GetCostData(int poDetailId)
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY ISNULL(pod.[POLineNo], 0) ) AS [Id]
+      ,ISNULL(sod.[SODetailId], 0) AS [SODetailId]
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+
+      ,ISNULL(pod.[PODetailId], 0) AS [PODetailId]
+      ,ISNULL(pod.[POLineNo], 0) AS [POLineNo]
+      ,ISNULL(pod.[POSubLineNo], 0) AS [POSubLineNo]
+
+	  ,ISNULL(prod.[ProductId], 0) AS [ProductId] 
+	  ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  	  
+	  ,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
+	  ,ISNULL(pod.[Cost], 0.0) AS [FirstCost]
+	  ,ISNULL(pod.[OrderQty], 0.0) * ISNULL(pod.[Cost], 0) AS [JewelryCost]
+	  ,ISNULL(pod.[OrderQty], 0.0) * ISNULL(pod.[Cost], 0) AS [PackagingCost]
+	  ,ISNULL(pod.[OrderQty], 0.0) * ISNULL(pod.[Cost], 0) AS [TotalCost]
+	  ,ISNULL(sod.[Price], 0.0) AS [Price]
+	  ,ISNULL(sod.[Price], 0.0) * ISNULL(pod.[OrderQty], 0) AS [SellAmount]
+
+	  ,ISNULL(hts.[HTSCode], '') AS [HTSCode]
+	  ,ISNULL(hts.[HTSAmount], 0.0) AS [DutyPercent]
+	  ,ISNULL(hts.[HTSAmount], 0.0) * ISNULL(pod.[OrderQty], 0) * ISNULL(pod.[Cost], 0) AS [DutyAmount]
+	  
+	  ,0.0 AS [LaborFreight]
+	  ,0.0 AS [LaborAmount]
+	  ,0.0 AS [DisneyRoyalty]
+	  ,0.0 AS [TotalCostLanded]
+	  ,0.0 AS [COGPercent]
+
+  FROM [PIMS].[dbo].[PODetail] pod
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON poh.[POHeaderId] = pod.[POHeaderId]
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON soh.[SOHeaderId] = poh.SoHeaderId		
+	LEFT JOIN [PIMS].[dbo].[SODetail] sod
+		ON sod.[SODetailId] = pod.[SODetailId]	
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[ProductAttributes] attribute
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[ProductHTS] prodhts
+		ON prodhts.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[HTS] hts
+		ON hts.HTSId = prodhts.HTSID
+  WHERE pod.[PODetailId] = {0}
+  ORDER BY ISNULL(pod.[POLineNo], 0)";
+
+            string fullQuery = string.Format(query, poDetailId);
+            return await GetSqlData<CostData>(fullQuery);
+        }
+
+        public async Task<List<PODetailData>> GetSOPOData()
+        {
+            string query = @"SELECT ROW_NUMBER() OVER (ORDER BY [SOLineNo],[SOSubLineNo]) AS [Id]
+      ,[SONumber]
+      ,[SODate]
+      ,[CustomerName]	
+      ,[CustomerPO]
+      ,[StartDate]
+      ,[EndDate]
+      ,[SOLineNo]
+      ,[SOSubLineNo]
+	  ,CAST(ISNULL([SOLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL([SOSubLineNo], 0) AS VARCHAR(4))  AS [SOLineNoExt]
+      ,ISNULL([DisplaySequence], 0) AS [DisplaySequence]
+      ,ISNULL([ProgramName], '') AS [ProgramName]
+      ,ISNULL([ProductTypeName], '') AS [SOSubLineType]
+      ,ISNULL([ProductNo], '') AS [ProductNo]
+      ,ISNULL([ProductName], '') AS [ProductName]
+      ,ISNULL([SOQty], 0) AS [SOQty]
+      ,ISNULL([Cost], 0.000000) AS [Cost]
+      ,ISNULL([Price], 0.000000) AS [Price]
+      ,ISNULL([VendorPO], '') AS [PONumber]
+      ,ISNULL([PODate], '1900-01-01') AS [PODate]
+      ,ISNULL([VendorName], '') AS [VendorName]
+      ,ISNULL([POLineNo], 0) AS [POLineNo]
+      ,ISNULL([POSubLineNo], 0) AS [POSubLineNo]
+	  ,CAST(ISNULL([POLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL([POSubLineNo], 0) AS VARCHAR(4))  AS [POLineNoExt]
+      ,ISNULL([POQty], 0) AS [POQty]
+      ,ISNULL([POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL([PODetailId], 0) AS [PODetailId]
+      ,ISNULL([ForProductNo], '') AS [ForProductNo]
+
+      ,ISNULL([ShipmentDate], '1900-01-01') AS [ShipmentDate]
+      ,ISNULL([TrackingNumber], '') AS [TrackingNumber]
+      ,ISNULL([ShipToETA], '1900-01-01') AS [ShipToETA]
+      ,ISNULL([ShipmentQty], 0) AS [ShipmentQty]
+  --FROM [PIMS].[dbo].[SOPOvw]
+  FROM [PIMS].[dbo].[SOPOvw-JorgeDiagram]
+  ORDER BY [SONumber], [SOLineNo],ISNULL([DisplaySequence],0),[SOSubLineNo] ";
+
+            return await GetSqlData<PODetailData>(query);
+        }
+
+
+        public async Task<List<POData>> GetSOData()
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY soh.[SODate]) AS [Id]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  	
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	
+	  ,ISNULL(soh.[BusinessPartnerId], 0) AS [BusinessPartnerId_Customer] 
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName] 
+	  ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
+  FROM [PIMS].[dbo].[SOHeader] soh
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON soh.[BusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON customer.CountryCodeId = country.LookupDetailId
+  ORDER BY soh.[SODate]
+ ";
+            return await GetSqlData<POData>(query);
+        }
+
+        public async Task<List<PODetailData>> GetSODetailData(string sono)
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY sod.[SOLineNo],sod.[SOSubLineTypeId]) AS [Id]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  	
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(sod.[SODetailId], 0) AS [SODetailId]	  
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
+	  
+	  ,ISNULL(sod.[SOLineNo], 0) AS [SOLineNo]
+      ,ISNULL(sod.[SOSubLineNo], 0) AS [SOSubLineNo]
+      ,ISNULL(sod.[SOSubLineTypeId], 0) AS [SOSubLineTypeId]
+      ,CASE WHEN sod.[SOSubLineTypeId] = 1 THEN 'Factory' 
+		WHEN sod.[SOSubLineTypeId] = 2 THEN 'Packaging' 
+		ELSE '' END AS [SOSubLineType]
+		
+      ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]	  
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+      ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+
+	  ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  ,ISNULL(poh.[BusinessPartnerId], 0) AS [BusinessPartnerId_Vendor] 
+	  ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+	  ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
+	  ,ISNULL(soh.[BusinessPartnerId], 0) AS [BusinessPartnerId_Customer] 
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
+
+  FROM [PIMS].[dbo].[SODetail] sod
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON sod.SoHeaderId = soh.[SOHeaderId]   
+ 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh	
+		ON poh.[SOHeaderId] = sod.SoHeaderId
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON soh.[BusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON poh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON customer.CountryCodeId = country.LookupDetailId
+  WHERE soh.[SONumber] = '{0}'
+  ORDER BY sod.[SOLineNo],sod.[SOSubLineTypeId]   ";
+
             string fullQuery = string.Format(query, sono);
-            DataTableToObjectConverter converter = new DataTableToObjectConverter();
+            return await GetSqlData<PODetailData>(fullQuery);
+        }
 
-            DataTable dt = null;
-            try
-            {
-                dt = await converter.GetDataTableFromQuery(fullQuery);
-            }
-            catch (Exception ex)
-            {
-                //LogError("GetSqlData", ex, ex.Message);
-                return null;
-            }
+        public async Task<List<BOMData>> GetBOMData(string pono)
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY ISNULL(pt.[DisplaySequence], 0)) AS [Id]
+      ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
 
-            if (dt == null)
-            {
-                return new List<Freight>();
-            }
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]
+      ,ISNULL(soh.[SODate], '1900-01-01') AS [SODate]  
 
-            List<Freight> data = new List<Freight>();
-            foreach (DataRow dr in dt.Rows)
-            {
-                data.Add(new Freight()
-                {
-                    PONumber = dr["PONumber"].ToString(),
-                    ShipMethod = dr["ShipMethod"].ToString(),
-                    InvoiceNo = dr["InvoiceNo"].ToString(),
-                    Tracking = dr["Tracking"].ToString(),
-                    //UnitsShipped = decimal.Parse(dr["UnitsShipped"].ToString()),
-                    UnitsShipped = dr["UnitsShipped"].ToString(),
-                    DateShipped = DateTime.Parse(dr["DateShipped"].ToString()),
-                    ETA_LA = DateTime.Parse(dr["ETA_LA"].ToString()),
-                    Id = int.Parse(dr["Id"].ToString())
-                });
-            }
+      ,ISNULL(sp.[ProgramName], '') AS [ProgramName]
+      ,prod.ProductId
+      ,LTRIM(ISNULL(prod.ProductNo, '') + ' ' + ISNULL(prod.ProductName, '')) AS [Product]
+	  ,ISNULL(prod.[ProductTypeId], 0) AS [ProductTypeId]
+	  ,ISNULL(pt.[ProductTypeName], '') AS [ProductTypeName]
+	  ,ISNULL(pt.[DisplaySequence], 0) AS [DisplaySequence]
+	  ,ISNULL(pt.[POSuffix], '') AS [POSuffix]
 
-            return data;
+      ,'' AS [BoxStyle]           
+      ,'' AS [Accessories]         
+      ,'' AS [TicketEdiStyle]       
+      ,'' AS [TicketInfo]           
+      ,'' AS [TicketTypeDestination]
+      ,'' AS [TicketSource]    
+      ,'' AS [TicketProofApproval]  
+      ,'' AS [BoxPONo]              
+      ,'' AS [CardsManufacturer]
+	  
+  FROM [PIMS].[dbo].[PODetail] pod
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON poh.[POHeaderId] = pod.[POHeaderId]
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON soh.[SOHeaderId] = poh.SoHeaderId		
+	LEFT JOIN [PIMS].[dbo].[SODetail] sod
+		ON sod.[SODetailId] = pod.[SODetailId]	
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[ProductType] pt
+		ON prod.[ProductTypeId] = pt.[ProductTypeId]
+  WHERE poh.[PONumber] = '{0}'
+  ORDER BY ISNULL(pt.[DisplaySequence], 0) ";
+
+            string fullQuery = string.Format(query, pono);
+            return await GetSqlData<BOMData>(fullQuery);
+        }
+
+        public async Task<List<CommentsData>> GetCommentsData(string pono)
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY qc.[CreatedOn]) AS [Id]
+      ,qc.[QualityControlId]
+      ,qc.[QualityControlTypeId]
+      ,qc.[ProductId]
+      ,qc.[PODetailID]
+      ,qc.[QualityControlStatus]
+
+	  ,0 AS [CommentaryId]
+      ,0 AS [CommentaryTypeId]
+      ,'' AS [Comments]
+
+      ,'' AS [SamplesApproval]
+      ,'' AS [DisneyStatus]
+      ,'' AS [ImageApproval]
+
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+  FROM [PIMS].[dbo].[QualityControl] qc
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON qc.[PODetailId] = pod.[PODetailId] 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON pod.[POHeaderId] = poh.[POHeaderId] 
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON poh.[SOHeaderId] = soh.[SOHeaderId]   
+  WHERE poh.[PONumber] = '{0}' ";
+
+            string fullQuery = string.Format(query, pono);
+            return await GetSqlData<CommentsData>(fullQuery);
+        }
+
+        public async Task<List<FreightData>> GetFreightData(string pono)
+        {
+            string query = @"
+SELECT sh.[ShipmentHeaderId] AS [Id]
+
+      ,sh.[ShipMethodId]
+	  ,ISNULL(shipping.[LookupDescripiton], '') AS [ShipMethod]
+
+      ,sh.[InvoiceNo]	  
+      ,sd.[ShipmentQty]
+      ,sh.[TrackingNumber] AS [Tracking]
+      ,sh.[ShipmentDate]
+      ,sh.[ShipToETA]
+
+  FROM [PIMS].[dbo].[ShipmentHeader] sh
+	LEFT JOIN [PIMS].[dbo].[ShipmentDetails] sd
+		ON sh.[ShipmentHeaderId] = sd.ShipmentHeaderId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] shipping
+		ON sh.[ShipMethodId] = shipping.LookupDetailId
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON sd.[PODetailId] = pod.[PODetailId] 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON pod.[POHeaderId] = poh.[POHeaderId] 
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON poh.[SOHeaderId] = soh.[SOHeaderId]  
+  WHERE poh.[PONumber] = '{0}'
+  ORDER BY [ShipToETA] ASC ";
+
+
+            string fullQuery = string.Format(query, pono);
+            return await GetSqlData<FreightData>(fullQuery);
+        }
+
+        public async Task<List<CostData>> GetCostData(string pono)
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY ISNULL(pod.[POLineNo], 0) ) AS [Id]
+      ,ISNULL(sod.[SODetailId], 0) AS [SODetailId]
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+
+      ,ISNULL(pod.[PODetailId], 0) AS [PODetailId]
+      ,ISNULL(pod.[POLineNo], 0) AS [POLineNo]
+      ,ISNULL(pod.[POSubLineNo], 0) AS [POSubLineNo]
+
+	  ,ISNULL(prod.[ProductId], 0) AS [ProductId] 
+	  ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  	  
+	  ,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
+	  ,ISNULL(pod.[Cost], 0.0) AS [FirstCost]
+	  ,ISNULL(pod.[OrderQty], 0.0) * ISNULL(pod.[Cost], 0) AS [JewelryCost]
+	  ,ISNULL(pod.[OrderQty], 0.0) * ISNULL(pod.[Cost], 0) AS [PackagingCost]
+	  ,ISNULL(pod.[OrderQty], 0.0) * ISNULL(pod.[Cost], 0) AS [TotalCost]
+	  ,ISNULL(sod.[Price], 0.0) AS [Price]
+	  ,ISNULL(sod.[Price], 0.0) * ISNULL(pod.[OrderQty], 0) AS [SellAmount]
+
+	  ,ISNULL(hts.[HTSCode], '') AS [HTSCode]
+	  ,ISNULL(hts.[HTSAmount], 0.0) AS [DutyPercent]
+	  ,ISNULL(hts.[HTSAmount], 0.0) * ISNULL(pod.[OrderQty], 0) * ISNULL(pod.[Cost], 0) AS [DutyAmount]
+	  
+	  ,0.0 AS [LaborFreight]
+	  ,0.0 AS [LaborAmount]
+	  ,0.0 AS [DisneyRoyalty]
+	  ,0.0 AS [TotalCostLanded]
+	  ,0.0 AS [COGPercent]
+
+  FROM [PIMS].[dbo].[PODetail] pod
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON poh.[POHeaderId] = pod.[POHeaderId]
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON soh.[SOHeaderId] = poh.SoHeaderId		
+	LEFT JOIN [PIMS].[dbo].[SODetail] sod
+		ON sod.[SODetailId] = pod.[SODetailId]	
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[ProductAttributes] attribute
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[ProductHTS] prodhts
+		ON prodhts.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[HTS] hts
+		ON hts.HTSId = prodhts.HTSID
+  WHERE poh.[PONumber] = '{0}'
+  ORDER BY ISNULL(pod.[POLineNo], 0)";
+
+            string fullQuery = string.Format(query, pono);
+            return await GetSqlData<CostData>(fullQuery);
+        }
+
+
+        public async Task<List<GeneralDetailData>> GetGeneralDetailData()
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY sod.[SOLineNo],sod.[SOSubLineTypeId]) AS [Id]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  	
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(sod.[SODetailId], 0) AS [SODetailId]	  
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
+	  
+	  ,ISNULL(sod.[SOLineNo], 0) AS [SOLineNo]
+      ,ISNULL(sod.[SOSubLineNo], 0) AS [SOSubLineNo]
+      ,ISNULL(sod.[SOSubLineTypeId], 0) AS [SOSubLineTypeId] 
+	  ,CAST(ISNULL(sod.[SOLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL(sod.[SOSubLineNo], 0) AS VARCHAR(4))  AS [SOLineNoExt]
+      ,CASE WHEN sod.[SOSubLineTypeId] = 1 THEN 'Factory' 
+		WHEN sod.[SOSubLineTypeId] = 2 THEN 'Packaging' 
+		ELSE '' END AS [SOSubLineType]
+		
+      ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]	  
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+      ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+	  ,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
+
+      ,ISNULL(pod.[PODetailId], 0) AS [PODetailId]
+      ,ISNULL(pod.[POLineNo], 0) AS [POLineNo]
+      ,ISNULL(pod.[POSubLineNo], 0) AS [POSubLineNo]
+      ,ISNULL(pod.[POSubLineTypeId], 0) AS [POSubLineTypeId]
+      ,ISNULL(pod.[ProductId], 0) AS [ProductId]
+
+	  ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  ,ISNULL(poh.[BusinessPartnerId], 0) AS [BusinessPartnerId_Vendor] 
+	  ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+	  ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
+	  ,ISNULL(soh.[BusinessPartnerId], 0) AS [BusinessPartnerId_Customer] 
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
+
+  FROM [PIMS].[dbo].[SODetail] sod
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON sod.SoHeaderId = soh.[SOHeaderId]   
+ 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh	
+		ON poh.[SOHeaderId] = sod.SoHeaderId
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+		
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON sod.[SODetailId] = pod.[SODetailId]
+
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON soh.[BusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON poh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON customer.CountryCodeId = country.LookupDetailId
+  ORDER BY sod.[SOLineNo],sod.[SOSubLineTypeId] 
+	,pod.[POLineNo],pod.[POSubLineTypeId]   ";
+
+            return await GetSqlData<GeneralDetailData>(query);
+        }
+        public async Task<List<GeneralDetailData>> GetGeneralDetailData_BySono(string sono)
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY sod.[SOLineNo],sod.[SOSubLineTypeId]) AS [Id]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  	
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(sod.[SODetailId], 0) AS [SODetailId]	  
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
+	  
+	  ,ISNULL(sod.[SOLineNo], 0) AS [SOLineNo]
+      ,ISNULL(sod.[SOSubLineNo], 0) AS [SOSubLineNo]
+      ,ISNULL(sod.[SOSubLineTypeId], 0) AS [SOSubLineTypeId] 
+	  ,CAST(ISNULL(sod.[SOLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL(sod.[SOSubLineNo], 0) AS VARCHAR(4))  AS [SOLineNoExt]
+      ,CASE WHEN sod.[SOSubLineTypeId] = 1 THEN 'Factory' 
+		WHEN sod.[SOSubLineTypeId] = 2 THEN 'Packaging' 
+		ELSE '' END AS [SOSubLineType]
+		
+      ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]	  
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+      ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+	  ,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
+
+      ,ISNULL(pod.[PODetailId], 0) AS [PODetailId]
+      ,ISNULL(pod.[POLineNo], 0) AS [POLineNo]
+      ,ISNULL(pod.[POSubLineNo], 0) AS [POSubLineNo]
+      ,ISNULL(pod.[POSubLineTypeId], 0) AS [POSubLineTypeId]
+      ,ISNULL(pod.[ProductId], 0) AS [ProductId]
+
+	  ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  ,ISNULL(poh.[BusinessPartnerId], 0) AS [BusinessPartnerId_Vendor] 
+	  ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+	  ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
+	  ,ISNULL(soh.[BusinessPartnerId], 0) AS [BusinessPartnerId_Customer] 
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
+
+  FROM [PIMS].[dbo].[SODetail] sod
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON sod.SoHeaderId = soh.[SOHeaderId]   
+ 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh	
+		ON poh.[SOHeaderId] = sod.SoHeaderId
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+		
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON sod.[SODetailId] = pod.[SODetailId]
+
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON soh.[BusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON poh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON customer.CountryCodeId = country.LookupDetailId
+  WHERE soh.[SONumber] = '{0}'
+  ORDER BY sod.[SOLineNo],sod.[SOSubLineTypeId] 
+	,pod.[POLineNo],pod.[POSubLineTypeId]   ";
+
+            string fullQuery = string.Format(query, sono);
+            return await GetSqlData<GeneralDetailData>(fullQuery);
+        }
+        public async Task<List<GeneralDetailData>> GetGeneralDetailData_ByPono(string pono)
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY sod.[SOLineNo],sod.[SOSubLineTypeId]) AS [Id]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  	
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(sod.[SODetailId], 0) AS [SODetailId]	  
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
+	  
+	  ,ISNULL(sod.[SOLineNo], 0) AS [SOLineNo]
+      ,ISNULL(sod.[SOSubLineNo], 0) AS [SOSubLineNo]
+      ,ISNULL(sod.[SOSubLineTypeId], 0) AS [SOSubLineTypeId] 
+	  ,CAST(ISNULL(sod.[SOLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL(sod.[SOSubLineNo], 0) AS VARCHAR(4))  AS [SOLineNoExt]
+      ,CASE WHEN sod.[SOSubLineTypeId] = 1 THEN 'Factory' 
+		WHEN sod.[SOSubLineTypeId] = 2 THEN 'Packaging' 
+		ELSE '' END AS [SOSubLineType]
+		
+      ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]	  
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+      ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+	  ,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
+
+      ,ISNULL(pod.[PODetailId], 0) AS [PODetailId]
+      ,ISNULL(pod.[POLineNo], 0) AS [POLineNo]
+      ,ISNULL(pod.[POSubLineNo], 0) AS [POSubLineNo]
+      ,ISNULL(pod.[POSubLineTypeId], 0) AS [POSubLineTypeId]
+      ,ISNULL(pod.[ProductId], 0) AS [ProductId]
+
+	  ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  ,ISNULL(poh.[BusinessPartnerId], 0) AS [BusinessPartnerId_Vendor] 
+	  ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+	  ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
+	  ,ISNULL(soh.[BusinessPartnerId], 0) AS [BusinessPartnerId_Customer] 
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
+
+  FROM [PIMS].[dbo].[SODetail] sod
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON sod.SoHeaderId = soh.[SOHeaderId]   
+ 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh	
+		ON poh.[SOHeaderId] = sod.SoHeaderId
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+		
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON sod.[SODetailId] = pod.[SODetailId]
+
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON soh.[BusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON poh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON customer.CountryCodeId = country.LookupDetailId
+  WHERE poh.[PONumber] = '{0}'
+  ORDER BY sod.[SOLineNo],sod.[SOSubLineTypeId] 
+	,pod.[POLineNo],pod.[POSubLineTypeId]   ";
+
+            string fullQuery = string.Format(query, pono);
+            return await GetSqlData<GeneralDetailData>(fullQuery);
         }
 
         #endregion
@@ -170,289 +800,6 @@ namespace MasterDetail.Data
         // ----------------------------------------------------------------------------------
 
         #region DepartmentQueue Functions
-
-  //      public async Task<List<DepartmentQueue>> GetDepartmentQueueData()
-  //      {
-  //          string whereStatement = "";
-
-  //          string query = @"SELECT TOP (1000) [OID]
-  //    ,[sono]
-  //    ,[opno]
-  //    ,[department]
-  //    ,[location]
-  //    ,[workcenter]
-  //    ,[operator]
-  //    ,[starting_qty]
-  //    ,[processing_qty]
-  //    ,[completed_qty]
-  //    ,[status]
-  //    ,[scheduling_status]
-  //    ,[completed]
-  //    ,[completed_processes]
-  //    ,[last_queue_process_entry_oid]
-  //    ,[previous_department_queue_oid]
-  //    ,[sort_order]
-  //    ,[created_date]
-  //    ,[in_memex]
-  //FROM [JAM].[dbo].[DepartmentQueue]
-  //  {0}
-  //ORDER BY 1 DESC ";
-  //          string fullQuery = string.Format(query, whereStatement);
-  //          DataTableToObjectConverter converter = new DataTableToObjectConverter();
-
-  //          DataTable dt = null;
-  //          try
-  //          {
-  //              dt = await converter.GetDataTableFromQuery(fullQuery);
-  //          }
-  //          catch (Exception ex)
-  //          {
-  //              //LogError("GetSqlData", ex, ex.Message);
-  //              return null;
-  //          }
-
-  //          if (dt == null)
-  //          {
-  //              return new List<DepartmentQueue>();
-  //          }
-
-  //          List<DepartmentQueue> data = new List<DepartmentQueue>();
-  //          foreach (DataRow dr in dt.Rows)
-  //          {
-  //              data.Add(new DepartmentQueue()
-  //              {
-  //                  OID = int.Parse(dr["OID"].ToString()),
-  //                  sono = dr["sono"].ToString(),
-  //                  opno = int.Parse(dr["opno"].ToString()),
-  //                  department = dr["department"].ToString(),
-  //                  location = dr["location"].ToString(),
-  //                  workcenter = dr["workcenter"].ToString(),
-  //                  @operator = dr["operator"].ToString(),
-  //                  processing_qty = int.Parse(dr["processing_qty"].ToString()),
-  //                  completed_qty = int.Parse(dr["completed_qty"].ToString()),
-  //                  status = dr["status"].ToString(),
-  //                  scheduling_status = dr["scheduling_status"].ToString(),
-  //                  completed = bool.Parse(dr["completed"].ToString()),
-  //                  completed_processes = dr["completed_processes"].ToString(),
-  //                  last_queue_process_entry_oid = int.Parse(dr["last_queue_process_entry_oid"].ToString()),
-  //                  previous_department_queue_oid = int.Parse(dr["previous_department_queue_oid"].ToString()),
-  //                  sort_order = int.Parse(dr["sort_order"].ToString()),
-  //                  created_date = DateTime.Parse(dr["created_date"].ToString()),
-  //                  in_memex = bool.Parse(dr["in_memex"].ToString())
-  //              });
-  //          }
-
-  //          return data;
-  //      }
-
-  //      public async Task<List<DepartmentQueueLocations>> GetDepartmentQueueLocationsData(string whereStatement = "WHERE DepartmentQueueOID IN (SELECT TOP (1000) [OID] FROM [JAM].[dbo].[DepartmentQueue] ORDER BY 1 DESC)")
-  //      {
-  //          string query = @"SELECT [pk]
-  //    ,[DepartmentQueueOID]
-  //    ,[Location]
-  //    ,[WorkCenter]
-  //    ,[SchedulingStatus]
-  //    ,[StartingQty]
-  //    ,[ProcessingQty]
-  //    ,[CompletedQty]
-  //    ,[IsActive]
-  //    ,[LastQueueProcessEntryOid]
-  //    ,[EnteredDate]
-  //    ,[UpdatedDate]
-  //    ,[Status]
-  //    ,[Notes]
-  //    ,[OperatorId]
-  //    ,[AssetType]
-  //FROM [JAM].[dbo].[DepartmentQueueLocations]
-  //{0}
-  //ORDER BY 1 DESC";
-  //          string fullQuery = string.Format(query, whereStatement);
-  //          DataTableToObjectConverter converter = new DataTableToObjectConverter();
-
-  //          DataTable dt = null;
-  //          try
-  //          {
-  //              dt = await converter.GetDataTableFromQuery(fullQuery);
-  //          }
-  //          catch (Exception ex)
-  //          {
-  //              //LogError("GetSqlData", ex, ex.Message);
-  //              return null;
-  //          }
-
-  //          if (dt == null)
-  //          {
-  //              return new List<DepartmentQueueLocations>();
-  //          }
-
-  //          List<DepartmentQueueLocations> data = new List<DepartmentQueueLocations>();
-  //          foreach (DataRow dr in dt.Rows)
-  //          {
-  //              data.Add(new DepartmentQueueLocations()
-  //              {
-  //                  pk = int.Parse(dr["pk"].ToString()),
-  //                  DepartmentQueueOID = int.Parse(dr["DepartmentQueueOID"].ToString()),
-  //                  Location = dr["Location"].ToString(),
-  //                  Workcenter = dr["Workcenter"].ToString(),
-  //                  SchedulingStatus = dr["SchedulingStatus"].ToString(),
-  //                  OperatorId = dr["OperatorId"].ToString(),
-  //                  StartingQty = int.Parse(dr["StartingQty"].ToString()),
-  //                  ProcessingQty = int.Parse(dr["ProcessingQty"].ToString()),
-  //                  CompletedQty = int.Parse(dr["CompletedQty"].ToString()),
-  //                  IsActive = bool.Parse(dr["IsActive"].ToString()),
-  //                  LastQueueProcessEntryOid = int.Parse(dr["LastQueueProcessEntryOid"].ToString()),
-  //                  EnteredDate = DateTime.Parse(dr["EnteredDate"].ToString()),
-  //                  UpdatedDate = DateTime.Parse(dr["UpdatedDate"].ToString()),
-  //                  Status = dr["Status"].ToString(),
-  //                  AssetType = dr["AssetType"].ToString(),
-  //                  Notes = dr["Notes"].ToString()
-  //              });
-  //          }
-
-  //          return data;
-  //      }
-
-  //      public async Task<List<DepartmentQueueProcesses>> GetDepartmentQueueProcessesData(string whereStatement = "WHERE [FOID] IN (SELECT TOP (1000) [OID] FROM [JAM].[dbo].[DepartmentQueue] ORDER BY 1 DESC)")
-  //      {
-  //          string query = @"SELECT [OID]
-  //    ,[FOID]
-  //    ,[department]
-  //    ,[operator]
-  //    ,[process]
-  //    ,[start_time]
-  //    ,[end_time]
-  //    ,[qty]
-  //    ,[reason]
-  //    ,[workcenter]
-  //    ,[LOID]
-  //    ,[notes]
-  //FROM [JAM].[dbo].[DepartmentQueueProcess]
-  //{0}
-  //ORDER BY 1 DESC";
-  //          string fullQuery = string.Format(query, whereStatement);
-  //          DataTableToObjectConverter converter = new DataTableToObjectConverter();
-
-  //          DataTable dt = null;
-  //          try
-  //          {
-  //              dt = await converter.GetDataTableFromQuery(fullQuery);
-  //          }
-  //          catch (Exception ex)
-  //          {
-  //              //LogError("GetSqlData", ex, ex.Message);
-  //              return null;
-  //          }
-
-  //          if (dt == null)
-  //          {
-  //              return new List<DepartmentQueueProcesses>();
-  //          }
-
-  //          List<DepartmentQueueProcesses> data = new List<DepartmentQueueProcesses>();
-  //          foreach (DataRow dr in dt.Rows)
-  //          {
-  //              data.Add(new DepartmentQueueProcesses()
-  //              {
-  //                  OID = int.Parse(dr["OID"].ToString()),
-  //                  FOID = int.Parse(dr["FOID"].ToString()),
-  //                  LOID = int.Parse(dr["LOID"].ToString()),
-  //                  department = dr["department"].ToString(),
-  //                  workcenter = dr["workcenter"].ToString(),
-  //                  @operator = dr["operator"].ToString(),
-  //                  process = dr["process"].ToString(),
-  //                  start_time = DateTime.Parse(dr["start_time"].ToString()),
-  //                  end_time = DateTime.Parse(dr["end_time"].ToString()),
-  //                  qty = int.Parse(dr["qty"].ToString()),
-  //                  reason = dr["reason"].ToString(),
-  //                  notes = dr["notes"].ToString()
-  //              });
-  //          }
-
-  //          return data;
-  //      }
-
-  //      public async Task<List<DepartmentQueueProcessesView>> GetDepartmentQueueProcessesViewData(string whereStatement = "")
-  //      {
-  //          string query = @"SELECT [QOID]
-  //    ,[POID]
-  //    ,[LOID]
-  //    ,[DepartmentCode]
-  //    ,[DepartmentName]
-	 // ,CASE WHEN [DepartmentCode] = 'SNT' THEN CASE WHEN [LocationWorkCenter] = 'false' THEN '' ELSE [LocationWorkCenter] END ELSE [Workcenter] END AS [Workcenter]
-  //    ,CASE WHEN [LocationWorkCenter] = 'false' THEN '' ELSE [LocationWorkCenter] END AS [LocationWorkCenter]
-  //    ,[OperatorId]
-  //    ,[OperatorName]
-  //    ,[sono]
-  //    ,[opno]
-  //    ,[PartNo]
-  //    ,[Location]
-  //    ,[Process]
-  //    ,[ProcessDescrip]
-  //    ,[Qty]
-  //    ,[Reason]
-  //    ,[StartTime]
-  //    ,[EndTime]
-  //    ,[TimeSpent]
-  //    ,[HoursSpent]
-  //    ,CAST([MinutesSpent] AS VARCHAR(50)) AS [MinutesSpent]
-  //    ,[EndTimeUsed]
-  //    ,[ProcessNotes]
-  //    ,[UpdatedDate]
-  //FROM [JAM].[dbo].[DepartmentQueueProcessesView] {0}";
-  //          string fullQuery = string.Format(query, whereStatement);
-  //          DataTableToObjectConverter converter = new DataTableToObjectConverter();
-
-  //          DataTable dt = null;
-  //          try
-  //          {
-  //              dt = await converter.GetDataTableFromQuery(fullQuery);
-  //          }
-  //          catch (Exception ex)
-  //          {
-  //              //LogError("GetSqlData", ex, ex.Message);
-  //              return null;
-  //          }
-
-  //          if (dt == null)
-  //          {
-  //              return new List<DepartmentQueueProcessesView>();
-  //          }
-
-  //          List<DepartmentQueueProcessesView> data = new List<DepartmentQueueProcessesView>();
-  //          foreach (DataRow dr in dt.Rows)
-  //          {
-  //              data.Add(new DepartmentQueueProcessesView()
-  //              {
-  //                  QOID = int.Parse(dr["QOID"].ToString()),
-  //                  POID = int.Parse(dr["POID"].ToString()),
-  //                  LOID = int.Parse(dr["LOID"].ToString()),
-  //                  DepartmentCode = dr["DepartmentCode"].ToString(),
-  //                  DepartmentName = dr["DepartmentName"].ToString(),
-  //                  Workcenter = dr["Workcenter"].ToString(),
-  //                  LocationWorkCenter = dr["LocationWorkCenter"].ToString(),
-  //                  OperatorId = dr["OperatorId"].ToString(),
-  //                  OperatorName = dr["OperatorName"].ToString(),
-  //                  sono = dr["sono"].ToString(),
-  //                  opno = int.Parse(dr["opno"].ToString()),
-  //                  PartNo = dr["PartNo"].ToString(),
-  //                  Location = dr["Location"].ToString(),
-  //                  Process = dr["Process"].ToString(),
-  //                  ProcessDescrip = dr["ProcessDescrip"].ToString(),
-  //                  Qty = int.Parse(dr["Qty"].ToString()),
-  //                  Reason = dr["Reason"].ToString(),
-  //                  StartTime = DateTime.Parse(dr["StartTime"].ToString()),
-  //                  EndTime = DateTime.Parse(dr["EndTime"].ToString()),
-  //                  TimeSpent = decimal.Parse(dr["TimeSpent"].ToString()),
-  //                  HoursSpent = dr["HoursSpent"].ToString(),
-  //                  MinutesSpent = decimal.Parse(dr["MinutesSpent"].ToString()),
-  //                  EndTimeUsed = dr["EndTimeUsed"].ToString(),
-  //                  ProcessNotes = dr["ProcessNotes"].ToString(),
-  //                  UpdatedDate = DateTime.Parse(dr["UpdatedDate"].ToString())
-  //              });
-  //          }
-
-  //          return data;
-  //      }
 
         public async Task<object> GetDashboardData(string dashboardId)
         {
@@ -465,7 +812,7 @@ namespace MasterDetail.Data
 
             switch (dashboardId)
             {
-                case "HomePageDashboard":
+                //case "HomePageDashboard":
                 case "PivotDashboard":
                 case "DashboardEdit":
                 case "DepartmentQueueProcessesView_all":
@@ -476,6 +823,15 @@ namespace MasterDetail.Data
                     whereStatement = @"
   WHERE YEAR([EndTime]) = YEAR(GETDATE())";
                     break;
+
+                case "HomePageDashboard":
+                case "SOPOGeneralDetailData":
+                    List<GeneralDetailData> list = await GetGeneralDetailData();
+                    return list;
+                    break;
+                //return await GetGenaralDetailData();
+                //break;
+
                 default:
                     whereStatement = "";
                     break;
@@ -572,294 +928,412 @@ namespace MasterDetail.Data
 
         // ----------------------------------------------------------------------------------
 
-        #region Unused EdiAttendantData Functions
+        #region Old Functions
 
-        //       public async Task<object> GetDashboardData(string dashboardId, string user, string promoCode, string dataSourceName, string dataSourceComponentName)
-        //       {
-        //           string query = "";
-        //           string fullQuery = "";
-        //           DataTableToObjectConverter converter = new DataTableToObjectConverter();
-        //           DataTable dt = new DataTable();
+        public async Task<List<POData>> GetPOData_old()
+        {
+            string query = "";
 
-        //           switch (dashboardId)
-        //           {
+            query = @"
+SELECT ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+	  ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
+	  ,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+      ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  
 
-        //               case "ProductActivityDashboard":
-        //                   List<EdiAttendantData> data = GetEdiAttendantData(promoCode).Result;
-        //                   return data;
+  FROM [PIMS].[dbo].[SODetail] sod
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON sod.SoHeaderId = soh.[SOHeaderId]   
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON poh.[SOHeaderId] = sod.SoHeaderId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON soh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON poh.[ShipToBusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON prod.ProductId = pod.ProductId
+			AND sp.SalesProgramId = pod.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON vendor.CountryCodeId = country.LookupDetailId
+  ORDER BY poh.[PODate]
+ ";
+            //query = @"SELECT TOP 1000 poh.[POHeaderId]
+            //     ,ISNULL(poh.[PONumber], '') AS [PONumber]
+            //     ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+            //     ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+            //     ,ISNULL(poh.[PostedToERP], 0) AS [PO_PostedToERP]
 
-        //               case "dashboard1":
-        //               case "dashboard2":
-        //               case "HomePageDashboard":
-        //                   List<ShippingData> shippingData = new List<ShippingData>();
-        //                   string shippingRange = "FROMBEGINNINGOFYEAR";
+            //     ,ISNULL(prod.[ProductId], 0) AS [ProductId] 
+            //     ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
 
-        //                   switch (dataSourceName)
-        //                   {
-        //                       case "ShippingData_FromBeginningofYear":
-        //                           shippingRange = "FROMBEGINNINGOFYEAR";
-        //                           break;
-        //                       case "ShippingData_FromLastThreeMonths":
-        //                           shippingRange = "LAST3MONTHS";
-        //                           break;
-        //                       case "ShippingData_FromMonth":
-        //                           shippingRange = "MONTH";
-        //                           break;
-        //                       case "ShippingData_FromToday":
-        //                           shippingRange = "TODAY";
-        //                           break;
-        //                   }
-        //                   shippingData = GetShippingData(promoCode, shippingRange).Result;
-        //                   return shippingData;
+            //     ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+            //     ,ISNULL(soh.[SONumber], '') AS [SONumber]
+            //     ,ISNULL(soh.[SODate], '1900-01-01') AS [SODate]
+            //     ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]
+            //     ,ISNULL(soh.[PostedToERP], 0) AS [SO_PostedToERP]
 
-        //               case "HomePageDashboardTest":
-        //                   List<ShippingData> shippingTestData = new List<ShippingData>();
+            //     ,ISNULL(soh.[BusinessPartnerId], 0) AS [BusinessPartnerId]
+            //     ,ISNULL(vendor.[BusinessPartnerCode], '') AS [BusinessPartnerCode_Vendor]
+            //     ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+            //     ,ISNULL(vendor.[CountryCodeId], 0) AS [CountryCodeId]
+            //     ,ISNULL(country.[LookupDescripiton], '') AS [CountryCode]
 
-        //                   query = GetQuery("Shipped", promoCode);
+            //     ,ISNULL(poh.[ShipToBusinessPartnerId], 0) AS [ShipToBusinessPartnerId]
+            //     ,ISNULL(customer.[BusinessPartnerCode], '') AS [BusinessPartnerCode_Customer]
+            //     ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
 
-        //                   switch (dataSourceName)
-        //                   {
-        //                       //case "ShippingData_FromBeginningofYear":
-        //                       //                           fullQuery = query + @"
-        //                       //AND SHIP_DATE >= CAST(YEAR(GETDATE()) AS VARCHAR(4)) + '-01-01'";
-        //                       //                           break;
-        //                       //case "ShippingData_FromLastThreeMonths":
-        //                       //                           fullQuery = query + @"
-        //                       //AND SHIP_DATE >= CONVERT(date,DATEADD(month, -3, GETDATE())) ";
-        //                       //                           break;
-        //                       //case "ShippingDataa_FromToday":
-        //                       //                           fullQuery = query + @"
-        //                       //AND SHIP_DATE = CONVERT(date,GETDATE()) ";
-        //                       //                           break;
+            //     ,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
 
-        //                       case "ShippingData_FromBeginningofYear":
-        //                           fullQuery = query + @"
-        //AND SHIP_DATE >= '2022-01-01' AND SHIP_DATE <= '2022-04-15'-- + CAST(DAY(GETDATE()) AS VARCHAR(2)) "; // testing dates
-        //                           break;
-        //                       case "ShippingData_FromLastThreeMonths":
-        //                           fullQuery = query + @"
-        //AND SHIP_DATE >= '2022-01-15'-- + CAST(DAY(GETDATE()) AS VARCHAR(2)) "; // testing dates
-        //                           break;
-        //                       case "ShippingData_FromToday":
-        //                           fullQuery = query + @"
-        //AND SHIP_DATE = '2022-04-15' --+ CAST(DAY(GETDATE()) AS VARCHAR(2))  "; // testing dates
-        //                           break;
-        //                   }
+            // FROM [PIMS].[dbo].[POHeader] poh
+            //LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+            //	ON poh.SoHeaderId = soh.[SOHeaderId]
+            //LEFT JOIN [PIMS].[dbo].[SODetail] sod
+            //	ON soh.[SOHeaderId] = sod.SoHeaderId
+            //LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+            //	ON soh.[BusinessPartnerId] = vendor.BusinessPartnerId
+            //LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+            //	ON poh.[ShipToBusinessPartnerId] = customer.BusinessPartnerId
+            //LEFT JOIN [PIMS].[dbo].[Product] prod
+            //	ON sod.ProductId = prod.ProductId
+            //LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+            //	ON sod.SalesProgramId = sp.SalesProgramId
+            //LEFT JOIN [PIMS].[dbo].[PODetail] pod
+            //	ON prod.ProductId = pod.ProductId
+            //		AND sp.SalesProgramId = pod.SalesProgramId
+            //LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+            //	ON vendor.CountryCodeId = country.LookupDetailId
+            // ORDER BY poh.[PODate]
+            //";
 
-        //                   if (!string.IsNullOrWhiteSpace(fullQuery))
-        //                   {
-        //                       fullQuery += @"
-        // ORDER BY CAST(DATEPART(MONTH, ISNULL(cms.[SHIP_DATE], '1900-01-01 00:00:00.000')) AS INT) ASC
-        //,CAST(DATEPART(DAY, ISNULL(cms.[SHIP_DATE], '1900-01-01 00:00:00.000')) AS INT) ASC";
-        //                       dt = await converter.GetDataTableFromQuery(fullQuery);
-        //                       shippingTestData = await converter.GetObjectListFromDataTable<ShippingData>(dt, new Dictionary<string, string>());
-        //                       return shippingTestData;
-        //                   }
-        //                   break;
-        //           }
-        //           return new List<ShippingData>();
-        //       }
+            return await GetSqlData<POData>(query);
 
-        //       public string GetQuery(string queryName, string promoCode, string databasePrefix = "MOM-")
-        //       {
-        //           string databaseName = databasePrefix + promoCode;
-        //           string query = "";
+            string fullQuery = query;
+            DataTableToObjectConverter converter = new DataTableToObjectConverter();
 
-        //           switch (queryName)
-        //           {
-        //               case "Shipped":
-        //                   query = @"SELECT CAST(cms.[ORDERNO] AS VARCHAR(20)) AS OrderNo
-        //     ,CAST(cms.[CUSTNUM] AS VARCHAR(20)) AS CustNo
-        //     ,cms.[CL_KEY]		AS SourceKey
-        //     ,cms.[ODR_DATE]	AS OrderDate
-        //     ,cms.[SHIP_DATE]	AS ShipDate
-        //     ,cms.[SHIPLIST]	AS ShipList
-        //     ,cms.[ORD_TOTAL]	AS OrderTotal
-        //     ,CAST(items.[ITEM_ID]	AS VARCHAR(20)) AS ItemId
-        //     ,items.[ITEM]			AS ItemCode
-        //     ,CAST(items.[QUANTS]	AS INT) AS ItemQty
-        //     ,items.[IT_SDATE]		AS ItemShipDate
-        //     ,items.[ITEM_STATE]	AS ItemState
-        //     ,DATEPART(YEAR, ISNULL(cms.[SHIP_DATE], '1900-01-01 00:00:00.000')) AS [Year]
-        //     ,DATEPART(MONTH, ISNULL(cms.[SHIP_DATE], '1900-01-01 00:00:00.000')) AS [M]
-        //     ,DATENAME(MONTH, ISNULL(cms.[SHIP_DATE], '1900-01-01 00:00:00.000')) AS [Month]
-        //     ,DATENAME(DAY, ISNULL(cms.[SHIP_DATE], '1900-01-01 00:00:00.000')) AS [Day]
-        //  ,CONVERT(char(11),cms.[SHIP_DATE],103) AS DisplayDate 
-        // FROM [@databaseName].[dbo].[CMS] cms 
-        // LEFT JOIN [@databaseName].[dbo].[ITEMS] items
-        //ON cms.[ORDERNO] = items.[ORDERNO]
-        // WHERE cms.[SHIP_DATE] IS NOT NULL
-        //AND items.[ITEM_ID] IS NOT NULL";
-        //                   query = query.Replace("@databaseName", databaseName);
-        //                   break;
-        //           }
+            DataTable dt = null;
+            try
+            {
+                dt = await converter.GetDataTableFromQuery(fullQuery);
+            }
+            catch (Exception ex)
+            {
+                //LogError("GetSqlData", ex, ex.Message);
+                return new List<POData>();
+            }
 
-        //           return query;
-        //       }
+            if (dt == null)
+            {
+                return new List<POData>();
+            }
 
-        //       public async Task<List<EdiAttendantData>> GetEdiAttendantData(string promoCode)
-        //       {
-        //           DataTable dt = await GetSqlEdiAttendantDataTable(promoCode);
-        //           List<EdiAttendantData> data = new List<EdiAttendantData>();
-        //           foreach (DataRow dr in dt.Rows)
-        //           {
-        //               data.Add(new EdiAttendantData()
-        //               {
-        //                   Location_Name = dr["Location_Name"].ToString(),
-        //                   LocationId = dr["LocationId"].ToString(),
-        //                   UOM = dr["UOM"].ToString(),
-        //                   QtySold = decimal.Parse(dr["QtySold"].ToString()),
-        //                   DateStart = dr["DateStart"].ToString(),
-        //                   DateEnd = dr["DateEnd"].ToString(),
-        //                   Item = dr["Item"].ToString(),
-        //                   Price = int.Parse(dr["Price"].ToString()),
-        //                   WeekNo = int.Parse(dr["WeekNo"].ToString()),
-        //                   ExtPrice = decimal.Parse(dr["ExtPrice"].ToString()),
-        //                   UPC = double.Parse(dr["UPC"].ToString()),
-        //               });
-        //           }
+            List<POData> data = new List<POData>();
+            data = await converter.GetObjectListFromDataTable<POData>(dt, new Dictionary<string, string>());
 
-        //           return data;
-        //       }
-        //       public async Task<List<ShippingData>> GetShippingData(string promoCode, string range = "FROMBEGINNINGOFYEAR")
-        //       {
-        //           string query = "EXEC [dbo].[CTCsp_GetShippedData] '{0}', '{1}'";
-        //           string fullQuery = string.Format(query, promoCode, range);
-        //           DataTableToObjectConverter converter = new DataTableToObjectConverter();
-        //           DataTable dt = await converter.GetDataTableFromQuery(fullQuery);
-        //           List<ShippingData> data = new List<ShippingData>();
-        //           if (dt == null)
-        //               return data;
+            //foreach (DataRow dr in dt.Rows)
+            //{
+            //    data.Add(new POData()
+            //    {
+            //        PONumber = dr["PONumber"].ToString(),
+            //        ProductNo = dr["ProductNo"].ToString(),
+            //        VendorName = dr["VendorName"].ToString(),
+            //        CountryCode = dr["CountryCode"].ToString(),
+            //        CustomerName = dr["CustomerName"].ToString(),
+            //        QtyOrdered = int.Parse(dr["QtyOrdered"].ToString()),
+            //        PODate = DateTime.Parse(dr["PODate"].ToString()),
+            //        EndDate = DateTime.Parse(dr["EndDate"].ToString()),
+            //        StartDate = DateTime.Parse(dr["StartDate"].ToString()),
+            //        SONumber = dr["SONumber"].ToString()
+            //    });
+            //}
 
-        //           foreach (DataRow dr in dt.Rows)
-        //           {
-        //               data.Add(new ShippingData()
-        //               {
-        //                   OrderNo = dr["OrderNo"].ToString(),
-        //                   CustNo = dr["CustNo"].ToString(),
-        //                   SourceKey = dr["SourceKey"].ToString(),
-        //                   OrderDate = DateTime.Parse(dr["OrderDate"].ToString()),
-        //                   ShipDate = DateTime.Parse(dr["ShipDate"].ToString()),
-        //                   ShipList = dr["ShipList"].ToString(),
-        //                   OrderTotal = decimal.Parse(dr["OrderTotal"].ToString()),
-        //                   ItemId = dr["ItemId"].ToString(),
-        //                   ItemCode = dr["ItemCode"].ToString(),
-        //                   ItemQty = int.Parse(dr["ItemQty"].ToString()),
-        //                   ItemShipDate = DateTime.Parse(dr["ItemShipDate"].ToString()),
-        //                   ItemState = dr["ItemState"].ToString(),
-        //                   Year = int.Parse(dr["Year"].ToString()),
-        //                   M = int.Parse(dr["M"].ToString()),
-        //                   Month = dr["Month"].ToString(),
-        //                   Day = int.Parse(dr["Day"].ToString()),
-        //                   DisplayDate = dr["DisplayDate"].ToString()
-        //               });
-        //           }
+            return data;
+        }
 
-        //           return data;
-        //       }
+        public async Task<List<BOMData>> GetBOMData_old(string pono)
+        {
+            string query = @"
+SELECT ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
 
-        //       public async Task<DataTable> GetSqlEdiAttendantDataTable(string promoCode)
-        //       {
-        //           if (promoCode == "")
-        //           {
-        //               promoCode = "0000";
-        //           }
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]
+      ,ISNULL(soh.[SODate], '1900-01-01') AS [SODate]  
 
-        //           //            string query = @"
-        //           //DECLARE @promoCode		VARCHAR(50) = '{0}'
-        //           //DECLARE @ediAttendantId	VARCHAR(50) = NULL
-        //           //DECLARE @databaseName	VARCHAR(50) = 'ediAttendant_'
-        //           //DECLARE @workQuery		VARCHAR(MAX) = ''	
+      ,ISNULL(sp.[ProgramName], '') AS [ProgramName]
+      ,prod.ProductId
+      ,LTRIM(ISNULL(prod.ProductNo, '') + ' ' + ISNULL(prod.ProductName, '')) AS [Product]
 
-        //           //SELECT @ediAttendantId = [ediAttendantId]
-        //           //  FROM [CTCEnterprise].[dbo].[Company]
-        //           //  WHERE [PromoCode] = @promoCode
-        //           //SET @databaseName = @databaseName + RTRIM(@ediAttendantId)
+      ,'' AS [BoxStyle]           
+      ,'' AS [Accessories]         
+      ,'' AS [TicketEdiStyle]       
+      ,'' AS [TicketInfo]           
+      ,'' AS [TicketTypeDestination]
+      ,'' AS [TicketSource]    
+      ,'' AS [TicketProofApproval]  
+      ,'' AS [BoxPONo]              
+      ,'' AS [CardsManufacturer]
 
-        //           //--SELECT @promoCode AS promoCode, @ediAttendantId AS ediAttendantId, @databaseName AS [database]
+	  ,ISNULL(customer.[BusinessPartnerCode], '') AS [BusinessPartnerCode_Customer]
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
+	  
+	  ,ISNULL(vendor.[BusinessPartnerCode], '') AS [BusinessPartnerCode_Vendor]
+	  ,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]
+	  
+  FROM [PIMS].[dbo].[SODetail] sod
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON sod.SoHeaderId = soh.[SOHeaderId]   
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON poh.[SOHeaderId] = sod.SoHeaderId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON soh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON poh.[ShipToBusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON prod.ProductId = pod.ProductId
+			AND sp.SalesProgramId = pod.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON vendor.CountryCodeId = country.LookupDetailId
+  WHERE poh.[PONumber] = '{0}'
+  ORDER BY poh.[PODate] ";
+            string fullQuery = string.Format(query, pono);
+            DataTableToObjectConverter converter = new DataTableToObjectConverter();
 
-        //           //SET @workQuery = 'SELECT [Location_Name]
-        //           //      ,[Location_id] AS LocationId
-        //           //      ,[uom]		AS UOM
-        //           //      ,[QtySold]	AS QtySold
-        //           //      ,[date_beg]	AS DateStart
-        //           //      ,[date_end]	AS DateEnd
-        //           //      ,[Item]		AS Item
-        //           //      ,[price]		AS Price
-        //           //      ,[weekno]		AS WeekNo
-        //           //      ,[ExtPrice]	AS ExtPrice
-        //           //      ,[upc]		AS UPC
-        //           //  FROM [@databaseName].[dbo].[PDDtl_bmy]'
+            DataTable dt = null;
+            try
+            {
+                dt = await converter.GetDataTableFromQuery(fullQuery);
+            }
+            catch (Exception ex)
+            {
+                //LogError("GetSqlData", ex, ex.Message);
+                return new List<BOMData>();
+            }
 
-        //           //SET @workQuery = REPLACE(@workQuery, '@databaseName', @databaseName);
+            if (dt == null)
+            {
+                return new List<BOMData>();
+            }
 
-        //           //EXEC(@workQuery)
-        //           //";
-        //           string query = "EXEC CTCsp_GetEdiAttendantData '{0}' ";
+            List<BOMData> data = new List<BOMData>();
+            data = await converter.GetObjectListFromDataTable<BOMData>(dt, new Dictionary<string, string>());
 
-        //           string fullQuery = string.Format(query, promoCode);
-        //           DataTableToObjectConverter converter = new DataTableToObjectConverter();
+            //foreach (DataRow dr in dt.Rows)
+            //{
+            //    data.Add(new ProgramData()
+            //    {
+            //        PONumber = dr["PONumber"].ToString(),
+            //        ProgramName = dr["ProgramName"].ToString(),
+            //        Product = dr["Product"].ToString(),
+            //        CustomerName = dr["CustomerName"].ToString(),
+            //        VendorName = dr["VendorName"].ToString(),
 
-        //           DataTable dt = null;
-        //           try
-        //           {
-        //               dt = await converter.GetDataTableFromQuery(fullQuery);
-        //           }
-        //           catch (Exception ex)
-        //           {
-        //               //LogError("GetSqlData", ex, ex.Message);
-        //           }
+            //        SODetailId = int.Parse(dr["SODetailId"].ToString()),
+            //        OrderQty = int.Parse(dr["OrderQty"].ToString()),
+            //        Cost = decimal.Parse(dr["Cost"].ToString()),
+            //        Price = decimal.Parse(dr["Price"].ToString())
+            //    });
+            //}
 
-        //           return dt;
-        //       }
-        //       public async Task<DataTable> GetSqlEdiAttendantDataTable(UserAccount user)
-        //       {
-        //           //            string query = @"
-        //           //DECLARE @promoCode		VARCHAR(50) = '{0}'
-        //           //DECLARE @ediAttendantId	VARCHAR(50) = NULL
-        //           //DECLARE @databaseName	VARCHAR(50) = 'ediAttendant_'
-        //           //DECLARE @workQuery		VARCHAR(MAX) = ''	
+            return data;
+        }
 
-        //           //SELECT @ediAttendantId = [ediAttendantId]
-        //           //  FROM [CTCEnterprise].[dbo].[Company]
-        //           //  WHERE [PromoCode] = @promoCode
-        //           //SET @databaseName = @databaseName + RTRIM(@ediAttendantId)
+        public async Task<List<CommentsData>> GetCommentsData_old(string pono)
+        {
+            string query = @"
 
-        //           //--SELECT @promoCode AS promoCode, @ediAttendantId AS ediAttendantId, @databaseName AS [database]
+SELECT qc.[QualityControlId]
+      ,qc.[QualityControlTypeId]
+      ,qc.[ProductId]
+      ,qc.[PODetailID]
+      ,qc.[QualityControlStatus]
 
-        //           //SET @workQuery = 'SELECT [Location_Name]
-        //           //      ,[Location_id] AS LocationId
-        //           //      ,[uom]		AS UOM
-        //           //      ,[QtySold]	AS QtySold
-        //           //      ,[date_beg]	AS DateStart
-        //           //      ,[date_end]	AS DateEnd
-        //           //      ,[Item]		AS Item
-        //           //      ,[price]		AS Price
-        //           //      ,[weekno]		AS WeekNo
-        //           //      ,[ExtPrice]	AS ExtPrice
-        //           //      ,[upc]		AS UPC
-        //           //  FROM [@databaseName].[dbo].[PDDtl_bmy]'
+	  ,0 AS [CommentaryId]
+      ,0 AS [CommentaryTypeId]
+      ,'' AS [Comments]
 
-        //           //SET @workQuery = REPLACE(@workQuery, '@databaseName', @databaseName);
+      ,'' AS [SamplesApproval]
+      ,'' AS [DisneyStatus]
+      ,'' AS [ImageApproval]
 
-        //           //EXEC(@workQuery)
-        //           //";
-        //           string query = "EXEC CTCsp_GetEdiAttendantData '{0}' ";
-        //           string fullQuery = string.Format(query, user.PromoCode);
-        //           DataTableToObjectConverter converter = new DataTableToObjectConverter();
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+  FROM [PIMS].[dbo].[QualityControl] qc
+	--LEFT JOIN [PIMS].[dbo].[Commentary] com
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON qc.[PODetailId] = pod.[PODetailId] 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON pod.[POHeaderId] = poh.[POHeaderId] 
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON poh.[SOHeaderId] = soh.[SOHeaderId]   
+  WHERE poh.[PONumber] = '{0}' ";
 
-        //           DataTable dt = null;
-        //           try
-        //           {
-        //               dt = await converter.GetDataTableFromQuery(fullQuery);
-        //           }
-        //           catch (Exception ex)
-        //           {
-        //               //LogError("GetSqlData", ex, ex.Message);
-        //           }
+            return await GetSqlData<CommentsData>(query);
+        }
 
-        //           return dt;
-        //       }
+        public async Task<List<FreightData>> GetFreightData_old(string pono)
+        {
+            string query = @"
+SELECT sh.[ShipmentHeaderId] AS [Id]
+
+      ,sh.[ShipMethodId]
+	  ,ISNULL(shipping.[LookupDescripiton], '') AS [ShipMethod]
+
+      ,sh.[InvoiceNo]	  
+      ,sd.[ShipmentQty]
+      ,sh.[TrackingNumber] AS [Tracking]
+      ,sh.[ShipmentDate]
+      ,sh.[ShipToETA]
+
+  FROM [PIMS].[dbo].[ShipmentHeader] sh
+	LEFT JOIN [PIMS].[dbo].[ShipmentDetails] sd
+		ON sh.[ShipmentHeaderId] = sd.ShipmentHeaderId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] shipping
+		ON sh.[ShipMethodId] = shipping.LookupDetailId
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON sd.[PODetailId] = pod.[PODetailId] 
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON pod.[POHeaderId] = poh.[POHeaderId] 
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON poh.[SOHeaderId] = soh.[SOHeaderId]  
+  WHERE poh.[PONumber] = '{0}'
+  ORDER BY [ShipToETA] ASC ";
+            string fullQuery = string.Format(query, pono);
+            DataTableToObjectConverter converter = new DataTableToObjectConverter();
+
+            DataTable dt = null;
+            try
+            {
+                dt = await converter.GetDataTableFromQuery(fullQuery);
+            }
+            catch (Exception ex)
+            {
+                //LogError("GetSqlData", ex, ex.Message);
+                return new List<FreightData>();
+            }
+
+            if (dt == null)
+            {
+                return new List<FreightData>();
+            }
+
+            List<FreightData> data = new List<FreightData>();
+            data = await converter.GetObjectListFromDataTable<FreightData>(dt, new Dictionary<string, string>());
+
+            //foreach (DataRow dr in dt.Rows)
+            //{
+            //    data.Add(new FreightData()
+            //    {
+            //        PONumber = dr["PONumber"].ToString(),
+            //        ShipMethod = dr["ShipMethod"].ToString(),
+            //        InvoiceNo = dr["InvoiceNo"].ToString(),
+            //        Tracking = dr["Tracking"].ToString(),
+            //        ShipmentQty = dr["ShipmentQty"].ToString(),
+            //        ShipmentDate = DateTime.Parse(dr["ShipmentDate"].ToString()),
+            //        ShipToETA = DateTime.Parse(dr["ShipToETA"].ToString()),
+            //        Id = int.Parse(dr["Id"].ToString())
+            //    });
+            //}
+
+            return data;
+        }
+
+        public async Task<List<CostData>> GetCostData_old(string pono)
+        {
+            string query = @"
+SELECT ISNULL(sod.[SODetailId], 0) AS [SODetailId]
+      ,ISNULL(soh.[SOHeaderId], 0) AS [SOHeaderId]
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]
+      ,ISNULL(poh.[PONumber], '') AS [PONumber]
+	  ,ISNULL(poh.[POHeaderId], 0) AS [POHeaderId]
+
+	  ,ISNULL(prod.[ProductId], 0) AS [ProductId] 
+	  ,ISNULL(prod.[ProductNo], '') AS [ProductNo]
+	  	  
+	  ,ISNULL(pod.[OrderQty], 0) AS [QtyOrdered]
+	  ,ISNULL(pod.[Cost], 0.0) AS [FirstCost]
+	  ,ISNULL(pod.[OrderQty], 0.0) * ISNULL(pod.[Cost], 0) AS [JewelryCost]
+	  ,ISNULL(pod.[OrderQty], 0.0) * ISNULL(pod.[Cost], 0) AS [PackagingCost]
+	  ,ISNULL(pod.[OrderQty], 0.0) * ISNULL(pod.[Cost], 0) AS [TotalCost]
+	  ,ISNULL(sod.[Price], 0.0) AS [Price]
+	  ,ISNULL(sod.[Price], 0.0) * ISNULL(pod.[OrderQty], 0) AS [SellAmount]
+
+	  ,ISNULL(hts.[HTSCode], '') AS [HTSCode]
+	  ,ISNULL(hts.[HTSAmount], 0.0) AS [DutyPercent]
+	  ,ISNULL(hts.[HTSAmount], 0.0) * ISNULL(pod.[OrderQty], 0) * ISNULL(pod.[Cost], 0) AS [DutyAmount]
+	  
+	  ,0.0 AS [LaborFreight]
+	  ,0.0 AS [LaborAmount]
+	  ,0.0 AS [DisneyRoyalty]
+	  ,0.0 AS [TotalCostLanded]
+	  ,0.0 AS [COGPercent]
+
+  FROM [PIMS].[dbo].[SODetail] sod
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON sod.SoHeaderId = soh.[SOHeaderId]   
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON poh.[SOHeaderId] = sod.SoHeaderId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON soh.[BusinessPartnerId] = vendor.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON poh.[ShipToBusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[ProductAttributes] attribute
+		ON sod.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[SalesProgram] sp
+		ON sod.SalesProgramId = sp.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON prod.ProductId = pod.ProductId
+			AND sp.SalesProgramId = pod.SalesProgramId
+	LEFT JOIN [PIMS].[dbo].[LookupDetail] country
+		ON vendor.CountryCodeId = country.LookupDetailId 
+	LEFT JOIN [PIMS].[dbo].[ProductHTS] prodhts
+		ON prodhts.ProductId = prod.ProductId
+	LEFT JOIN [PIMS].[dbo].[HTS] hts
+		ON hts.HTSId = prodhts.HTSID
+  WHERE poh.[PONumber] = '{0}'
+  ORDER BY poh.[PODate] ";
+            string fullQuery = string.Format(query, pono);
+            DataTableToObjectConverter converter = new DataTableToObjectConverter();
+
+            DataTable dt = null;
+            try
+            {
+                dt = await converter.GetDataTableFromQuery(fullQuery);
+            }
+            catch (Exception ex)
+            {
+                //LogError("GetSqlData", ex, ex.Message);
+                return new List<CostData>();
+            }
+
+            if (dt == null)
+            {
+                return new List<CostData>();
+            }
+
+            List<CostData> data = new List<CostData>();
+            data = await converter.GetObjectListFromDataTable<CostData>(dt, new Dictionary<string, string>());
+
+            return data;
+        }
 
         #endregion
 

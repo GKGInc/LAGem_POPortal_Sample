@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "HVN/ayA5UsjDXdX0En4XUF4JkpnkQhkpnesZ/Aq0ldv8Wd3i0hn9Z3cbWD59vKFAFjhU5MzVT/BrrZuaZACLUw==",
+  "dgSpecHash": "cKCGMPJdw3SsndX2vi56hcIx8ORZfpjPpsqmjQ/KUiZ/cI51Z1/BnitsuZV7uyfWT8y3ck3zTqHdZtypNtnqZw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\MasterDetail.csproj",
+  "projectFilePath": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\LAGem_POPortal.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Helder\\.nuget\\packages\\azure.core\\1.24.0\\azure.core.1.24.0.nupkg.sha512",
     "C:\\Users\\Helder\\.nuget\\packages\\azure.identity\\1.6.0\\azure.identity.1.6.0.nupkg.sha512",

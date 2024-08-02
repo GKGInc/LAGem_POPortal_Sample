@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-namespace MasterDetail.Models
+namespace LAGem_POPortal.Models
 {
     public class DepartmentQueueProcessesView
     {

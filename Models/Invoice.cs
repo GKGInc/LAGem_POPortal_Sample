@@ -1,7 +1,7 @@
 ﻿using System;
 #nullable disable
 
-namespace MasterDetail.Models {
+namespace LAGem_POPortal.Models {
     public partial class Invoice {
         public string ShipName { get; set; }
         public string ShipAddress { get; set; }

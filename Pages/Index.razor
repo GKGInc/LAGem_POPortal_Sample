@@ -1,57 +1,101 @@
 ﻿@page "/"
 @using DevExpress.Blazor
+@using LAGem_POPortal.Data
+@using LAGem_POPortal.Models
+@using Microsoft.EntityFrameworkCore
 @inject IJSRuntime js
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager navManager
 
-@using MasterDetail.Data
-@using MasterDetail.Models
-@using Microsoft.EntityFrameworkCore 
 @implements IDisposable
 
-<DxGrid @ref="POGrid"
-        Data="POGridData"
+<DxGrid @ref="Grid"
+        Data="GridData"
+        KeyFieldName="Id"
+
         PagerPosition="GridPagerPosition.Bottom"
         PageSizeSelectorVisible="true"
         PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
         PageSizeSelectorAllRowsItemVisible="true"
-        @bind-PageIndex="@ActivePageIndex"
-        FooterDisplayMode="GridFooterDisplayMode.Auto"
         PageSize="@PageSize"
+        @bind-PageIndex="@ActivePageIndex"
+
+        AutoFitColumnWidths="true"
         AutoCollapseDetailRow="true"
-        KeyFieldName="PONumber"
-        ValidationEnabled="false"
+        ColumnResizeMode="@CurrentColumnResizeMode"
         EditMode="GridEditMode.EditRow"
         FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        FooterDisplayMode="GridFooterDisplayMode.Auto"
+        TextWrapEnabled="@TextWrapEnabled"
+        ValidationEnabled="false"
+
+        WordWrapEnabled="true"
+        HighlightRowOnHover="true"
+
+        ShowGroupPanel="true"
         ShowSearchBox="true"
         SearchText=""
         SearchTextParseMode="CurrentSearchTextParseMode"
-        ShowGroupPanel="false"
+
         CustomizeElement="Grid_CustomizeElement"
         CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-        EditModelSaving="POGrid_EditModelSaving"
-        DataItemDeleting="POGrid_DataItemDeleting"
-        CustomizeEditModel="POGrid_CustomizeEditModel"
-        ColumnResizeMode="GridColumnResizeMode.NextColumn"
-        TextWrapEnabled="false"
-        HighlightRowOnHover="true">
+        EditModelSaving="Grid_EditModelSaving"
+        DataItemDeleting="Grid_DataItemDeleting"
+        CustomizeEditModel="Grid_CustomizeEditModel">
     <Columns>
-        <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" SortIndex="0" />
-        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="true" />
-        <DxGridDataColumn FieldName="ItemCatalog" Caption="Item Catalog" ReadOnly="true" />
-        <DxGridDataColumn FieldName="Units" Caption="Units" DisplayFormat="n3" ReadOnly="true" />
-        <DxGridDataColumn FieldName="OrderDate" Caption="Order Date" DisplayFormat="d" ReadOnly="true" />
-        <DxGridDataColumn FieldName="FactoryCancel" Caption="Factory Cancel" DisplayFormat="d" />
-        <DxGridCommandColumn Width="150px"
-                             EditButtonVisible="true"
-                             CancelButtonVisible="true"
-                             SaveButtonVisible="true"
-                             NewButtonVisible="true" />
-    </Columns>
+        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="true" SortIndex="0" />
+        <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" ReadOnly="true" />
+        <DxGridDataColumn FieldName="CustomerName" Caption="Customer" ReadOnly="true" />
+        <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" DisplayFormat="d" />
+
+        @* <DxGridDataColumn FieldName="SOLineNoExt" Caption="SOLineNo" DisplayFormat="n2" ReadOnly="true" /> *@
+        <DxGridDataColumn FieldName="SOLineNo" Caption="SO Line No" DisplayFormat="n0" ReadOnly="true" SortIndex="1" />
+        <DxGridDataColumn FieldName="DisplaySequence" Caption="DisplaySequence" DisplayFormat="n0" ReadOnly="true" Visible="false" SortIndex="2" />
+        <DxGridDataColumn FieldName="SOSubLineNo" Caption="SOSubLineNo" DisplayFormat="n0" ReadOnly="true" Visible="false" SortIndex="3" />
+
+        <DxGridDataColumn FieldName="SOSubLineType" Caption="Product Type" ReadOnly="true"  />
+        <DxGridDataColumn FieldName="ProgramName" Caption="Program Name" ReadOnly="true" />
+        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" />
+        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" />
+
+        <DxGridDataColumn FieldName="SOQty" Caption="SOQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
+        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="n2" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
+        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n2" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
+
+        <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true"  />
+        <DxGridDataColumn FieldName="VendorName" Caption="Jewelry Factory" ReadOnly="true" />
+        @* <DxGridDataColumn FieldName="CountryCode" Caption="Country of Origin" ReadOnly="true" /> *@
+        <DxGridDataColumn FieldName="PODate" Caption="PODate" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="POQty" Caption="POQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
+        <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" />
+        
+        <DxGridDataColumn FieldName="ShipmentDate" Caption="Shipment Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking Number" ReadOnly="true"  />
+        <DxGridDataColumn FieldName="ShipToETA" Caption="Ship To ETA" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="ShipmentQty" Caption="POQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
+
+        <DxGridCommandColumn Width="150px" Visible="false"
+                             DeleteButtonVisible="false"
+                             EditButtonVisible="false"
+                             CancelButtonVisible="false"
+                             SaveButtonVisible="false"
+                             NewButtonVisible="false" />
+    </Columns>   
+    <ToolbarTemplate>
+        <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained" >
+            <Items>
+                <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Auto Fit Columns" Click="Grid_FitWidths" RenderStyle="ButtonRenderStyle.Secondary" />
+                <DxToolbarItem Alignment="ToolbarItemAlignment.Right" Text="Column Chooser" RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="grid-icon-column-chooser" Click="ColumnChooserButton_Click" />
+            </Items>
+        </DxToolbar>
+    </ToolbarTemplate>
     <DetailRowTemplate>
         @* <PODetailData DepartmentQueue="(DepartmentQueue)context.DataItem" QueueProcesses="@QueueProcesses" QueueLocations="@QueueLocations" /> *@
         @* <PODetailDataPage POData="(POData)context.DataItem" /> *@
-        <Grid_MasterDetail_NestedGrid_DetailContent POData="(POData)context.DataItem" />
+
+        @*<Grid_MasterDetail_NestedGrid_DetailContent POData="(POData)context.DataItem" /> *@
+        <PODataPage SODetailData="(PODetailData)context.DataItem" />
     </DetailRowTemplate>
 </DxGrid>
 <div class="pager-container">
@@ -65,6 +109,12 @@
     .highlighted-item > td {
         background-color: rgba(245, 198, 203, 0.5);
     }
+    .dx-datagrid-headers {
+        white-space: normal;
+    }
+    .dx-datagrid-nowrap.dx-datagrid-headers .dx-header-row > td > .dx-datagrid-text-content {
+        white-space: normal;
+    }
 </style>
 
 @code {
@@ -76,8 +126,11 @@
     bool AutoCollapseDetailRow { get; set; }
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    IGrid POGrid { get; set; }
-    IEnumerable<POData> POGridData { get; set; }
+    IGrid Grid { get; set; }
+    IEnumerable<PODetailData> GridData { get; set; }
+
+
+    bool TextWrapEnabled = true;
 
     int PageCount { get; set; } = 0;
     int TotalRecords { get; set; } = 0;
@@ -97,38 +150,29 @@
     string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
     GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
 
+    GridColumnResizeMode CurrentColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer; // GridColumnResizeMode.NextColumn;
+    string CurrentColumnResizeModeDisplayText { get; set; } = "Next Column";
+    Dictionary<string, GridColumnResizeMode> GridColumnResizeModes { get; } = new Dictionary<string,
+    GridColumnResizeMode>{
+        { "Disabled", GridColumnResizeMode.Disabled },                  //A user cannot resize columns.
+        { "Next Column", GridColumnResizeMode.NextColumn },             //When a user resizes a column, the width of the column to the right changes, but the Grid's total width does not change.
+        { "Columns Container", GridColumnResizeMode.ColumnsContainer }  //When a user resizes a column, all other columns retain width settings, but the width of the entire column container changes proportionally.
+    }; 
+    void ChangeResizeMode(string key)
+    {
+        CurrentColumnResizeModeDisplayText = key;
+        CurrentColumnResizeMode = GridColumnResizeModes[key];
+    }
+
     // ============================================================ \\
 
     protected async override Task OnInitializedAsync()
     {
         base.OnInitialized();
-        // var user = (await authenticationState).User;
-        // if (!user.Identity.IsAuthenticated)
-        // {
-        //     //NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
-        //     //navManager.NavigateTo("/Login", true);
-        //     //navManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(navManager.Uri)}");
-        // }
-        // else { }
-
-        // var authstate = await authStateProvider.GetAuthenticationStateAsync();
-        // var userClaimsPrincipal = authstate.User; // ClaimsPrincipal
-        // var userClaimsPrincipalName = userClaimsPrincipal.Identity.Name;
-
-        // if (userClaimsPrincipalName != null)
-        // {
-        //     var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
-
-        //     if (userData != null)
-        //     {
-        //         if (userData.Role == "Administrator") { }
-        //     }
-        //     else { }
-        // }
 
         SqlData sqlData = new SqlData();
-        POGridData = await sqlData.GetPOData();
-
+        GridData = await sqlData.GetSOPOData();
+        @* Grid.AutoFitColumnWidths();  *@
     }
 
     // ============================================================ \\
@@ -138,26 +182,27 @@
         AutoCollapseDetailRow = newValue;
         if (newValue)
         {
-            POGrid.BeginUpdate();
-            POGrid.CollapseAllDetailRows();
-            POGrid.ExpandDetailRow(0);
-            POGrid.EndUpdate();
+            Grid.BeginUpdate();
+            Grid.CollapseAllDetailRows();
+            Grid.ExpandDetailRow(0);
+            Grid.EndUpdate();
         }
     }
+    
+    public void Dispose()
+    {
+        // Northwind?.Dispose();
+    }
+
+    // ============================================================ \\
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        //TotalRecords = (int)(POGrid.GetTotalSummaryValue(POGrid?.GetTotalSummaryItems().First()));
-        TotalRecords = POGridData.Count();
-        PageCount = (int)Math.Ceiling((decimal)TotalRecords / PageSize);
-        StateHasChanged();
-        base.OnAfterRender(firstRender);
-
         if (firstRender)
         {
-            await DataLoadedTcs.Task;
-            // Waits for grid data to load
-            // Grid.ExpandDetailRow(0);
+            await DataLoadedTcs.Task; // Waits for grid data to load
+                                      // Grid.ExpandDetailRow(0);
+            Grid.AutoFitColumnWidths();
         }
     }
 
@@ -167,6 +212,13 @@
         // {
         //     e.CssClass = "highlighted-item";
         // }
+
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "CustomerName")
+        {
+            string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
+            if (customerName == "MACYS")
+                e.Style = "background: green";
+        }
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
         {
             e.Style = "font-weight: 800";
@@ -181,54 +233,97 @@
             if (units > 100)
                 e.Style = "color: red";
         }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "SOQty")
+        {
+            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "SOQty");
+            if (units > 100)
+                e.Style = "color: red";
+        }
     }
     void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
     {
-        if (e.FieldName == "FactoryCancel")
-        {
-            // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
-            if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
-                e.DisplayText = "";
-        }
+        // if (e.FieldName == "FactoryCancel")
+        // {
+        //     // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
+        //     if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+        //         e.DisplayText = "";
+        // }
     }
-    void POGrid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
     {
         if (e.IsNew)
         {
-            var newPOData = (POData)e.EditModel;
-            // newPOData.PONumber = 
-            newPOData.OrderDate = DateTime.Now;
-        }
-        else
-        {
-            var newPOData = (POData)e.EditModel;
-            newPOData.FactoryCancel = DateTime.Now;
+            if (e.EditModel.GetType() == typeof(BOMData))
+            {
+                var newObject = (BOMData)e.EditModel;
+                // newDepartmentQueueLocations.DepartmentQueueOID = DepartmentQueue.OID;
+                // newDepartmentQueueLocations.Workcenter = DepartmentQueue.workcenter;
+
+            }
+            if (e.EditModel.GetType() == typeof(FreightData))
+            {
+                var newObject = (FreightData)e.EditModel;
+                // newDepartmentQueueProcesses.FOID = DepartmentQueue.OID;
+                // newDepartmentQueueProcesses.workcenter = DepartmentQueue.workcenter;
+
+            }
+            // var newEmployee = (EditableEmployee)e.EditModel;
+            // newEmployee.FirstName = "John";
+            // newEmployee.LastName = "Doe";
         }
     }
-    async Task POGrid_EditModelSaving(GridEditModelSavingEventArgs e)
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
-        var editablePOData = (POData)e.EditModel;
+        if (e.EditModel.GetType() == typeof(BOMData))
+        {
+            var editableObject = (BOMData)e.EditModel;
+
+            // if (e.IsNew)
+            //...
+        }
+        if (e.EditModel.GetType() == typeof(FreightData))
+        {
+            var editableObject = (FreightData)e.EditModel;
+
+            // if (e.IsNew)
+            //...
+        }
+
+        // var editableEmployee = (EditableEmployee)e.EditModel;
         // if (e.IsNew)
         //     await NwindDataService.InsertEmployeeAsync(editableEmployee);
         // else
         //     await NwindDataService.UpdateEmployeeAsync((EditableEmployee)e.DataItem, editableEmployee);
-        await POUpdateDataAsync();
+        await UpdateDataAsync();
     }
-    async Task POGrid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
     {
-        var deletingPOData = (POData)e.DataItem;
+        if (e.DataItem.GetType() == typeof(BOMData))
+        {
+            var deletingObject = (BOMData)e.DataItem;
+
+        }
+        if (e.DataItem.GetType() == typeof(FreightData))
+        {
+            var deletingObject = (FreightData)e.DataItem;
+
+        }
 
         // await NwindDataService.RemoveEmployeeAsync((EditableEmployee)e.DataItem);
-        await POUpdateDataAsync();
+        await UpdateDataAsync();
     }
-    async Task POUpdateDataAsync()
+    async Task UpdateDataAsync()
     {
-        // POGridData = await sqlData.GetPOData();
+        // DataSource = await NwindDataService.GetEmployeesEditableAsync();
     }
 
-    public void Dispose()
+    void Grid_FitWidths()
     {
-        // Northwind?.Dispose();
+        Grid.AutoFitColumnWidths();
+    }
+    void ColumnChooserButton_Click()
+    {
+        Grid.ShowColumnChooser();
     }
 
     // ============================================================ \\

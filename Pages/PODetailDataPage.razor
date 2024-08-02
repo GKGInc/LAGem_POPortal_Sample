@@ -1,0 +1,261 @@
+﻿@page "/PODetailDataPage"
+@using LAGem_POPortal.Authentication
+@using DevExpress.Blazor;
+@using LAGem_POPortal.Data
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@* @inject UserAccountService userAccountService *@
+
+@using LAGem_POPortal.Models
+@using Microsoft.EntityFrameworkCore
+
+
+<DxGrid @ref="PODetailGrid"
+        Data="PODetailGridData"
+        PagerPosition="GridPagerPosition.Bottom"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        @bind-PageIndex="@ActivePageIndex"
+        FooterDisplayMode="GridFooterDisplayMode.Auto"
+        PageSize="@PageSize"
+        AutoCollapseDetailRow="true"
+        KeyFieldName="Id"
+        ValidationEnabled="false"
+        EditMode="GridEditMode.EditRow"
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        ShowSearchBox="true"
+        SearchText=""
+        SearchTextParseMode="CurrentSearchTextParseMode"
+        ShowGroupPanel="false"
+        CustomizeElement="Grid_CustomizeElement"
+        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+        EditModelSaving="Grid_EditModelSaving"
+        DataItemDeleting="Grid_DataItemDeleting"
+        CustomizeEditModel="Grid_CustomizeEditModel"
+        ColumnResizeMode="GridColumnResizeMode.NextColumn"
+        TextWrapEnabled="false"
+        HighlightRowOnHover="true">
+    <Columns>
+        @* <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" SortIndex="0" /> *@
+        <DxGridDataColumn FieldName="POLineNo" Caption="Line No" DisplayFormat="n0" ReadOnly="true" />        
+        <DxGridDataColumn FieldName="ProductNo" Caption="Item Catalog No" ReadOnly="true" />
+        @* <DxGridDataColumn FieldName="VendorName" Caption="Jewelry Factory" ReadOnly="true" />
+        <DxGridDataColumn FieldName="CountryCode" Caption="Country of Origin" ReadOnly="true" /> *@
+       @*  <DxGridDataColumn FieldName="CustomerName" Caption="Customer" ReadOnly="true" /> *@
+        <DxGridDataColumn FieldName="QtyOrdered" Caption="Units" DisplayFormat="n3" ReadOnly="true" />
+        @* <DxGridDataColumn FieldName="PODate" Caption="PO Order Date" DisplayFormat="d" ReadOnly="true" />
+        <DxGridDataColumn FieldName="EndDate" Caption="Factory Cancel Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="StartDate" Caption="Customer Ship Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="true" /> *@
+
+        <DxGridCommandColumn Width="150px"
+                             EditButtonVisible="true"
+                             CancelButtonVisible="true"
+                             SaveButtonVisible="true"
+                             NewButtonVisible="true" />
+    </Columns>
+    <DetailRowTemplate>
+        @* <PODetailData DepartmentQueue="(DepartmentQueue)context.DataItem" QueueProcesses="@QueueProcesses" QueueLocations="@QueueLocations" /> *@
+        @* <PODetailDataPage POData="(POData)context.DataItem" /> *@
+        @* <Grid_MasterDetail_NestedGrid_DetailContent POData="(POData)context.DataItem" /> *@
+        <PODetailDataPageExt PODetailData="(PODetailData)context.DataItem" />
+    </DetailRowTemplate>
+</DxGrid>
+
+
+@code {
+    // ============================================================ \\
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    bool AutoCollapseDetailRow { get; set; }
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    [Parameter]
+    public POData POData { get; set; }
+
+    IGrid PODetailGrid { get; set; }
+    IEnumerable<PODetailData> PODetailGridData { get; set; }
+
+    int PageSize { get; set; } = 20;
+    int ActivePageIndex { get; set; } = 0;
+    int PageCount { get; set; } = 0;
+    int TotalRecords { get; set; } = 0;
+
+    Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
+        { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
+        { "Group Words By Or", GridSearchTextParseMode.GroupWordsByOr },
+        { "Exact Match", GridSearchTextParseMode.ExactMatch }
+    };
+    void ChangeSearchMode(string key)
+    {
+        CurrentSearchTextParseModeDisplayText = key;
+        CurrentSearchTextParseMode = SearchTextParseModes[key];
+    }
+    string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
+    GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
+
+    // ============================================================ \\
+
+    protected async override Task OnInitializedAsync()
+    {
+        // base.OnInitialized();
+        // var user = (await authenticationState).User;
+        // if (!user.Identity.IsAuthenticated)
+        // {
+        //     //NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
+        //     //navManager.NavigateTo("/Login", true);
+        //     //navManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(navManager.Uri)}");
+        // }
+        // else { }
+
+        // var authstate = await authStateProvider.GetAuthenticationStateAsync();
+        // var userClaimsPrincipal = authstate.User; // ClaimsPrincipal
+        // var userClaimsPrincipalName = userClaimsPrincipal.Identity.Name;
+
+        // if (userClaimsPrincipalName != null)
+        // {
+        //     var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
+
+        //     if (userData != null)
+        //     {
+        //         if (userData.Role == "Administrator") { }
+        //     }
+        //     else { }
+        // }
+
+        // DetailGridData = QueueProcesses.Where(i => i.FOID == DepartmentQueue.OID).ToArray();
+        // LocationGridData = QueueLocations.Where(i => i.DepartmentQueueOID == DepartmentQueue.OID).ToArray();
+
+        SqlData sqlData = new SqlData();
+        PODetailGridData = await sqlData.GetPODetailData(POData.PONumber);
+
+    }
+
+    // ============================================================ \\
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task; // Waits for grid data to load
+                                      // Grid.ExpandDetailRow(0);
+        }
+    }
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        // if (e.ElementType == GridElementType.DataRow && (System.Decimal)e.Grid.GetRowValue(e.VisibleIndex, "Total") > 1000)
+        // {
+        //     e.CssClass = "highlighted-item";
+        // }
+
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "CustomerName")
+        {
+            string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
+            if (customerName == "MACYS")
+                e.Style = "background: green";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
+        {
+            e.Style = "font-weight: 800";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
+        {
+            e.Style = "font-weight: 800";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
+        {
+            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
+            if (units > 100)
+                e.Style = "color: red";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "SOQty")
+        {
+            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "SOQty");
+            if (units > 100)
+                e.Style = "color: red";
+        }
+    }
+    void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
+    {
+        // if (e.FieldName == "FactoryCancel")
+        // {
+        //     // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
+        //     if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+        //         e.DisplayText = "";
+        // }
+    }
+    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            if (e.EditModel.GetType() == typeof(BOMData))
+            {
+                var newObject = (BOMData)e.EditModel;
+                // newDepartmentQueueLocations.DepartmentQueueOID = DepartmentQueue.OID;
+                // newDepartmentQueueLocations.Workcenter = DepartmentQueue.workcenter;
+
+            }
+            if (e.EditModel.GetType() == typeof(FreightData))
+            {
+                var newObject = (FreightData)e.EditModel;
+                // newDepartmentQueueProcesses.FOID = DepartmentQueue.OID;
+                // newDepartmentQueueProcesses.workcenter = DepartmentQueue.workcenter;
+
+            }
+            // var newEmployee = (EditableEmployee)e.EditModel;
+            // newEmployee.FirstName = "John";
+            // newEmployee.LastName = "Doe";
+        }
+    }
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        if (e.EditModel.GetType() == typeof(BOMData))
+        {
+            var editableObject = (BOMData)e.EditModel;
+
+            // if (e.IsNew)
+            //...
+        }
+        if (e.EditModel.GetType() == typeof(FreightData))
+        {
+            var editableObject = (FreightData)e.EditModel;
+
+            // if (e.IsNew)
+            //...
+        }
+
+        // var editableEmployee = (EditableEmployee)e.EditModel;
+        // if (e.IsNew)
+        //     await NwindDataService.InsertEmployeeAsync(editableEmployee);
+        // else
+        //     await NwindDataService.UpdateEmployeeAsync((EditableEmployee)e.DataItem, editableEmployee);
+        await UpdateDataAsync();
+    }
+    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        if (e.DataItem.GetType() == typeof(BOMData))
+        {
+            var deletingObject = (BOMData)e.DataItem;
+
+        }
+        if (e.DataItem.GetType() == typeof(FreightData))
+        {
+            var deletingObject = (FreightData)e.DataItem;
+
+        }
+
+        // await NwindDataService.RemoveEmployeeAsync((EditableEmployee)e.DataItem);
+        await UpdateDataAsync();
+    }
+    async Task UpdateDataAsync()
+    {
+        // DataSource = await NwindDataService.GetEmployeesEditableAsync();
+    }
+
+    // ============================================================ \\
+}

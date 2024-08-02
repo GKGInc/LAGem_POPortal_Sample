@@ -1,0 +1,11 @@
+﻿@page
+@model LAGem_POPortal.Areas.Identity.Pages.Account.TestPageModel
+@{
+
+    <button id="login-register" onclick="Submit" class="w-100 btn-lg btn-lg btn-primary">Register</button>
+    @Html.AntiForgeryToken();
+}
+<form asp-page-handler="button" method="post">
+    <button class="btn btn-default">Button</button>
+    @Html.AntiForgeryToken();
+</form>

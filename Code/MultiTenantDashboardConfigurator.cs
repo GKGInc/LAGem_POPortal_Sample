@@ -1,4 +1,4 @@
-﻿using MasterDetail.Data;
+﻿using LAGem_POPortal.Data;
 using DevExpress.DashboardCommon;
 using DevExpress.DashboardWeb;
 using DevExpress.Data.Filtering;
@@ -16,7 +16,7 @@ using System.Data;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace MasterDetail.Code
+namespace LAGem_POPortal.Code
 {
     public class MultiTenantDashboardConfigurator : DashboardConfigurator
     {
@@ -60,8 +60,7 @@ namespace MasterDetail.Code
             SetDashboardStorage(dashboardFileStorage);
 
             DataSourceInMemoryStorage dataSourceStorage = new DataSourceInMemoryStorage();
-            DashboardSqlDataSource sqlDataSource = new DashboardSqlDataSource("SQL Data Source", "LAGemConnection");
-            //DashboardSqlDataSource sqlDataSource = new DashboardSqlDataSource("SQL Data Source", "DefaultConnection");
+            DashboardSqlDataSource sqlDataSource = new DashboardSqlDataSource("SQL Data Source", "DefaultConnection");
             ////sqlDataSource.DataProcessingMode = DataProcessingMode.Client;
             sqlDataSource.DataProcessingMode = DataProcessingMode.Server;
             dataSourceStorage.RegisterDataSource("sqlDataSource", sqlDataSource.SaveToXml());

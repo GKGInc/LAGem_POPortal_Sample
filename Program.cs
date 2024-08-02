@@ -1,5 +1,5 @@
 using DevExpress.Data.Browsing;
-using MasterDetail.Models;
+using LAGem_POPortal.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
@@ -10,9 +10,44 @@ using System.Collections.Generic;
 using System;
 using DevExpress.Xpo.DB;
 using DevExpress.Xpo;
-using MasterDetail.Code;
+using LAGem_POPortal.Code;
+using DevExpress.XtraCharts;
+using LAGem_POPortal.Authentication;
+using LAGem_POPortal.Data;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// -- =========================================================================
+
+//// Logging: using Microsoft.AspNetCore.Identity custom
+//services.AddIdentity<IdentityUser, IdentityRole>(options =>
+//{
+//    options.Password.RequireDigit = false;
+//    options.Password.RequiredLength = 5;
+//    options.Password.RequireLowercase = false;
+//    options.Password.RequireUppercase = false;
+//    options.Password.RequireNonAlphanumeric = false;
+//    options.SignIn.RequireConfirmedEmail = false;
+//})
+//    .AddRoles<IdentityRole>()
+//    .AddEntityFrameworkStores<DataContext>();
+
+//// Logging: using custom
+//builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+//    .AddCookie();
+
+//builder.Services.AddAuthorization(options =>
+//{
+//    options.AddPolicy("AdministratorOnly", policy => policy.RequireRole("Administrator"));
+//});
+
+//// For CustomAuthenticationStateProvider process
+//builder.Services.AddAuthenticationCore();
+
+// -- =========================================================================
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -38,6 +73,22 @@ builder.Services.AddDbContextFactory<DbContext>((sp, options) =>
 //builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(sqlDefaultConnection));
 //var sqlLAGemConnection = Configuration.GetConnectionString("LAGemConnection");
 //builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(sqlLAGemConnection));
+
+// -- =========================================================================
+
+////// For CustomAuthenticationStateProvider process
+////builder.Services.AddAuthenticationCore();
+
+//// For CustomAuthenticationStateProvider process
+//builder.Services.AddScoped<ProtectedSessionStorage>();
+//builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+//builder.Services.AddSingleton<UserAccountService>();
+
+////// Logging: using Microsoft.AspNetCore.Identity custom
+////builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+
+//// Logging: using custom
+//builder.Services.AddSingleton<CustomAuthService>();
 
 // -- =========================================================================
 
@@ -72,6 +123,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+//app.UseSession(); // from https://github.com/DevExpress-Examples/DashboardDifferentUserDataAspNetCore/blob/23.2.2%2B/CS/Startup.cs
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
