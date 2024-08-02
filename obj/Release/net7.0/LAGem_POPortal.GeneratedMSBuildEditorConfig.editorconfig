@@ -1,0 +1,123 @@
+is_global = true
+build_property.TargetFramework = net7.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = LAGem_POPortal
+build_property.RootNamespace = LAGem_POPortal
+build_property.ProjectDir = C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 7.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample
+build_property._RazorSourceGeneratorDebug = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/Grid_MasterDetail_NestedGrid_DetailContent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcR3JpZF9NYXN0ZXJEZXRhaWxfTmVzdGVkR3JpZF9EZXRhaWxDb250ZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Shared/BrowserNotSupported.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXEJyb3dzZXJOb3RTdXBwb3J0ZWQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/FullDetailDataPage.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVsbERldGFpbERhdGFQYWdlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-3tl34nrk2e
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/PODataPage.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUE9EYXRhUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-v3os6ycd6m
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/PODetailDataPage.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUE9EZXRhaWxEYXRhUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-ozwxhl7yli
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/PODetailDataPageExt.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUE9EZXRhaWxEYXRhUGFnZUV4dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-cfk90prvvx
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/SODataPage.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU09EYXRhUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-os4j679myy
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/SODetailDataPage.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU09EZXRhaWxEYXRhUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-aqdu5z9vrh
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/SODetailDataPageExt.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU09EZXRhaWxEYXRhUGFnZUV4dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-syluk24g1m
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Shared/Header.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXEhlYWRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-c9pzu0x497
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Shared/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-xwkjq3srq5
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-8921l317u9
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Areas/Identity/Pages/Account/LogIn.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcSWRlbnRpdHlcUGFnZXNcQWNjb3VudFxMb2dJbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Areas/Identity/Pages/Account/LogOut.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcSWRlbnRpdHlcUGFnZXNcQWNjb3VudFxMb2dPdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Areas/Identity/Pages/Account/Register.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcSWRlbnRpdHlcUGFnZXNcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Areas/Identity/Pages/Account/TestPage.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcSWRlbnRpdHlcUGFnZXNcQWNjb3VudFxUZXN0UGFnZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Areas/Identity/Pages/Shared/_LoginPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcSWRlbnRpdHlcUGFnZXNcU2hhcmVkXF9Mb2dpblBhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Areas/Identity/Pages/_IdentityLayout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcSWRlbnRpdHlcUGFnZXNcX0lkZW50aXR5TGF5b3V0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Areas/Identity/Pages/_ViewImport.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcSWRlbnRpdHlcUGFnZXNcX1ZpZXdJbXBvcnQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Areas/Identity/Pages/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcSWRlbnRpdHlcUGFnZXNcX1ZpZXdTdGFydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXJyb3IuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/_Host.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0hvc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0xheW91dC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 

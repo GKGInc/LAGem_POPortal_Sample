@@ -1,0 +1,1 @@
+class l{constructor(){this.action=null,this.handle=null}execute(l){this.cancel(),this.action=l,this.handle=setTimeout((()=>{var l;null===(l=this.action)||void 0===l||l.call(this),this.handle=null,this.action=null}),0)}cancel(){this.handle&&(clearTimeout(this.handle),this.action=null,this.handle=null)}}export{l as D};

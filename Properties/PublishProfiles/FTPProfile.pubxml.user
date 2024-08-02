@@ -1,0 +1,1107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <TimeStampOfAssociatedLegacyPublishXmlFile />
+    <EncryptedPassword>AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAr+l2i6qvUEO/6jZR5gEZaQAAAAACAAAAAAAQZgAAAAEAACAAAAABTfSwiLjXB1xA1lAxuQQR2eRbMKceUd4VP+hWzg0AUAAAAAAOgAAAAAIAACAAAAAJ5/+I5hT8Hh1aRwo2od/GncUlCXovsp6Xm0E7saq+hiAAAABDEJNPWKfERkY0rTd2hP2PdYldCuzQoX5Kn292AeQtbUAAAAAlXzhR7cXW6U2SyD401stGYGg4gzvoWMRPYtG1jSRvnmClhI7RwS3mGmGaPCvU2EkStil2vWtMP/96LftoDJFB</EncryptedPassword>
+    <_PublishTargetUrl>ftp://gkgiis/LAGem_POPortal</_PublishTargetUrl>
+    <History>True|2024-08-02T18:30:25.5398455Z;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+  <ItemGroup>
+    <File Include="appsettings.Development.json">
+      <publishTime>07/16/2024 12:52:48</publishTime>
+    </File>
+    <File Include="appsettings.json">
+      <publishTime>07/30/2024 12:21:25</publishTime>
+    </File>
+    <File Include="Azure.Core.dll">
+      <publishTime>04/04/2022 17:38:56</publishTime>
+    </File>
+    <File Include="Azure.Identity.dll">
+      <publishTime>04/05/2022 16:26:00</publishTime>
+    </File>
+    <File Include="cs/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="de/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="DevExpress.AspNetCore.Common.v23.2.dll">
+      <publishTime>04/24/2024 17:03:50</publishTime>
+    </File>
+    <File Include="DevExpress.AspNetCore.Core.v23.2.dll">
+      <publishTime>04/24/2024 17:03:50</publishTime>
+    </File>
+    <File Include="DevExpress.Blazor.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Charts.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.CodeParser.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Dashboard.v23.2.AspNetCore.dll">
+      <publishTime>03/09/2024 22:00:00</publishTime>
+    </File>
+    <File Include="DevExpress.Dashboard.v23.2.Blazor.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Dashboard.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Dashboard.v23.2.Web.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Data.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.DataAccess.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.DataVisualization.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Drawing.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Map.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Office.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Pdf.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Pdf.v23.2.Drawing.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.PivotGrid.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Printing.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.RichEdit.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.RichEdit.v23.2.Export.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Sparkline.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.TreeMap.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Web.Resources.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.Xpo.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.XtraCharts.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.XtraGauges.v23.2.Core.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.XtraReports.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExpress.XtraTreeMap.v23.2.dll">
+      <publishTime>04/24/2024 17:03:51</publishTime>
+    </File>
+    <File Include="DevExtreme.AspNet.Data.dll">
+      <publishTime>09/22/2023 07:07:02</publishTime>
+    </File>
+    <File Include="es/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="fr/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="it/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="ja/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="ko/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="LAGem_POPortal.deps.json">
+      <publishTime>08/02/2024 14:28:24</publishTime>
+    </File>
+    <File Include="LAGem_POPortal.dll">
+      <publishTime>08/02/2024 14:28:19</publishTime>
+    </File>
+    <File Include="LAGem_POPortal.exe">
+      <publishTime>08/02/2024 14:28:19</publishTime>
+    </File>
+    <File Include="LAGem_POPortal.pdb">
+      <publishTime>08/02/2024 14:28:19</publishTime>
+    </File>
+    <File Include="LAGem_POPortal.runtimeconfig.json">
+      <publishTime>08/02/2024 14:28:21</publishTime>
+    </File>
+    <File Include="Microsoft.AspNetCore.Components.WebAssembly.dll">
+      <publishTime>06/14/2024 18:37:56</publishTime>
+    </File>
+    <File Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore.dll">
+      <publishTime>06/14/2024 18:37:44</publishTime>
+    </File>
+    <File Include="Microsoft.Bcl.AsyncInterfaces.dll">
+      <publishTime>10/19/2020 14:47:56</publishTime>
+    </File>
+    <File Include="Microsoft.Data.SqlClient.dll">
+      <publishTime>10/07/2022 19:35:40</publishTime>
+    </File>
+    <File Include="Microsoft.EntityFrameworkCore.Abstractions.dll">
+      <publishTime>02/15/2023 11:58:46</publishTime>
+    </File>
+    <File Include="Microsoft.EntityFrameworkCore.dll">
+      <publishTime>02/15/2023 11:59:20</publishTime>
+    </File>
+    <File Include="Microsoft.EntityFrameworkCore.Relational.dll">
+      <publishTime>02/15/2023 11:59:38</publishTime>
+    </File>
+    <File Include="Microsoft.EntityFrameworkCore.SqlServer.dll">
+      <publishTime>02/15/2023 12:00:32</publishTime>
+    </File>
+    <File Include="Microsoft.Extensions.DependencyModel.dll">
+      <publishTime>10/18/2022 12:15:30</publishTime>
+    </File>
+    <File Include="Microsoft.Identity.Client.dll">
+      <publishTime>06/22/2022 15:59:58</publishTime>
+    </File>
+    <File Include="Microsoft.Identity.Client.Extensions.Msal.dll">
+      <publishTime>11/19/2021 17:02:00</publishTime>
+    </File>
+    <File Include="Microsoft.IdentityModel.Abstractions.dll">
+      <publishTime>07/01/2022 14:47:38</publishTime>
+    </File>
+    <File Include="Microsoft.IdentityModel.JsonWebTokens.dll">
+      <publishTime>07/01/2022 14:25:52</publishTime>
+    </File>
+    <File Include="Microsoft.IdentityModel.Logging.dll">
+      <publishTime>07/01/2022 14:27:42</publishTime>
+    </File>
+    <File Include="Microsoft.IdentityModel.Protocols.dll">
+      <publishTime>07/01/2022 14:29:14</publishTime>
+    </File>
+    <File Include="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll">
+      <publishTime>07/01/2022 14:39:00</publishTime>
+    </File>
+    <File Include="Microsoft.IdentityModel.Tokens.dll">
+      <publishTime>07/01/2022 14:33:46</publishTime>
+    </File>
+    <File Include="Microsoft.JSInterop.WebAssembly.dll">
+      <publishTime>06/14/2024 18:37:14</publishTime>
+    </File>
+    <File Include="Microsoft.SqlServer.Server.dll">
+      <publishTime>01/27/2022 12:19:08</publishTime>
+    </File>
+    <File Include="Microsoft.Win32.SystemEvents.dll">
+      <publishTime>10/19/2020 14:40:26</publishTime>
+    </File>
+    <File Include="Newtonsoft.Json.dll">
+      <publishTime>11/23/2022 21:10:26</publishTime>
+    </File>
+    <File Include="pl/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="pt-BR/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="ru/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="runtimes/browser/lib/net7.0/System.Text.Encodings.Web.dll">
+      <publishTime>10/31/2023 11:00:26</publishTime>
+    </File>
+    <File Include="runtimes/linux-x64/native/SQLite.Interop.dll">
+      <publishTime>11/02/2021 15:15:00</publishTime>
+    </File>
+    <File Include="runtimes/osx-x64/native/SQLite.Interop.dll">
+      <publishTime>11/02/2021 15:15:00</publishTime>
+    </File>
+    <File Include="runtimes/unix/lib/netcoreapp2.1/System.Data.SqlClient.dll">
+      <publishTime>10/26/2023 19:34:06</publishTime>
+    </File>
+    <File Include="runtimes/unix/lib/netcoreapp3.0/System.Drawing.Common.dll">
+      <publishTime>10/19/2020 14:49:58</publishTime>
+    </File>
+    <File Include="runtimes/unix/lib/netcoreapp3.1/Microsoft.Data.SqlClient.dll">
+      <publishTime>10/07/2022 19:35:40</publishTime>
+    </File>
+    <File Include="runtimes/win-arm/native/Microsoft.Data.SqlClient.SNI.dll">
+      <publishTime>10/03/2022 18:45:42</publishTime>
+    </File>
+    <File Include="runtimes/win-arm64/native/Microsoft.Data.SqlClient.SNI.dll">
+      <publishTime>10/03/2022 18:45:32</publishTime>
+    </File>
+    <File Include="runtimes/win-arm64/native/sni.dll">
+      <publishTime>07/12/2017 07:24:24</publishTime>
+    </File>
+    <File Include="runtimes/win-x64/native/Microsoft.Data.SqlClient.SNI.dll">
+      <publishTime>10/03/2022 18:45:32</publishTime>
+    </File>
+    <File Include="runtimes/win-x64/native/sni.dll">
+      <publishTime>07/12/2017 07:24:22</publishTime>
+    </File>
+    <File Include="runtimes/win-x64/native/SQLite.Interop.dll">
+      <publishTime>11/02/2021 13:47:38</publishTime>
+    </File>
+    <File Include="runtimes/win-x86/native/Microsoft.Data.SqlClient.SNI.dll">
+      <publishTime>10/03/2022 18:45:32</publishTime>
+    </File>
+    <File Include="runtimes/win-x86/native/sni.dll">
+      <publishTime>07/12/2017 07:24:22</publishTime>
+    </File>
+    <File Include="runtimes/win-x86/native/SQLite.Interop.dll">
+      <publishTime>11/02/2021 13:47:02</publishTime>
+    </File>
+    <File Include="runtimes/win/lib/netcoreapp2.1/System.Data.SqlClient.dll">
+      <publishTime>10/26/2023 19:34:10</publishTime>
+    </File>
+    <File Include="runtimes/win/lib/netcoreapp3.0/Microsoft.Win32.SystemEvents.dll">
+      <publishTime>10/19/2020 14:52:12</publishTime>
+    </File>
+    <File Include="runtimes/win/lib/netcoreapp3.0/System.Drawing.Common.dll">
+      <publishTime>10/19/2020 14:53:02</publishTime>
+    </File>
+    <File Include="runtimes/win/lib/netcoreapp3.0/System.Windows.Extensions.dll">
+      <publishTime>10/19/2020 14:53:36</publishTime>
+    </File>
+    <File Include="runtimes/win/lib/netcoreapp3.1/Microsoft.Data.SqlClient.dll">
+      <publishTime>10/07/2022 19:35:52</publishTime>
+    </File>
+    <File Include="runtimes/win/lib/netstandard2.0/System.Runtime.Caching.dll">
+      <publishTime>10/19/2020 14:52:44</publishTime>
+    </File>
+    <File Include="runtimes/win/lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll">
+      <publishTime>10/19/2020 14:49:30</publishTime>
+    </File>
+    <File Include="System.CodeDom.dll">
+      <publishTime>07/19/2017 06:01:30</publishTime>
+    </File>
+    <File Include="System.Configuration.ConfigurationManager.dll">
+      <publishTime>10/19/2020 14:52:30</publishTime>
+    </File>
+    <File Include="System.Data.SqlClient.dll">
+      <publishTime>10/26/2023 19:27:26</publishTime>
+    </File>
+    <File Include="System.Data.SQLite.dll">
+      <publishTime>11/02/2021 13:50:02</publishTime>
+    </File>
+    <File Include="System.Drawing.Common.dll">
+      <publishTime>10/19/2020 14:50:02</publishTime>
+    </File>
+    <File Include="System.IdentityModel.Tokens.Jwt.dll">
+      <publishTime>07/01/2022 14:23:04</publishTime>
+    </File>
+    <File Include="System.Memory.Data.dll">
+      <publishTime>04/08/2021 12:45:54</publishTime>
+    </File>
+    <File Include="System.Net.Http.Json.dll">
+      <publishTime>10/31/2023 11:08:20</publishTime>
+    </File>
+    <File Include="System.Private.ServiceModel.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="System.Reactive.dll">
+      <publishTime>11/10/2020 11:22:52</publishTime>
+    </File>
+    <File Include="System.Runtime.Caching.dll">
+      <publishTime>10/19/2020 14:52:34</publishTime>
+    </File>
+    <File Include="System.Security.Cryptography.ProtectedData.dll">
+      <publishTime>10/19/2020 14:52:26</publishTime>
+    </File>
+    <File Include="System.Security.Permissions.dll">
+      <publishTime>10/19/2020 14:52:36</publishTime>
+    </File>
+    <File Include="System.ServiceModel.dll">
+      <publishTime>03/23/2023 01:18:26</publishTime>
+    </File>
+    <File Include="System.ServiceModel.Http.dll">
+      <publishTime>03/23/2023 01:18:36</publishTime>
+    </File>
+    <File Include="System.ServiceModel.NetTcp.dll">
+      <publishTime>07/19/2018 14:24:18</publishTime>
+    </File>
+    <File Include="System.ServiceModel.Primitives.dll">
+      <publishTime>03/23/2023 01:18:36</publishTime>
+    </File>
+    <File Include="System.ServiceModel.Security.dll">
+      <publishTime>07/19/2018 14:24:20</publishTime>
+    </File>
+    <File Include="System.Text.Encodings.Web.dll">
+      <publishTime>10/31/2023 11:00:24</publishTime>
+    </File>
+    <File Include="System.Text.Json.dll">
+      <publishTime>10/31/2023 11:02:14</publishTime>
+    </File>
+    <File Include="System.Windows.Extensions.dll">
+      <publishTime>10/19/2020 14:53:38</publishTime>
+    </File>
+    <File Include="tr/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="web.config">
+      <publishTime>08/02/2024 14:28:26</publishTime>
+    </File>
+    <File Include="wwwroot/css/bootstrap/bootstrap.css">
+      <publishTime>07/16/2024 12:52:49</publishTime>
+    </File>
+    <File Include="wwwroot/css/bootstrap/bootstrap.min.css">
+      <publishTime>07/16/2024 12:52:49</publishTime>
+    </File>
+    <File Include="wwwroot/css/open.iconic/FONT-LICENSE.txt">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/css/open.iconic/font/css/open-iconic-bootstrap.min.css">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/css/open.iconic/font/fonts/open-iconic.eot">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/css/open.iconic/font/fonts/open-iconic.otf">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/css/open.iconic/font/fonts/open-iconic.svg">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/css/open.iconic/font/fonts/open-iconic.ttf">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/css/open.iconic/font/fonts/open-iconic.woff">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/css/open.iconic/ICON-LICENSE.txt">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/css/open.iconic/README.md">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/css/site.css">
+      <publishTime>07/16/2024 12:52:49</publishTime>
+    </File>
+    <File Include="wwwroot/images/banner.png">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/images/sad.svg">
+      <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/LAGem_POPortal.styles.css">
+      <publishTime>08/02/2024 14:28:20</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/ace-theme-ambiance.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/ace-theme-dreamweaver.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/ace.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/ace.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics-core.min.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.carmine.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.carmine.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.common.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.dark.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.darkmoon.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.darkmoon.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.darkviolet.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.darkviolet.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.greenmist.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.greenmist.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.light.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.blue.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.blue.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.lime.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.lime.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.orange.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.orange.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.purple.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.purple.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.teal.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.material.teal.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.softblue.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-analytics.softblue.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard-blazor-client.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.carmine.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.carmine.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.dark.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.dark.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.darkmoon.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.darkmoon.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.darkviolet.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.darkviolet.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.greenmist.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.greenmist.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.light.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.light.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.blue.dark.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.blue.light.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.lime.dark.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.lime.light.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.orange.dark.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.orange.light.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.purple.dark.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.purple.light.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.teal.dark.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.material.teal.light.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.min.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.softblue.compact.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-dashboard.softblue.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-querybuilder.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx-querybuilder.min.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.all.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.carmine.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.carmine.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.dark.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.darkmoon.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.darkmoon.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.darkviolet.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.darkviolet.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.greenmist.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.greenmist.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.light.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.blue.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.blue.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.lime.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.lime.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.orange.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.orange.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.purple.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.purple.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.teal.dark.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.material.teal.light.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.softblue.compact.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/dx.softblue.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/ext-language_tools.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/icons/dxicons.ttf">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/icons/dxicons.woff">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/icons/dxicons.woff2">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/jquery.min.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/knockout-latest.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/blazing-berry.bs4.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/blazing-berry.bs4.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/blazing-berry.bs5.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/blazing-berry.bs5.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/blazing-dark.bs4.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/blazing-dark.bs4.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/blazing-dark.bs5.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/blazing-dark.bs5.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/bootstrap-external.bs4.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/bootstrap-external.bs4.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/bootstrap-external.bs5.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/bootstrap-external.bs5.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/office-white.bs4.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/office-white.bs4.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/office-white.bs5.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/office-white.bs5.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/purple.bs4.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/purple.bs4.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/purple.bs5.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor.Themes/purple.bs5.min.css">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/dx-blazor-3192a3170e.svg">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/adaptivedropdowncomponents-f092cc5e.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/after-render-utils-cd075511.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/branch-bf06b0d2.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/browser-f8f6e902.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/capturemanager-89a507c8.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/chart-3c5bc00c.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/column-resize-48659eb2.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/columnchooser-cb69dba9.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/common-eb095e4d.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/constants-058ebb50.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/constants-3937401e.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/constants-58283e53.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/constants-6cceb8d1.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/constants-d4ec8d6f.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/css-classes-f45f6949.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/custom-color-area-d69cdfe7.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/custom-element-267f9a21.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/custom-events-helper-e7f279d3.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/data-qa-utils-8be7c726.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/define-custom-element-ee3a9585.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/devexpress-394524a9.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/devices-9f03a976.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dispatcheraction-19309c7b.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/disposable-d2c2d283.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dom-e3fa5208.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dom-utils-751497ba.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dragAndDropUnit-377709fd.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/draggable-ae93a8b6.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dropdown-844f3190.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dropdown-menu-keyboard-strategy-cfeace4f.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dropdowncomponents-782e1f04.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dropdowns-ad5afa21.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-blazor-95ab6d2f.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-blazor-all-bb993177.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-calendar-bce0f082.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-check-internal-471c14b3.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-combobox-2ac91620.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-context-menu-24394a26.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-css-runtime-b3e20aad.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-date-edit-base-c4a16a46.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-date-edit-c8718234.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-date-time-edit-1e0040d6.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-dropdown-base3-699c5f41.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-form-layout-d94d1af4.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-grid-c7270ca6.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-grid-layout-c09a659f.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-grid-layout-element-base-19ff583e.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-html-element-base-3bcbe019.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-html-element-pointer-events-helper-1bf230d1.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-keyboard-navigator-159220aa.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-list-box-b584a750.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-listbox-7d553985.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-loading-panel-37bfa6f3.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-memo-7477a825.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-menu-f673948f.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-menu-item-df2eaeed.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-menu-preloader-42c46d86.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-scroll-viewer-e933d939.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-stack-layout-f627651f.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-style-helper-471f7e61.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-tagbox-b9c2eba7.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-ui-element-db9e89a3.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-ui-handlers-bridge-f9de17dd.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dx-virtual-scroll-viewer-4459f295.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dxbl-itemlistdropdown-5452f8f2.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dxbl-window-865df162.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/dynamic-stylesheet-component-0039b31d.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/eventhelper-8570b930.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/eventRegister-fb9b0e47.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/events-interseptor-e0b24870.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/evt-7f644262.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/expandable-container-c6bf4f84.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/flyout-025ae9cf.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/flyoutcomponents-383926bc.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/focus-utils-6f61e33c.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/grid-5b54ad9b.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/group-control-5b7a370a.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/index-314a3948.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/input-b73f004e.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/key-fa0d8a82.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/layouthelper-1d804c8c.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/lit-element-70cf14f4.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/lit-element-base-7a85dca5.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/logicaltreehelper-99f1adf9.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/masked-input-eb0581f8.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/menu-keyboard-strategy-1225732c.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/modalcomponents-efc716db.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/nameof-factory-64d95f5b.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/observables-589a5615.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/pager-64a19cb6.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/pieChart-24c167c2.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/point-e4ec110e.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/popup-4f623924.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/popupportal-baf3cf8a.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/portal-9686dca9.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/positionlistener-67d7b774.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/positiontracker-d7595cd2.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/property-d3853089.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/query-44b9267f.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/rafaction-bba7928b.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/ribbon-01639280.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/ribbon-tabs-4e6c0ce4.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/roller-3a0214d6.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/scheduler-3a20687f.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/scroll-viewer-css-classes-6b178e01.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/settings-5a863647.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/single-slot-element-base-4ab30292.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/snackbar-faac56f1.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/spinedit-d045a88a.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/state-949f2642.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/svg-utils-42e68e75.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/text-editor-bac45876.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/thumb-3dd919b6.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/toolbar-41b4c4db.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/toolbar-css-classes-49e6b0a8.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/tooltip-be6c1286.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/touch-167bb2e4.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/transformhelper-ebad0156.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/upload-16045496.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/webview-svg-loader-28941b1c.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/window-resize-helper-8b32f302.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="wwwroot/_content/DevExpress.Blazor/modules/_tslib-6e8ca86b.js">
+      <publishTime>03/10/2024 03:00:00</publishTime>
+    </File>
+    <File Include="zh-Hans/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+    <File Include="zh-Hant/System.Private.ServiceModel.resources.dll">
+      <publishTime>03/23/2023 01:18:18</publishTime>
+    </File>
+  </ItemGroup>
+</Project>
