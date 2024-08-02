@@ -11,6 +11,9 @@
 @using Microsoft.EntityFrameworkCore 
 @implements IDisposable
 
+<div class="mb-2">
+    @headerNote
+</div>
 <DxGrid @ref="POGrid"
         Data="POGridData"
         PagerPosition="GridPagerPosition.Bottom"
@@ -110,6 +113,8 @@
     string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
     GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
 
+    string headerNote { get; set; } = "";
+
     // ============================================================ \\
 
     protected async override Task OnInitializedAsync()
@@ -144,13 +149,20 @@
         if (SOData != null || SODetailData != null)
         {
             if (SOData != null)
+            {
                 POGridData = await sqlData.GetPOData(SOData.SONumber);
+                headerNote = "SONumber: " + SOData.SONumber;
+            }
             else
+            {
                 POGridData = await sqlData.GetPOData(SODetailData.SONumber);
+                headerNote = "SONumber: " + SODetailData.SONumber;
+            }
         }
         else
         {
             POGridData = await sqlData.GetPOData();
+            headerNote = "";
         }
     }
 

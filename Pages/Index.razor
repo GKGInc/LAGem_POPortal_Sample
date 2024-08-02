@@ -28,8 +28,7 @@
         FooterDisplayMode="GridFooterDisplayMode.Auto"
         TextWrapEnabled="@TextWrapEnabled"
         ValidationEnabled="false"
-
-        WordWrapEnabled="true"
+        WordWrapEnabled="@WordWrapEnabled"
         HighlightRowOnHover="true"
 
         ShowGroupPanel="true"
@@ -43,37 +42,37 @@
         DataItemDeleting="Grid_DataItemDeleting"
         CustomizeEditModel="Grid_CustomizeEditModel">
     <Columns>
-        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="true" SortIndex="0" />
-        <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" ReadOnly="true" />
-        <DxGridDataColumn FieldName="CustomerName" Caption="Customer" ReadOnly="true" />
-        <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" DisplayFormat="d" />
-        <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="true" SortIndex="0" Width="Auto" MinWidth="60" />
+        <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" ReadOnly="true" Width="Auto" MinWidth="80" />
+        <DxGridDataColumn FieldName="CustomerName" Caption="Customer" ReadOnly="true" Width="Auto" MinWidth="100" />
+        <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" DisplayFormat="d" Width="Auto" MinWidth="80" />
+        <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" DisplayFormat="d" Width="Auto" MinWidth="80" />
 
         @* <DxGridDataColumn FieldName="SOLineNoExt" Caption="SOLineNo" DisplayFormat="n2" ReadOnly="true" /> *@
         <DxGridDataColumn FieldName="SOLineNo" Caption="SO Line No" DisplayFormat="n0" ReadOnly="true" SortIndex="1" />
         <DxGridDataColumn FieldName="DisplaySequence" Caption="DisplaySequence" DisplayFormat="n0" ReadOnly="true" Visible="false" SortIndex="2" />
         <DxGridDataColumn FieldName="SOSubLineNo" Caption="SOSubLineNo" DisplayFormat="n0" ReadOnly="true" Visible="false" SortIndex="3" />
 
-        <DxGridDataColumn FieldName="SOSubLineType" Caption="Product Type" ReadOnly="true"  />
-        <DxGridDataColumn FieldName="ProgramName" Caption="Program Name" ReadOnly="true" />
-        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" />
-        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" />
+        <DxGridDataColumn FieldName="SOSubLineType" Caption="Product Type" ReadOnly="true" Width="Auto" MinWidth="100" />
+        <DxGridDataColumn FieldName="ProgramName" Caption="Program Name" ReadOnly="true" Width="Auto" MinWidth="100" />
+        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Width="Auto" MinWidth="150" />
+        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" Width="Auto" MinWidth="200" Visible="false" />
 
-        <DxGridDataColumn FieldName="SOQty" Caption="SOQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
-        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="n2" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
-        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n2" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
+        <DxGridDataColumn FieldName="SOQty" Caption="SOQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="Auto" MinWidth="60" />
+        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="n2" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="Auto" MinWidth="60" />
+        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n2" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="Auto" MinWidth="60" />
 
-        <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true"  />
-        <DxGridDataColumn FieldName="VendorName" Caption="Jewelry Factory" ReadOnly="true" />
+        <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" Width="Auto" MinWidth="100" />
+        <DxGridDataColumn FieldName="VendorName" Caption="Jewelry Factory" ReadOnly="true" Width="Auto" MinWidth="120" />
         @* <DxGridDataColumn FieldName="CountryCode" Caption="Country of Origin" ReadOnly="true" /> *@
-        <DxGridDataColumn FieldName="PODate" Caption="PODate" DisplayFormat="d" />
-        <DxGridDataColumn FieldName="POQty" Caption="POQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
-        <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" />
+        <DxGridDataColumn FieldName="PODate" Caption="PODate" DisplayFormat="d" Width="Auto" MinWidth="80" />
+        <DxGridDataColumn FieldName="POQty" Caption="POQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="Auto" MinWidth="60" />
+        <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" Width="Auto" MinWidth="100" />
         
-        <DxGridDataColumn FieldName="ShipmentDate" Caption="Shipment Date" DisplayFormat="d" />
-        <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking Number" ReadOnly="true"  />
-        <DxGridDataColumn FieldName="ShipToETA" Caption="Ship To ETA" DisplayFormat="d" />
-        <DxGridDataColumn FieldName="ShipmentQty" Caption="POQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" />
+        <DxGridDataColumn FieldName="ShipmentDate" Caption="Shipment Date" DisplayFormat="d" Width="Auto" MinWidth="80" />
+        <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking Number" ReadOnly="true" Width="Auto" MinWidth="100" />
+        <DxGridDataColumn FieldName="ShipToETA" Caption="Ship To ETA" DisplayFormat="d" Width="Auto" MinWidth="80" />
+        <DxGridDataColumn FieldName="ShipmentQty" Caption="POQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="Auto" MinWidth="60" />
 
         <DxGridCommandColumn Width="150px" Visible="false"
                              DeleteButtonVisible="false"
@@ -131,6 +130,7 @@
 
 
     bool TextWrapEnabled = true;
+    bool WordWrapEnabled = false;
 
     int PageCount { get; set; } = 0;
     int TotalRecords { get; set; } = 0;
@@ -188,7 +188,7 @@
             Grid.EndUpdate();
         }
     }
-    
+
     public void Dispose()
     {
         // Northwind?.Dispose();
@@ -202,8 +202,9 @@
         {
             await DataLoadedTcs.Task; // Waits for grid data to load
                                       // Grid.ExpandDetailRow(0);
-            Grid.AutoFitColumnWidths();
         }
+        CurrentColumnResizeMode = GridColumnResizeMode.ColumnsContainer;
+        Grid.AutoFitColumnWidths();
     }
 
     void Grid_CustomizeElement(GridCustomizeElementEventArgs e)

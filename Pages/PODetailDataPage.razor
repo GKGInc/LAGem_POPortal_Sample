@@ -11,6 +11,9 @@
 @using Microsoft.EntityFrameworkCore
 
 
+<div class="mb-2">
+    @headerNote
+</div>
 <DxGrid @ref="PODetailGrid"
         Data="PODetailGridData"
         PagerPosition="GridPagerPosition.Bottom"
@@ -39,7 +42,7 @@
         HighlightRowOnHover="true">
     <Columns>
         @* <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" SortIndex="0" /> *@
-        <DxGridDataColumn FieldName="POLineNo" Caption="Line No" DisplayFormat="n0" ReadOnly="true" />        
+        <DxGridDataColumn FieldName="POLineNo" Caption="Line No" DisplayFormat="n0" ReadOnly="true" Width="20px" />
         <DxGridDataColumn FieldName="ProductNo" Caption="Item Catalog No" ReadOnly="true" />
         @* <DxGridDataColumn FieldName="VendorName" Caption="Jewelry Factory" ReadOnly="true" />
         <DxGridDataColumn FieldName="CountryCode" Caption="Country of Origin" ReadOnly="true" /> *@
@@ -98,6 +101,8 @@
     string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
     GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
 
+    string headerNote { get; set; } = "";
+
     // ============================================================ \\
 
     protected async override Task OnInitializedAsync()
@@ -133,6 +138,7 @@
         SqlData sqlData = new SqlData();
         PODetailGridData = await sqlData.GetPODetailData(POData.PONumber);
 
+        headerNote = "PO Number: " + POData.PONumber;
     }
 
     // ============================================================ \\
