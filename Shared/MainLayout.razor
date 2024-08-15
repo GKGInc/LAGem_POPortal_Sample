@@ -1,9 +1,17 @@
 ﻿@using LAGem_POPortal.Authentication
 @inherits LayoutComponentBase
 @inject AuthenticationStateProvider authStateProvider
-@inject NavigationManager NavigationManager
+@inject NavigationManager navManager
 
 <DxLayoutBreakpoint MaxWidth="1200" @bind-IsActive="@IsMobileLayout" />
+
+@* <AuthorizeView Roles="Administrator,User">
+    <Authorized>
+    </Authorized>
+    <NotAuthorized>
+        @AutoAuthenticate()
+    </NotAuthorized>
+</AuthorizeView> *@
 
 <div class="page">
     <DxGridLayout CssClass="page-layout">
@@ -42,18 +50,16 @@
             </DxGridLayoutItem>
         </Items>
     </DxGridLayout>
-</div>
+</div> 
 
 <div class="sidebar">
     <NavMenu />
 </div>
 
+@* 
 <div class="main">
     <div class="top-row px-4 auth">
-        @*<LoginDisplay />*@
-        @*<a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>*@
-
-      @*   <AuthorizeView Roles="Administrator,User">
+        <AuthorizeView Roles="Administrator,User">
             <Authorized>
                 <div>Hello, @GetCapitalizedName(@context.User.Identity.Name)!</div>
                 <a @onclick="Logout" href="javascript:void(0)">Logout</a>
@@ -61,15 +67,20 @@
             <NotAuthorized>
                 <a href="/login">Login</a>
             </NotAuthorized>
-        </AuthorizeView> *@
+        </AuthorizeView>
     </div>
 
     <div class="content px-4">
         @Body
     </div>
-</div>
+</div>  
+*@
 
-@code{
+@code {
+    // ============================================================ \\
+
+    #region Variables
+
     string? NavMenuCssClass { get; set; }
     bool _isMobileLayout;
     bool IsMobileLayout {
@@ -90,7 +101,16 @@
             }
         }
     }
-    
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+   
+    #endregion
+
+    // ============================================================ \\
+
+    #region Constructors
+
     // protected override void OnInitialized() {
     //     NavigationManager.LocationChanged += OnLocationChanged;
     // }
@@ -104,22 +124,22 @@
     //     NavigationManager.LocationChanged -= OnLocationChanged;
     // }
 
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationState { get; set; }
+    // ============================================================ \\
 
     protected async override Task OnInitializedAsync()
     {
         base.OnInitialized();
-        // var user = (await authenticationState).User;
-        // if (!user.Identity.IsAuthenticated)
-        // {
-        //     //NavigationManager.NavigateTo("/Login", true);
-        //     //NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
-        // }
-        // else
-        // {
+        var user = (await authenticationState).User;
 
-        // }
+        if (!user.Identity.IsAuthenticated)
+        {
+            //NavigationManager.NavigateTo("/Login", true);
+            //NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
+        }
+        else
+        {
+
+        }
 
         //AuthenticationState authstate = await authStateProvider.GetAuthenticationStateAsync();
         //bool isAuth = authstate.User.Identity.IsAuthenticated;
@@ -128,6 +148,12 @@
         //    //NavigationManager.NavigateTo("/Login", true);
         //}
     }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Misc Functions
 
     public string GetCapitalizedName(string input)
     {
@@ -138,6 +164,26 @@
     {
         var customAutStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
         await customAutStateProvider.UpdateAuthenticationState(null);
-        NavigationManager.NavigateTo("/Login", true);
+        navManager.NavigateTo("/Login", true);
     }
+
+    private async Task AutoAuthenticate()
+    {
+        var customAutStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+        await customAutStateProvider.UpdateAuthenticationState(new UserSession
+            {
+                UserName = "User",
+                Password = "gkginc",
+                Role = "Administrator",
+                PromoCode = "",
+                Oid = 0
+            });
+        // navManager.NavigateTo("/", true);
+        string uri = navManager.Uri.Replace(navManager.BaseUri, "");
+        navManager.NavigateTo("/" + uri, true);
+    }
+    
+    #endregion
+
+    // ============================================================ \\
 }

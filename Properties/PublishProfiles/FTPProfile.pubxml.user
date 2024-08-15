@@ -7,7 +7,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <TimeStampOfAssociatedLegacyPublishXmlFile />
     <EncryptedPassword>AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAr+l2i6qvUEO/6jZR5gEZaQAAAAACAAAAAAAQZgAAAAEAACAAAAABTfSwiLjXB1xA1lAxuQQR2eRbMKceUd4VP+hWzg0AUAAAAAAOgAAAAAIAACAAAAAJ5/+I5hT8Hh1aRwo2od/GncUlCXovsp6Xm0E7saq+hiAAAABDEJNPWKfERkY0rTd2hP2PdYldCuzQoX5Kn292AeQtbUAAAAAlXzhR7cXW6U2SyD401stGYGg4gzvoWMRPYtG1jSRvnmClhI7RwS3mGmGaPCvU2EkStil2vWtMP/96LftoDJFB</EncryptedPassword>
     <_PublishTargetUrl>ftp://gkgiis/LAGem_POPortal</_PublishTargetUrl>
-    <History>True|2024-08-02T18:30:25.5398455Z;</History>
+    <History>True|2024-08-13T13:31:18.0746010Z;True|2024-08-09T18:47:34.4083152-04:00;True|2024-08-09T13:16:58.8986425-04:00;True|2024-08-07T17:25:10.2174641-04:00;True|2024-08-07T17:14:16.9596352-04:00;True|2024-08-05T14:34:14.9376314-04:00;True|2024-08-05T12:58:23.0986785-04:00;True|2024-08-05T10:50:25.2846197-04:00;True|2024-08-02T17:52:24.3146861-04:00;True|2024-08-02T17:45:02.4448654-04:00;False|2024-08-02T17:39:56.2306300-04:00;False|2024-08-02T17:37:53.5069950-04:00;True|2024-08-02T14:30:25.5398455-04:00;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -135,16 +135,16 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>03/23/2023 01:18:18</publishTime>
     </File>
     <File Include="LAGem_POPortal.deps.json">
-      <publishTime>08/02/2024 14:28:24</publishTime>
+      <publishTime>08/13/2024 09:28:48</publishTime>
     </File>
     <File Include="LAGem_POPortal.dll">
-      <publishTime>08/02/2024 14:28:19</publishTime>
+      <publishTime>08/13/2024 09:28:46</publishTime>
     </File>
     <File Include="LAGem_POPortal.exe">
-      <publishTime>08/02/2024 14:28:19</publishTime>
+      <publishTime>08/13/2024 09:28:46</publishTime>
     </File>
     <File Include="LAGem_POPortal.pdb">
-      <publishTime>08/02/2024 14:28:19</publishTime>
+      <publishTime>08/13/2024 09:28:46</publishTime>
     </File>
     <File Include="LAGem_POPortal.runtimeconfig.json">
       <publishTime>08/02/2024 14:28:21</publishTime>
@@ -354,7 +354,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>03/23/2023 01:18:18</publishTime>
     </File>
     <File Include="web.config">
-      <publishTime>08/02/2024 14:28:26</publishTime>
+      <publishTime>08/13/2024 09:28:50</publishTime>
+    </File>
+    <File Include="wwwroot/boot.js">
+      <publishTime>06/03/2024 15:10:24</publishTime>
     </File>
     <File Include="wwwroot/css/bootstrap/bootstrap.css">
       <publishTime>07/16/2024 12:52:49</publishTime>
@@ -392,14 +395,83 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="wwwroot/css/site.css">
       <publishTime>07/16/2024 12:52:49</publishTime>
     </File>
+    <File Include="wwwroot/dashboard-events-scripts - Copy.js">
+      <publishTime>04/16/2024 10:06:19</publishTime>
+    </File>
+    <File Include="wwwroot/dashboard-events-scripts.js">
+      <publishTime>06/27/2024 11:47:32</publishTime>
+    </File>
+    <File Include="wwwroot/dashboard-save-as-item.js">
+      <publishTime>06/19/2024 16:28:32</publishTime>
+    </File>
+    <File Include="wwwroot/favicon.ico">
+      <publishTime>04/01/2024 15:26:29</publishTime>
+    </File>
+    <File Include="wwwroot/images/back.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
     <File Include="wwwroot/images/banner.png">
       <publishTime>07/16/2024 12:52:50</publishTime>
+    </File>
+    <File Include="wwwroot/images/cards.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/close.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/counter.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/demos.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/doc.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/home.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/icons/delete.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/icons/new.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/icons/save.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/icons/undo.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/jadelogo2x.png">
+      <publishTime>06/17/2024 17:01:55</publishTime>
+    </File>
+    <File Include="wwwroot/images/logo-ctcf-fulfillment.png">
+      <publishTime>01/04/2023 16:27:57</publishTime>
+    </File>
+    <File Include="wwwroot/images/logo.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/images/menu.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
     </File>
     <File Include="wwwroot/images/sad.svg">
       <publishTime>07/16/2024 12:52:50</publishTime>
     </File>
+    <File Include="wwwroot/images/weather.svg">
+      <publishTime>07/17/2024 12:11:21</publishTime>
+    </File>
+    <File Include="wwwroot/index.html">
+      <publishTime>06/17/2024 10:46:12</publishTime>
+    </File>
     <File Include="wwwroot/LAGem_POPortal.styles.css">
-      <publishTime>08/02/2024 14:28:20</publishTime>
+      <publishTime>08/09/2024 13:14:22</publishTime>
+    </File>
+    <File Include="wwwroot/parameter-item-ver2.js">
+      <publishTime>04/09/2024 12:44:28</publishTime>
+    </File>
+    <File Include="wwwroot/parameter-item.js">
+      <publishTime>06/19/2024 15:50:35</publishTime>
     </File>
     <File Include="wwwroot/_content/DevExpress.Blazor.Dashboard/ace-theme-ambiance.css">
       <publishTime>03/10/2024 03:00:00</publishTime>

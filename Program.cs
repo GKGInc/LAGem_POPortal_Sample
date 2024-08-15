@@ -1,5 +1,4 @@
 using DevExpress.Data.Browsing;
-using LAGem_POPortal.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
@@ -10,20 +9,23 @@ using System.Collections.Generic;
 using System;
 using DevExpress.Xpo.DB;
 using DevExpress.Xpo;
-using LAGem_POPortal.Code;
 using DevExpress.XtraCharts;
-using LAGem_POPortal.Authentication;
-using LAGem_POPortal.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+
+using LAGem_POPortal.Code;
+using LAGem_POPortal.Authentication;
+using LAGem_POPortal.Data;
+using LAGem_POPortal.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // -- =========================================================================
 
 //// Logging: using Microsoft.AspNetCore.Identity custom
-//services.AddIdentity<IdentityUser, IdentityRole>(options =>
+//builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 //{
 //    options.Password.RequireDigit = false;
 //    options.Password.RequiredLength = 5;
@@ -35,17 +37,17 @@ var builder = WebApplication.CreateBuilder(args);
 //    .AddRoles<IdentityRole>()
 //    .AddEntityFrameworkStores<DataContext>();
 
-//// Logging: using custom
-//builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-//    .AddCookie();
+// Logging: using custom
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie();
 
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("AdministratorOnly", policy => policy.RequireRole("Administrator"));
-//});
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdministratorOnly", policy => policy.RequireRole("Administrator"));
+});
 
-//// For CustomAuthenticationStateProvider process
-//builder.Services.AddAuthenticationCore();
+// For CustomAuthenticationStateProvider process
+builder.Services.AddAuthenticationCore();
 
 // -- =========================================================================
 
@@ -76,19 +78,19 @@ builder.Services.AddDbContextFactory<DbContext>((sp, options) =>
 
 // -- =========================================================================
 
-////// For CustomAuthenticationStateProvider process
-////builder.Services.AddAuthenticationCore();
-
 //// For CustomAuthenticationStateProvider process
-//builder.Services.AddScoped<ProtectedSessionStorage>();
-//builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
-//builder.Services.AddSingleton<UserAccountService>();
+//builder.Services.AddAuthenticationCore();
 
-////// Logging: using Microsoft.AspNetCore.Identity custom
-////builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+// For CustomAuthenticationStateProvider process
+builder.Services.AddScoped<ProtectedSessionStorage>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddSingleton<UserAccountService>();
 
-//// Logging: using custom
-//builder.Services.AddSingleton<CustomAuthService>();
+//// Logging: using Microsoft.AspNetCore.Identity custom
+//builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+
+// Logging: using custom
+builder.Services.AddSingleton<CustomAuthService>();
 
 // -- =========================================================================
 
@@ -104,6 +106,9 @@ DevExpress.Xpo.XpoDefault.DataLayer = new DevExpress.Xpo.ThreadSafeDataLayer(dic
 DevExpress.Xpo.XpoDefault.Session = null;
 
 // -- =========================================================================
+
+//builder.Services.AddSingleton<GlobalData>();
+builder.Services.AddScoped<GlobalData>();
 
 builder.WebHost.UseWebRoot("wwwroot");
 builder.WebHost.UseStaticWebAssets();
@@ -131,3 +136,5 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
+
+// -- =========================================================================

@@ -11,22 +11,35 @@ namespace LAGem_POPortal.Models
     {
         public int Id { get; set; }
 
-        public string OrderNo { get; set; }
-        public string CustNo { get; set; }
-        public string SourceKey { get; set; }
-        public DateTime OrderDate { get; set; }
-        public DateTime ShipDate { get; set; }
-        public string ShipList { get; set; }
-        public decimal OrderTotal { get; set; }
-        public string ItemId { get; set; }
-        public string ItemCode { get; set; }
-        public int ItemQty { get; set; }
-        public DateTime ItemShipDate { get; set; }
-        public string ItemState { get; set; }
-        public int Year { get; set; }
-        public int M { get; set; }
-        public string Month { get; set; }
-        public int Day { get; set; }
-        public string DisplayDate { get; set; }
+        public int ShipmentHeaderId { get; set; }
+        public DateTime ShipmentDate { get; set; }
+        public string InvoiceNo { get; set; }
+        public string TrackingNumber { get; set; }
+        public DateTime ShipToETA { get; set; }
+        //public string BusinessPartnerName { get; set; }
+        public string PONumber { get; set; }
+        public string ProductNo { get; set; }
+        public string ProductName { get; set; }
+        public int OrderQty { get; set; }
+        public int ShipmentQty { get; set; }
+        public int ShipmentDetailId { get; set; }
+        public int PODetailId { get; set; }
+        public int ProductId { get; set; }
+
+
+        public int POHeaderId { get; set; }
+        public int SOHeaderId { get; set; }
+        public int VendorId { get; set; }
+        public string VendorName { get; set; }
+        public int CustomerId { get; set; }
+        public string CustomerName { get; set; }
+        
+        public DateTime SODate { get; set; }
+        public DateTime PODate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime StartDate { get; set; }
+        public string SONumber { get; set; }
+
+
     }
 }

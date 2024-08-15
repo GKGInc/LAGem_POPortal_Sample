@@ -28,7 +28,7 @@
         ValidationEnabled="false"
         EditMode="GridEditMode.EditRow"
         FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-        ShowSearchBox="true"
+        ShowSearchBox="ShowSearchBox"
         SearchText=""
         SearchTextParseMode="CurrentSearchTextParseMode"
         ShowGroupPanel="false"
@@ -102,6 +102,7 @@
     GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
 
     string headerNote { get; set; } = "";
+    bool ShowSearchBox { get; set; } = false;
 
     // ============================================================ \\
 
@@ -159,6 +160,12 @@
         //     e.CssClass = "highlighted-item";
         // }
 
+        if (e.ElementType == GridElementType.SearchBoxContainer)
+        {
+            //e.Style = "Width: 100%";
+            e.Style = "margin-left: revert";
+        }
+
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "CustomerName")
         {
             string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
@@ -188,12 +195,12 @@
     }
     void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
     {
-        // if (e.FieldName == "FactoryCancel")
-        // {
-        //     // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
-        //     if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
-        //         e.DisplayText = "";
-        // }
+        if (e.Value.GetType() == typeof(DateTime))
+        {
+            // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
+            if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+                e.DisplayText = "";
+        }
     }
     void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
     {

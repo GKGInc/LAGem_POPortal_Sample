@@ -13,7 +13,7 @@ namespace LAGem_POPortal.Data
     {
         // ----------------------------------------------------------------------------------
 
-        #region Public Functions
+        #region Main Query Functions
 
         public async Task<List<T>> GetSqlData<T>(string query)
         {
@@ -39,6 +39,157 @@ namespace LAGem_POPortal.Data
 
             return data;
         }
+
+        public async Task<List<PODetailData>> GetSOPOData() // Overview
+        {
+            string query = @"SELECT ROW_NUMBER() OVER (ORDER BY [SOLineNo],[SOSubLineNo]) AS [Id]
+      ,[SONumber]
+      ,[SODate]
+      ,[CustomerName]	
+      ,[CustomerPO]
+      ,[StartDate]
+      ,[EndDate]
+      ,[SOLineNo]
+      ,[SOSubLineNo]
+	  ,CAST(ISNULL([SOLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL([SOSubLineNo], 0) AS VARCHAR(4))  AS [SOLineNoExt]
+      ,ISNULL([LineDisplaySequence], 0) AS [LineDisplaySequence]
+      ,ISNULL([ProductDisplaySequence], 0) AS [ProductDisplaySequence]
+	  ,CAST(ISNULL([LineDisplaySequence], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL([ProductDisplaySequence], 0) AS VARCHAR(4))  AS [DisplaySequence]
+      ,ISNULL([ProgramName], '') AS [ProgramName]
+      ,ISNULL([ProductTypeName], '') AS [SOSubLineType]
+      ,ISNULL([ProductNo], '') AS [ProductNo]
+      ,ISNULL([ProductName], '') AS [ProductName]
+      ,ISNULL([SOQty], 0) AS [SOQty]
+      ,ISNULL([Cost], 0.000000) AS [Cost]
+      ,ISNULL([Price], 0.000000) AS [Price]
+      ,ISNULL([VendorPO], '') AS [PONumber]
+      ,ISNULL([PODate], '1900-01-01') AS [PODate]
+      ,ISNULL([VendorName], '') AS [VendorName]
+      ,ISNULL([POLineNo], 0) AS [POLineNo]
+      ,ISNULL([POSubLineNo], 0) AS [POSubLineNo]
+	  ,CAST(ISNULL([POLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL([POSubLineNo], 0) AS VARCHAR(4))  AS [POLineNoExt]
+      ,ISNULL([POQty], 0) AS [POQty]
+      ,ISNULL([POHeaderId], 0) AS [POHeaderId]
+      ,ISNULL([PODetailId], 0) AS [PODetailId]
+      ,ISNULL([ForProductNo], '') AS [ForProductNo]
+
+      ,ISNULL([ShipmentDate], '1900-01-01') AS [ShipmentDate]
+      ,ISNULL([TrackingNumber], '') AS [TrackingNumber]
+      ,ISNULL([ShipToETA], '1900-01-01') AS [ShipToETA]
+      ,ISNULL([ShipmentQty], 0) AS [ShipmentQty]
+      ,ISNULL([SOStatus],'NEW') AS [SOStatus]
+      ,ISNULL([ProductTypeGroup],'') AS [ProductTypeGroup]
+      ,ISNULL([SOSubLineTypeId], 0) AS [SOSubLineTypeId]
+      ,ISNULL([LineTypeName],'') AS [LineTypeName]
+      ,ISNULL([LineTypeGroup],'') AS [LineTypeGroup]
+
+      ,ISNULL([QCStatus],'') AS [QCStatus]
+      ,ISNULL([QCStatusDate], '1900-01-01') AS [QCStatusDate]
+      ,ISNULL([QCComments],'') AS [QCComments]
+
+  --FROM [PIMS].[dbo].[SOPOvw]
+  FROM [PIMS].[dbo].[SOPOvw-JorgeDiagram]
+  ORDER BY [SONumber], [SOLineNo],ISNULL([LineDisplaySequence],0),ISNULL([ProductDisplaySequence],0),[SOSubLineNo],[POLineNo] ";
+
+            return await GetSqlData<PODetailData>(query);
+        }
+        
+        public async Task<List<ShippingData>> GetShippingDetailData() // Shipping
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY [ShipmentHeaderId],[ShipmentDetailId]) AS [Id]
+      ,sDetail.[ShipmentHeaderId]
+      ,sDetail.[ShipmentDate]
+      ,sDetail.[InvoiceNo]
+      ,sDetail.[TrackingNumber]
+      ,sDetail.[ShipToETA]
+      ,sDetail.[BusinessPartnerName] AS [VendorName]	  
+      ,sDetail.[PONumber]
+      ,sDetail.[ProductNo]
+      ,sDetail.[ProductName]
+      ,sDetail.[OrderQty]
+      ,sDetail.[ShipmentQty]
+      ,sDetail.[ShipmentDetailId]
+      ,sDetail.[PODetailId]
+      ,sDetail.[ProductId]
+	  ,poh.POHeaderId
+	  ,soh.SOHeaderId
+	  	  
+	  ,ISNULL(poh.[BusinessPartnerId], 0) AS [VendorId] 
+	  --,ISNULL(vendor.[BusinessPartnerName], '') AS [VendorName]	  
+	  ,ISNULL(soh.[BusinessPartnerId], 0) AS [CustomerId] 
+	  ,ISNULL(customer.[BusinessPartnerName], '') AS [CustomerName]
+
+      ,ISNULL(soh.[SODate], '1900-01-01') AS [SODate]
+      ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
+      ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
+      ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]  
+
+  FROM [PIMS].[dbo].[ShipmentDetailvw] sDetail 
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON pod.PODetailId = sDetail.[PODetailId]
+	LEFT JOIN [PIMS].[dbo].[POHeader] poh
+		ON poh.[POHeaderId] = pod.[POHeaderId]
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON soh.SOHeaderId = poh.SoHeaderId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] customer
+		ON soh.[BusinessPartnerId] = customer.BusinessPartnerId
+	LEFT JOIN [PIMS].[dbo].[BusinessPartner] vendor
+		ON poh.[BusinessPartnerId] = vendor.BusinessPartnerId";
+
+            return await GetSqlData<ShippingData>(query);
+        }
+
+        public async Task<List<POOpenDetail>> GetPOOpenDetailData(int vendorId = 0) // POOpenDetailvw
+        {
+            string fullQuery = "";
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY [BusinessPartnerId] ASC, [PONumber], [ProductNo]) AS [Id]
+    ,[BusinessPartnerId] AS [VendorId]
+    ,ISNULL([BusinessPartnerName], '') AS [VendorName]
+    ,ISNULL([ProgramName], '') AS [ProgramName]
+    ,ISNULL([POHeaderId], 0) AS [POHeaderId]
+    ,ISNULL([PONumber], '') AS [PONumber]
+    ,ISNULL([PODetailId], 0) AS [PODetailId]
+    ,ISNULL([ProductNo], '') AS [ProductNo]
+    ,ISNULL([ProductName], '') AS [ProductName]
+    ,ISNULL([OrderQty], 0) AS [OrderQty]
+FROM [PIMS].[dbo].[POOpenDetailVw]";
+
+            if (vendorId > 0)
+            {
+                query += @"
+WHERE [BusinessPartnerId] = {0}";
+
+                fullQuery = string.Format(query, vendorId) + @"
+ORDER BY [PONumber], [ProductNo]";
+            }
+            else
+            {
+                fullQuery = query + @"
+ORDER BY [PONumber], [ProductNo]";
+            }
+
+            return await GetSqlData<POOpenDetail>(fullQuery);
+        }
+
+        public async Task<List<POOpenVendor>> GetPOOpenVendorData() // [POOpenDetailVw]
+        {
+            string query = @"SELECT ROW_NUMBER() OVER (ORDER BY [BusinessPartnerName]) AS [Id]
+    ,[BusinessPartnerId] AS [VendorId]
+    ,[BusinessPartnerName] AS [VendorName]
+    ,[OpenPOs]
+FROM [PIMS].[dbo].[POOpenBusinessPartnerVw]
+ORDER BY [BusinessPartnerName]";
+            return await GetSqlData<POOpenVendor>(query);
+        }
+
+        #endregion
+
+        // ----------------------------------------------------------------------------------
+
+        #region More Query Functions
 
         public async Task<List<POData>> GetPOData()
         {
@@ -314,48 +465,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY ISNULL(pod.[POLineNo], 0) ) AS [Id]
 
             string fullQuery = string.Format(query, poDetailId);
             return await GetSqlData<CostData>(fullQuery);
-        }
-
-        public async Task<List<PODetailData>> GetSOPOData()
-        {
-            string query = @"SELECT ROW_NUMBER() OVER (ORDER BY [SOLineNo],[SOSubLineNo]) AS [Id]
-      ,[SONumber]
-      ,[SODate]
-      ,[CustomerName]	
-      ,[CustomerPO]
-      ,[StartDate]
-      ,[EndDate]
-      ,[SOLineNo]
-      ,[SOSubLineNo]
-	  ,CAST(ISNULL([SOLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL([SOSubLineNo], 0) AS VARCHAR(4))  AS [SOLineNoExt]
-      ,ISNULL([DisplaySequence], 0) AS [DisplaySequence]
-      ,ISNULL([ProgramName], '') AS [ProgramName]
-      ,ISNULL([ProductTypeName], '') AS [SOSubLineType]
-      ,ISNULL([ProductNo], '') AS [ProductNo]
-      ,ISNULL([ProductName], '') AS [ProductName]
-      ,ISNULL([SOQty], 0) AS [SOQty]
-      ,ISNULL([Cost], 0.000000) AS [Cost]
-      ,ISNULL([Price], 0.000000) AS [Price]
-      ,ISNULL([VendorPO], '') AS [PONumber]
-      ,ISNULL([PODate], '1900-01-01') AS [PODate]
-      ,ISNULL([VendorName], '') AS [VendorName]
-      ,ISNULL([POLineNo], 0) AS [POLineNo]
-      ,ISNULL([POSubLineNo], 0) AS [POSubLineNo]
-	  ,CAST(ISNULL([POLineNo], 0) AS VARCHAR(4)) + '.' + CAST(ISNULL([POSubLineNo], 0) AS VARCHAR(4))  AS [POLineNoExt]
-      ,ISNULL([POQty], 0) AS [POQty]
-      ,ISNULL([POHeaderId], 0) AS [POHeaderId]
-      ,ISNULL([PODetailId], 0) AS [PODetailId]
-      ,ISNULL([ForProductNo], '') AS [ForProductNo]
-
-      ,ISNULL([ShipmentDate], '1900-01-01') AS [ShipmentDate]
-      ,ISNULL([TrackingNumber], '') AS [TrackingNumber]
-      ,ISNULL([ShipToETA], '1900-01-01') AS [ShipToETA]
-      ,ISNULL([ShipmentQty], 0) AS [ShipmentQty]
-  --FROM [PIMS].[dbo].[SOPOvw]
-  FROM [PIMS].[dbo].[SOPOvw-JorgeDiagram]
-  ORDER BY [SONumber], [SOLineNo],ISNULL([DisplaySequence],0),[SOSubLineNo] ";
-
-            return await GetSqlData<PODetailData>(query);
         }
 
 

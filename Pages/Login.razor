@@ -1,0 +1,138 @@
+﻿@page "/Login"
+@using LAGem_POPortal.Authentication
+@using LAGem_POPortal.Models
+@inject UserAccountService userAccountService
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@inject GlobalData globalData
+
+<div class="row" style="margin:50px">
+    <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
+
+        <div class="mb-3 text-center">
+            <h3>Login</h3>
+        </div>
+
+        <div class="mb-3">
+            <label></label>
+            <input @bind="model.UserName" 
+                   class="form-control" 
+                   placeholder="User Name" 
+                   aria-required="true" 
+                   @ref="usernameTextboxRef" 
+                   @onkeydown="@UserNameEnter" />
+        </div>
+        <div class="mb-3">
+            <label></label>
+            <input @bind="model.Password"
+                   type="password" 
+                   class="form-control" 
+                   placeholder="Password" 
+                   aria-required="true" 
+                   @ref="passwordTextboxRef" 
+                   @onkeydown="@PasswordEnter" />
+        </div>
+        <div class="mb-3 d-grid gap-2">
+            <button id="login-submit" 
+                    @onclick="Authenticate" 
+                    @ref="loginButtonRef" 
+                    class="w-100 btn-lg btn-lg btn-primary">Login</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    // ============================================================ \\
+
+    #region Variables
+
+    public class Model
+    {
+        public string UserName { get; set; } = "helder";
+        public string Password { get; set; } = "gkginc";
+    }
+
+    private Model model = new Model();
+
+    private ElementReference usernameTextboxRef;
+    private ElementReference passwordTextboxRef;
+    private ElementReference loginButtonRef;
+    
+    #endregion
+
+    // ============================================================ \\
+
+    #region Constructors
+
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        //await usernameTextboxRef.FocusAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await usernameTextboxRef.FocusAsync();
+        }
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Authenticate Functions
+
+    public void UserNameEnter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter" || e.Code == "Tab")
+        {
+            passwordTextboxRef.FocusAsync();
+        }
+    }
+
+    public void PasswordEnter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            //await Authenticate();
+            loginButtonRef.FocusAsync();
+        }
+    }
+
+    private async Task Authenticate()
+    {
+        var userAccount = userAccountService.GetByUserName(model.UserName);
+        if (userAccount == null || userAccount.Password != model.Password)
+        {
+            await js.InvokeVoidAsync("alert", "Invalid Name or Password");
+            return;
+        }
+        else
+        {
+            var customAutStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+            await customAutStateProvider.UpdateAuthenticationState(new UserSession
+            {
+                UserName = userAccount.UserName,
+                Password = userAccount.Password,
+                Role = userAccount.Role,
+                PromoCode = userAccount.PromoCode,
+                Oid = userAccount.Oid
+            });
+            userAccountService.UpdateLastLoginDate(userAccount);
+
+            //AuthenticationState authstate = await authStateProvider.GetAuthenticationStateAsync();
+            //customAutStateProvider.SetAuthenticationState(authstate);
+
+            //navManager.NavigateTo("/", true);
+            // navManager.NavigateTo("/Overview", true);
+            navManager.NavigateTo("/" + globalData.firstLoadScreen, true);
+        }
+    }
+
+    #endregion
+
+    // ============================================================ \\
+}

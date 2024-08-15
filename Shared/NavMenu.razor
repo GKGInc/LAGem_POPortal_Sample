@@ -1,11 +1,62 @@
 ﻿<div class="sidebar @StateCssClass">
+
+
     <DxTreeView AllowSelectNodes="true" CssClass="app-sidebar">
+        <Nodes>    
+            <AuthorizeView>
+                <Authorized>
+                    <DxTreeViewNode NavigateUrl="./Overview" Text="Overview"></DxTreeViewNode>
+                    <DxTreeViewNode NavigateUrl="./PODataPage" Text="PO Data"></DxTreeViewNode>
+                    <DxTreeViewNode NavigateUrl="./SODataPage" Text="SO Data"></DxTreeViewNode>
+                    <DxTreeViewNode NavigateUrl="./Shipments" Text="Shipments"></DxTreeViewNode>
+                </Authorized>
+                <NotAuthorized>
+                    <DxTreeViewNode NavigateUrl="./Login" Text="Login"></DxTreeViewNode>
+                </NotAuthorized>
+            </AuthorizeView>
+        </Nodes>
+            </DxTreeView>
+
+    @* <DxTreeView AllowSelectNodes="true" CssClass="app-sidebar">
         <Nodes>
-            <DxTreeViewNode NavigateUrl="./" Text="Overview"></DxTreeViewNode>  
+            <DxTreeViewNode NavigateUrl="./Overview" Text="Overview"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="./PODataPage" Text="PO Data"></DxTreeViewNode>
             <DxTreeViewNode NavigateUrl="./SODataPage" Text="SO Data"></DxTreeViewNode>
         </Nodes>
-    </DxTreeView>
+    </DxTreeView> *@
+
+    @*<ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Overview
+            </NavLink>
+        </li>
+        <AuthorizeView>
+            <Authorized>
+                @* <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="Overview">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span>Overview
+                    </NavLink>
+                </li> 
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="PODataPage">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span>PO Data
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="SODataPage">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span>SO Data
+                    </NavLink>
+                </li>
+        <AuthorizeView>
+            <Authorized>
+
+            </Authorized>
+            <NotAuthorized>
+
+            </NotAuthorized>
+        </AuthorizeView>
+        </ul>*@
 </div>
 
 @* @code {

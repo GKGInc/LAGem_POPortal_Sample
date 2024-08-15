@@ -26,12 +26,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcR3JpZF9NYXN0ZXJEZXRhaWxfTmVzdGVkR3JpZF9EZXRhaWxDb250ZW50LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/Index.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naW4ucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Shared/BrowserNotSupported.razor]
 build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXEJyb3dzZXJOb3RTdXBwb3J0ZWQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Shared/LoginDisplay.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXExvZ2luRGlzcGxheS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/_Imports.razor]
@@ -41,6 +45,14 @@ build_metadata.AdditionalFiles.CssScope =
 [C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/FullDetailDataPage.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVsbERldGFpbERhdGFQYWdlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = b-3tl34nrk2e
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-osc8vbhg75
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/Overview.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcT3ZlcnZpZXcucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-ead95m8nxm
 
 [C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/PODataPage.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUE9EYXRhUGFnZS5yYXpvcg==
@@ -53,6 +65,10 @@ build_metadata.AdditionalFiles.CssScope = b-ozwxhl7yli
 [C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/PODetailDataPageExt.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUE9EZXRhaWxEYXRhUGFnZUV4dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-cfk90prvvx
+
+[C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/Shipments.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hpcG1lbnRzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-4cz981quyl
 
 [C:/Users/Helder/Documents/Visual Studio 2015/Projects/LAGem/LAGem_POPortal_Sample/Pages/SODataPage.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU09EYXRhUGFnZS5yYXpvcg==

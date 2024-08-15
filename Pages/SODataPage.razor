@@ -25,7 +25,7 @@
         ValidationEnabled="false"
         EditMode="GridEditMode.EditRow"
         FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-        ShowSearchBox="true"
+        ShowSearchBox="@ShowSearchBox"
         SearchText=""
         SearchTextParseMode="CurrentSearchTextParseMode"
         ShowGroupPanel="false"
@@ -83,6 +83,8 @@
     int ActivePageIndex { get; set; } = 0;
     int PageCount { get; set; } = 0;
     int TotalRecords { get; set; } = 0;
+
+    bool ShowSearchBox { get; set; } = true;
 
     Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
         { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
@@ -196,12 +198,14 @@
     }
     void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
     {
-        // if (e.FieldName == "FactoryCancel")
-        // {
-        //     // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
-        //     if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
-        //         e.DisplayText = "";
-        // }
+        //string[] dateList = { "SODate", "StartDate", "EndDate", "PODate", "ShipmentDate", "ShipToETA", "FactoryCancel" };
+        //if (dateList.Contains(e.FieldName))
+        if (e.Value.GetType() == typeof(DateTime))
+        {
+            // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
+            if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+                e.DisplayText = "";
+        }
     }
     void POGrid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
     {

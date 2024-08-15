@@ -37,10 +37,16 @@ namespace LAGem_POPortal.Models
         public int SOLineNo { get; set; }
         public int SOSubLineNo { get; set; }
         public decimal SOLineNoExt { get; set; }
-        public int DisplaySequence { get; set; }
+
+        public decimal DisplaySequence { get; set; }        
+        public int LineDisplaySequence { get; set; }
+        public int ProductDisplaySequence { get; set; }
 
         public int SOSubLineTypeId { get; set; }
         public string SOSubLineType { get; set; }   //ProductTypeName
+        public string ProductTypeGroup { get; set; }
+        public string LineTypeName { get; set; }
+        public string LineTypeGroup { get; set; }
         public string ProgramName { get; set; }
 
         public decimal SOQty { get; set; }
@@ -55,6 +61,10 @@ namespace LAGem_POPortal.Models
         public DateTime? ShipToETA { get; set; }
         public int ShipmentQty { get; set; }
 
+        public string SOStatus { get; set; }
+        public string QCStatus { get; set; }
+        public DateTime? QCStatusDate { get; set; }
+        public string QCComments { get; set; }        
 
     }
 }
