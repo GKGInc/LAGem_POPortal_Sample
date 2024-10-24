@@ -1,3 +1,379 @@
+/* _content/LAGem_POPortal/Pages/BusinessPartnerTasksPage.razor.rz.scp.css */
+[b-kfv861fitu] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-kfv861fitu] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-kfv861fitu] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-kfv861fitu] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-kfv861fitu] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-kfv861fitu] .grid-toolbar-new,
+[b-kfv861fitu] .grid-toolbar-add,
+[b-kfv861fitu] .grid-toolbar-delete,
+[b-kfv861fitu] .grid-toolbar-save,
+[b-kfv861fitu] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-kfv861fitu] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-kfv861fitu] .grid-toolbar-add {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-kfv861fitu] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-kfv861fitu] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-kfv861fitu] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-kfv861fitu] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/CustomerSoPage.razor.rz.scp.css */
+[b-k2862je8g6] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-k2862je8g6] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-k2862je8g6] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-k2862je8g6] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-k2862je8g6] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-k2862je8g6] .grid-toolbar-new,
+[b-k2862je8g6] .grid-toolbar-delete,
+[b-k2862je8g6] .grid-toolbar-save,
+[b-k2862je8g6] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-k2862je8g6] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-k2862je8g6] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-k2862je8g6] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-k2862je8g6] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-k2862je8g6] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/CustomerSoPoDetailPage.razor.rz.scp.css */
+[b-5ob8t1tm3e] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-5ob8t1tm3e] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-5ob8t1tm3e] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-5ob8t1tm3e] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-5ob8t1tm3e] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-5ob8t1tm3e] .grid-toolbar-new,
+[b-5ob8t1tm3e] .grid-toolbar-delete,
+[b-5ob8t1tm3e] .grid-toolbar-save,
+[b-5ob8t1tm3e] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-5ob8t1tm3e] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-5ob8t1tm3e] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-5ob8t1tm3e] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-5ob8t1tm3e] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-5ob8t1tm3e] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/CustomerSoPoSummaryPage.razor.rz.scp.css */
+[b-4tcgh4d6jy] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-4tcgh4d6jy] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-4tcgh4d6jy] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-4tcgh4d6jy] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-4tcgh4d6jy] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-4tcgh4d6jy] .grid-toolbar-new,
+[b-4tcgh4d6jy] .grid-toolbar-delete,
+[b-4tcgh4d6jy] .grid-toolbar-save,
+[b-4tcgh4d6jy] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-4tcgh4d6jy] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-4tcgh4d6jy] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-4tcgh4d6jy] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-4tcgh4d6jy] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-4tcgh4d6jy] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/EDIOrdersPage.razor.rz.scp.css */
+[b-h8k2ut9k2g] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-h8k2ut9k2g] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-h8k2ut9k2g] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-h8k2ut9k2g] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-h8k2ut9k2g] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-h8k2ut9k2g] .grid-toolbar-new,
+[b-h8k2ut9k2g] .grid-toolbar-delete,
+[b-h8k2ut9k2g] .grid-toolbar-save,
+[b-h8k2ut9k2g] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-h8k2ut9k2g] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-h8k2ut9k2g] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-h8k2ut9k2g] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-h8k2ut9k2g] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-h8k2ut9k2g] .grid-disabled-button {
+    pointer-events: none;
+}
 /* _content/LAGem_POPortal/Pages/FullDetailDataPage.razor.rz.scp.css */
 [b-3tl34nrk2e] .grid-cell-align-center {
     display: flex;
@@ -136,8 +512,8 @@
 [b-osc8vbhg75] .grid-disabled-button {
     pointer-events: none;
 }
-/* _content/LAGem_POPortal/Pages/Overview.razor.rz.scp.css */
-[b-ead95m8nxm] .grid-cell-align-center {
+/* _content/LAGem_POPortal/Pages/OverviewPage.razor.rz.scp.css */
+[b-jpelzj0bre] .grid-cell-align-center {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -145,7 +521,7 @@
     margin-bottom: -4px;
 }
 
-[b-ead95m8nxm] .grid-icon {
+[b-jpelzj0bre] .grid-icon {
     display: inline-block;
     width: 1rem;
     height: 1rem;
@@ -159,25 +535,25 @@
     vertical-align: middle;
 }
 
-[b-ead95m8nxm] .grid-icon-new {
+[b-jpelzj0bre] .grid-icon-new {
     -webkit-mask-image: url(../images/icons/new.svg);
     mask-image: url(../images/icons/new.svg);
 }
 
-[b-ead95m8nxm] .grid-icon-add {
+[b-jpelzj0bre] .grid-icon-add {
     -webkit-mask-image: url(../images/icons/add.svg);
     mask-image: url(../images/icons/add.svg);
 }
 
-:: deep .grid-icon-delete[b-ead95m8nxm] {
+:: deep .grid-icon-delete[b-jpelzj0bre] {
     -webkit-mask-image: url("../images/icons/delete.svg");
     mask-image: url("../images/icons/delete.svg");
 }
 
-[b-ead95m8nxm] .grid-toolbar-new,
-[b-ead95m8nxm] .grid-toolbar-delete,
-[b-ead95m8nxm] .grid-toolbar-save,
-[b-ead95m8nxm] .grid-toolbar-cancel {
+[b-jpelzj0bre] .grid-toolbar-new,
+[b-jpelzj0bre] .grid-toolbar-delete,
+[b-jpelzj0bre] .grid-toolbar-save,
+[b-jpelzj0bre] .grid-toolbar-cancel {
     background-size: contain;
     mask-repeat: no-repeat;
     -webkit-mask-repeat: no-repeat;
@@ -188,26 +564,26 @@
     opacity: 0.7;
 }
 
-[b-ead95m8nxm] .grid-toolbar-new {
+[b-jpelzj0bre] .grid-toolbar-new {
     -webkit-mask-image: url("images/icons/new.svg");
     mask-image: url("images/icons/new.svg");
 }
 
-[b-ead95m8nxm] .grid-toolbar-save {
+[b-jpelzj0bre] .grid-toolbar-save {
     -webkit-mask-image: url("images/icons/save.svg");
     mask-image: url("images/icons/save.svg");
 }
 
-[b-ead95m8nxm] .grid-toolbar-cancel {
+[b-jpelzj0bre] .grid-toolbar-cancel {
     -webkit-mask-image: url("images/icons/undo.svg");
     mask-image: url("images/icons/undo.svg");
 }
 
-[b-ead95m8nxm] .grid-modified-cell {
+[b-jpelzj0bre] .grid-modified-cell {
     background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
 }
 
-[b-ead95m8nxm] .grid-disabled-button {
+[b-jpelzj0bre] .grid-disabled-button {
     pointer-events: none;
 }
 /* _content/LAGem_POPortal/Pages/PODataPage.razor.rz.scp.css */
@@ -432,8 +808,8 @@
 [b-cfk90prvvx] .grid-disabled-button {
     pointer-events: none;
 }
-/* _content/LAGem_POPortal/Pages/Shipments.razor.rz.scp.css */
-[b-4cz981quyl] .grid-cell-align-center {
+/* _content/LAGem_POPortal/Pages/ShipmentsPage.razor.rz.scp.css */
+[b-dmrerdfha4] .grid-cell-align-center {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -441,7 +817,7 @@
     margin-bottom: -4px;
 }
 
-[b-4cz981quyl] .grid-icon {
+[b-dmrerdfha4] .grid-icon {
     display: inline-block;
     width: 1rem;
     height: 1rem;
@@ -455,25 +831,25 @@
     vertical-align: middle;
 }
 
-[b-4cz981quyl] .grid-icon-new {
+[b-dmrerdfha4] .grid-icon-new {
     -webkit-mask-image: url(../images/icons/new.svg);
     mask-image: url(../images/icons/new.svg);
 }
 
-[b-4cz981quyl] .grid-icon-add {
+[b-dmrerdfha4] .grid-icon-add {
     -webkit-mask-image: url(../images/icons/add.svg);
     mask-image: url(../images/icons/add.svg);
 }
 
-:: deep .grid-icon-delete[b-4cz981quyl] {
+:: deep .grid-icon-delete[b-dmrerdfha4] {
     -webkit-mask-image: url("../images/icons/delete.svg");
     mask-image: url("../images/icons/delete.svg");
 }
 
-[b-4cz981quyl] .grid-toolbar-new,
-[b-4cz981quyl] .grid-toolbar-delete,
-[b-4cz981quyl] .grid-toolbar-save,
-[b-4cz981quyl] .grid-toolbar-cancel {
+[b-dmrerdfha4] .grid-toolbar-new,
+[b-dmrerdfha4] .grid-toolbar-delete,
+[b-dmrerdfha4] .grid-toolbar-save,
+[b-dmrerdfha4] .grid-toolbar-cancel {
     background-size: contain;
     mask-repeat: no-repeat;
     -webkit-mask-repeat: no-repeat;
@@ -484,26 +860,26 @@
     opacity: 0.7;
 }
 
-[b-4cz981quyl] .grid-toolbar-new {
+[b-dmrerdfha4] .grid-toolbar-new {
     -webkit-mask-image: url("images/icons/new.svg");
     mask-image: url("images/icons/new.svg");
 }
 
-[b-4cz981quyl] .grid-toolbar-save {
+[b-dmrerdfha4] .grid-toolbar-save {
     -webkit-mask-image: url("images/icons/save.svg");
     mask-image: url("images/icons/save.svg");
 }
 
-[b-4cz981quyl] .grid-toolbar-cancel {
+[b-dmrerdfha4] .grid-toolbar-cancel {
     -webkit-mask-image: url("images/icons/undo.svg");
     mask-image: url("images/icons/undo.svg");
 }
 
-[b-4cz981quyl] .grid-modified-cell {
+[b-dmrerdfha4] .grid-modified-cell {
     background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
 }
 
-[b-4cz981quyl] .grid-disabled-button {
+[b-dmrerdfha4] .grid-disabled-button {
     pointer-events: none;
 }
 /* _content/LAGem_POPortal/Pages/SODataPage.razor.rz.scp.css */
@@ -728,6 +1104,302 @@
 [b-syluk24g1m] .grid-disabled-button {
     pointer-events: none;
 }
+/* _content/LAGem_POPortal/Pages/SOTasksDetailsPage.razor.rz.scp.css */
+[b-x6gbu63wyk] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-x6gbu63wyk] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-x6gbu63wyk] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-x6gbu63wyk] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-x6gbu63wyk] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-x6gbu63wyk] .grid-toolbar-new,
+[b-x6gbu63wyk] .grid-toolbar-delete,
+[b-x6gbu63wyk] .grid-toolbar-save,
+[b-x6gbu63wyk] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-x6gbu63wyk] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-x6gbu63wyk] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-x6gbu63wyk] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-x6gbu63wyk] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-x6gbu63wyk] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/SOTasksHeaderPage.razor.rz.scp.css */
+[b-1k0m3z9tyt] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-1k0m3z9tyt] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-1k0m3z9tyt] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-1k0m3z9tyt] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-1k0m3z9tyt] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-1k0m3z9tyt] .grid-toolbar-new,
+[b-1k0m3z9tyt] .grid-toolbar-delete,
+[b-1k0m3z9tyt] .grid-toolbar-save,
+[b-1k0m3z9tyt] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-1k0m3z9tyt] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-1k0m3z9tyt] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-1k0m3z9tyt] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-1k0m3z9tyt] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-1k0m3z9tyt] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/SOTasksMaterialsPage.razor.rz.scp.css */
+[b-nuw1uw7ljx] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-nuw1uw7ljx] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-nuw1uw7ljx] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-nuw1uw7ljx] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-nuw1uw7ljx] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-nuw1uw7ljx] .grid-toolbar-new,
+[b-nuw1uw7ljx] .grid-toolbar-delete,
+[b-nuw1uw7ljx] .grid-toolbar-save,
+[b-nuw1uw7ljx] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-nuw1uw7ljx] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-nuw1uw7ljx] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-nuw1uw7ljx] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-nuw1uw7ljx] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-nuw1uw7ljx] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/TasksPage.razor.rz.scp.css */
+[b-rl7qevllll] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-rl7qevllll] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-rl7qevllll] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-rl7qevllll] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-rl7qevllll] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-rl7qevllll] .grid-toolbar-new,
+[b-rl7qevllll] .grid-toolbar-delete,
+[b-rl7qevllll] .grid-toolbar-save,
+[b-rl7qevllll] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-rl7qevllll] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-rl7qevllll] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-rl7qevllll] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-rl7qevllll] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-rl7qevllll] .grid-disabled-button {
+    pointer-events: none;
+}
 /* _content/LAGem_POPortal/Shared/Header.razor.rz.scp.css */
 .navbar.header-navbar[b-c9pzu0x497] {
     flex-grow: 0;
@@ -800,7 +1472,7 @@
 }
 /* _content/LAGem_POPortal/Shared/NavMenu.razor.rz.scp.css */
 .sidebar[b-8921l317u9] {
-    min-width: 110px;
+    min-width: 200px;
     max-width: 300px;
     box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.16);
     transition: transform 0.1s ease-out;

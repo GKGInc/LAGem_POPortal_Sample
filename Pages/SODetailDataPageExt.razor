@@ -187,6 +187,8 @@
 @code {
     // ============================================================ \\
 
+    #region Variables
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationState { get; set; }
 
@@ -206,11 +208,15 @@
     IEnumerable<FreightData> FreightGridData { get; set; }
     IEnumerable<CostData> CostGridData { get; set; }
 
+    #endregion
+
     // ============================================================ \\
+
+    #region Constructors/Page Functions
 
     protected async override Task OnInitializedAsync()
     {
-        // base.OnInitialized();
+        base.OnInitialized();
 
         SqlData sqlData = new SqlData();
         BOMGridData = await sqlData.GetBOMData(SODetailData.PONumber);
@@ -220,8 +226,6 @@
 
     }
 
-    // ============================================================ \\
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -230,6 +234,12 @@
                                       // Grid.ExpandDetailRow(0);
         }
     }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Main Grid Functions
 
     void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
     {
@@ -298,6 +308,8 @@
     {
         // DataSource = await NwindDataService.GetEmployeesEditableAsync();
     }
+
+    #endregion
 
     // ============================================================ \\
 }

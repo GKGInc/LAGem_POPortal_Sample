@@ -1,0 +1,481 @@
+﻿@page "/OverviewPage"
+@using DevExpress.Blazor
+@using DevExpress.Data.Filtering;
+@using LAGem_POPortal.Authentication
+@using LAGem_POPortal.Data
+@using LAGem_POPortal.Models
+@using Microsoft.EntityFrameworkCore
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@inject UserAccountService userAccountService
+
+@implements IDisposable
+
+<AuthorizeView>
+    <Authorized>
+        @* <div hidden="!@HiddenGrid">
+            <a href="/login">@HeaderMessage</a>
+        </div>
+ *@
+
+        @* <div hidden="@HiddenGrid"> *@
+        <div>
+            <DxGrid @ref="Grid"
+                    Data="GridData"
+                    KeyFieldName="Id"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25, 30 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PageSize="@PageSize"
+                    @bind-PageIndex="@ActivePageIndex"
+                    AutoFitColumnWidths="true"
+                    AutoCollapseDetailRow="true"
+                    ColumnResizeMode="@CurrentColumnResizeMode"
+                    EditMode="GridEditMode.EditRow"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    FooterDisplayMode="GridFooterDisplayMode.Auto"
+                    TextWrapEnabled="@TextWrapEnabled"
+                    ValidationEnabled="false"
+                    WordWrapEnabled="@WordWrapEnabled"
+                    HighlightRowOnHover="true"
+                    ShowFilterRow="true"
+                    ShowGroupPanel="true"
+                    ShowSearchBox="true"
+                    SearchText=""
+                    SearchTextParseMode="CurrentSearchTextParseMode"
+                    Visible="false"
+                    CustomizeElement="Grid_CustomizeElement"
+                    CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                    EditModelSaving="Grid_EditModelSaving"
+                    DataItemDeleting="Grid_DataItemDeleting"
+                    CustomizeEditModel="Grid_CustomizeEditModel">
+                <Columns>
+                    <DxGridDataColumn FieldName="SONumber" Caption="SO No" ReadOnly="true" SortIndex="0" Width="100" MinWidth="60" FixedPosition="GridColumnFixedPosition.Left" />
+                    <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" ReadOnly="true" Width="100" MinWidth="80" />
+                    <DxGridDataColumn FieldName="CustomerName" Caption="Customer" ReadOnly="true" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" DisplayFormat="d" Width="100" MinWidth="80" />
+                    <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" DisplayFormat="d" Width="100" MinWidth="80" />
+
+                    <DxGridDataColumn FieldName="SOLineNo" Caption="SO Line No" DisplayFormat="n0" ReadOnly="true" SortIndex="1" />
+                    <DxGridDataColumn FieldName="DisplaySequence" Caption="DisplaySequence" DisplayFormat="n0" ReadOnly="true" Visible="false" SortIndex="2" />
+                    <DxGridDataColumn FieldName="SOSubLineNo" Caption="SOSubLineNo" DisplayFormat="n0" ReadOnly="true" Visible="false" SortIndex="3" />
+
+                    <DxGridDataColumn FieldName="LineTypeGroup" Caption="Line Group" ReadOnly="true" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="LineTypeName" Caption="Line Type" ReadOnly="true" Width="100" MinWidth="100" />
+
+                    <DxGridDataColumn FieldName="ProductTypeGroup" Caption="Product Group" ReadOnly="true" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="SOSubLineType" Caption="Product Type" ReadOnly="true" Width="100" MinWidth="100" />
+
+                    <DxGridDataColumn FieldName="ProgramName" Caption="Program Name" ReadOnly="true" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Width="100" MinWidth="150" />
+                    <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" Width="100" MinWidth="200" Visible="false" />
+
+                    <DxGridDataColumn FieldName="QCStatus" Caption="QC Status" ReadOnly="true" Width="100" MinWidth="150" />
+                    <DxGridDataColumn FieldName="QCStatusDate" Caption="QC Status Date" DisplayFormat="d" Width="100" MinWidth="80" />
+                    <DxGridDataColumn FieldName="QCComments" Caption="QC Comments" ReadOnly="true" Width="100" MinWidth="200" Visible="false" />
+
+                    <DxGridDataColumn FieldName="SOQty" Caption="SOQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" />
+                    <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="n2" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" />
+                    <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n2" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" />
+
+                    <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="VendorName" Caption="Vendor" ReadOnly="true" Width="100" MinWidth="120" />
+                    <DxGridDataColumn FieldName="PODate" Caption="PODate" DisplayFormat="d" Width="100" MinWidth="80" />
+                    <DxGridDataColumn FieldName="POQty" Caption="POQty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" />
+                    <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" Width="100" MinWidth="100" />
+
+                    <DxGridDataColumn FieldName="ShipmentDate" Caption="Shipment Date" DisplayFormat="d" Width="100" MinWidth="80" />
+                    <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking Number" ReadOnly="true" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="ShipToETA" Caption="Ship To ETA" DisplayFormat="d" Width="100" MinWidth="80" />
+                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Shipment Qty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" />
+
+                    <DxGridDataColumn FieldName="SOStatus" Caption="SO Status" ReadOnly="true" Width="100" MinWidth="60" FilterRowValue='"OP"' />
+
+                    <DxGridCommandColumn Width="150px" Visible="false"
+                                         DeleteButtonVisible="false"
+                                         EditButtonVisible="false"
+                                         CancelButtonVisible="false"
+                                         SaveButtonVisible="false"
+                                         NewButtonVisible="false" />
+                </Columns>
+                <ToolbarTemplate Context="GridToolbar">
+                    <DxToolbar Context="GridToolbar" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                        <Items>
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Auto Fit Columns" Click="Grid_FitWidths" RenderStyle="ButtonRenderStyle.Secondary" />
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Column Chooser" RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="grid-icon-column-chooser" Click="ColumnChooserButton_Click" />
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Refresh Data" RenderStyle="ButtonRenderStyle.Secondary" Click="RefreshData_Click" />
+                        </Items>
+                    </DxToolbar>
+                </ToolbarTemplate>
+                <DetailRowTemplate Context="DetailRow">
+                    <PODataPage SODetailData="(PODetailData)DetailRow.DataItem" />
+                </DetailRowTemplate>
+            </DxGrid>
+            <div class="pager-container">
+                @* <DxPager PageCount="@PageCount" @bind-ActivePageIndex="@ActivePageIndex" /> *@
+                @* <div>
+                Total: @TotalRecords records
+                </div> *@
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized Context="Authorized">
+        @*  @{ navManager.NavigateTo("/Login");} *@
+        <h3>Please <a href="/login">Login</a> to access the Portal</h3>
+        @* <LoginPage /> *@
+        @* <LoginRedirect /> *@
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .highlighted-item > td {
+        background-color: rgba(245, 198, 203, 0.5);
+    }
+    .dx-datagrid-headers {
+        white-space: normal;
+    }
+    .dx-datagrid-nowrap.dx-datagrid-headers .dx-header-row > td > .dx-datagrid-text-content {
+        white-space: normal;
+    }
+
+  /*   .dxbl-grid table {
+        table-layout: auto !important;
+    }
+    .dxbl-grid table > colgroup > col {
+        width: auto !important;
+    } */
+
+</style>
+
+@code {
+    // ============================================================ \\
+        
+    #region Variables
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    [CascadingParameter] 
+    protected Task<AuthenticationState> AuthStat { get; set; }
+
+    bool AutoCollapseDetailRow { get; set; }
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    IGrid Grid { get; set; }
+    IEnumerable<PODetailData> GridData { get; set; }
+
+
+    bool TextWrapEnabled = true;
+    bool WordWrapEnabled = false;
+
+    int PageCount { get; set; } = 0;
+    int TotalRecords { get; set; } = 0;
+    int PageSize { get; set; } = 20;
+    int ActivePageIndex { get; set; } = 0;
+
+    Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
+        { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
+        { "Group Words By Or", GridSearchTextParseMode.GroupWordsByOr },
+        { "Exact Match", GridSearchTextParseMode.ExactMatch }
+    };
+    void ChangeSearchMode(string key)
+    {
+        CurrentSearchTextParseModeDisplayText = key;
+        CurrentSearchTextParseMode = SearchTextParseModes[key];
+    }
+    string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
+    GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
+
+    GridColumnResizeMode CurrentColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer; // GridColumnResizeMode.NextColumn;
+    string CurrentColumnResizeModeDisplayText { get; set; } = "Next Column";
+    Dictionary<string, GridColumnResizeMode> GridColumnResizeModes { get; } = new Dictionary<string,
+    GridColumnResizeMode>{
+        { "Disabled", GridColumnResizeMode.Disabled },                  //A user cannot resize columns.
+        { "Next Column", GridColumnResizeMode.NextColumn },             //When a user resizes a column, the width of the column to the right changes, but the Grid's total width does not change.
+        { "Columns Container", GridColumnResizeMode.ColumnsContainer }  //When a user resizes a column, all other columns retain width settings, but the width of the entire column container changes proportionally.
+    }; 
+    void ChangeResizeMode(string key)
+    {
+        CurrentColumnResizeModeDisplayText = key;
+        CurrentColumnResizeMode = GridColumnResizeModes[key];
+    }
+
+    string HeaderMessage { get; set; } = "Loading Data...";
+    bool HiddenGrid { get; set; } = true;
+    bool AutoFitColWidths { get; set; } = true;
+    bool IsAutoFitPending { get; set; } = true;
+    
+    #endregion
+
+    // ============================================================ \\
+
+    #region Constructors/Page Functions
+
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetSOPOData();
+
+        IsAutoFitPending = true;
+
+        var user = (await AuthStat).User;
+        if (!user.Identity.IsAuthenticated)
+        {
+            @* NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}"); *@
+            //navManager.NavigateTo("/Login", true);
+            HiddenGrid = true;
+        }
+        else
+        {
+            HiddenGrid = false;
+            HeaderMessage = "";
+        }
+
+        var authstate = await authStateProvider.GetAuthenticationStateAsync();
+        var userClaimsPrincipal = authstate.User; // ClaimsPrincipal
+        var userClaimsPrincipalName = userClaimsPrincipal.Identity.Name;
+
+        if (userClaimsPrincipalName != null)
+        {
+            var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
+
+            if (userData != null)
+            {
+                if (userData.Role == "Administrator")
+                {
+                    //workingMode = WorkingMode.Designer;
+                    //showWorkingModeToggleButton = true;
+                }
+
+                //headers = new Dictionary<string, string>() {
+                //    { "Oid", userData.Oid.ToString() },
+                //    { "User", userData.UserName },
+                //    { "PromoCode", userData.PromoCode }
+                //};
+            }
+            else
+            {
+
+            }
+        }
+        else
+        {
+            //navManager.NavigateTo("/Login", true);
+
+            userClaimsPrincipal = authenticationState.Result.User;
+            var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
+
+            if (userData != null)
+            {
+                if (userData.Role == "Administrator")
+                {
+                    //workingMode = WorkingMode.Designer;
+                    //showWorkingModeToggleButton = true;
+                }
+
+                //headers = new Dictionary<string, string>() {
+                //    { "Oid", userData.Oid.ToString() },
+                //    { "User", userData.UserName },
+                //    { "PromoCode", userData.PromoCode }
+                //};
+            }
+            else
+            {
+
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task; // Waits for grid data to load
+                                      // Grid.ExpandDetailRow(0);
+        }
+        @* CurrentColumnResizeMode = GridColumnResizeMode.ColumnsContainer;
+        Grid.AutoFitColumnWidths(); *@
+
+        //https://supportcenter.devexpress.com/ticket/details/t1207460/dxgrid-autofitcolumnwidths-true-does-not-set-widths-as-i-expected
+        @* if (AutoFitColWidths && IsAutoFitPending)
+        {
+            IsAutoFitPending = false;
+            await Grid.WaitForDataLoadAsync();
+            Grid.AutoFitColumnWidths();
+        } *@
+        if (Grid != null && GridData != null && IsAutoFitPending)
+        {
+            IsAutoFitPending = false;
+            await Grid.WaitForDataLoadAsync();
+            Grid.AutoFitColumnWidths();
+        }
+    }
+
+    public void Dispose()
+    {
+        HeaderMessage = "";
+        HiddenGrid = true;
+        // Northwind?.Dispose();
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Button/Misc Functions
+
+    void Grid_FitWidths()
+    {
+        Grid.AutoFitColumnWidths();
+    }
+    
+    void ColumnChooserButton_Click()
+    {
+        Grid.ShowColumnChooser();
+    }
+
+    async void RefreshData_Click()
+    {
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetSOPOData();
+    }
+
+    #endregion
+
+    // ============================================================ \\
+    
+    #region Grid Functions
+
+    public void AutoCollapseDetailRow_Changed(bool newValue)
+    {
+        AutoCollapseDetailRow = newValue;
+        if (newValue)
+        {
+            Grid.BeginUpdate();
+            Grid.CollapseAllDetailRows();
+            Grid.ExpandDetailRow(0);
+            Grid.EndUpdate();
+        }
+    }
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        // if (e.ElementType == GridElementType.DataRow && (System.Decimal)e.Grid.GetRowValue(e.VisibleIndex, "Total") > 1000)
+        // {
+        //     e.CssClass = "highlighted-item";
+        // }
+
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "CustomerName")
+        {
+            string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
+            if (customerName == "MACYS")
+                e.Style = "background: green";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
+        {
+            e.Style = "font-weight: 800";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
+        {
+            e.Style = "font-weight: 800";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
+        {
+            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
+            if (units > 100)
+                e.Style = "color: red";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "SOQty")
+        {
+            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "SOQty");
+            if (units > 100)
+                e.Style = "color: red";
+        }
+    }
+    void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
+    {
+        //string[] dateList = { "SODate", "StartDate", "EndDate", "PODate", "ShipmentDate", "ShipToETA", "FactoryCancel" };
+        //if (dateList.Contains(e.FieldName)) 
+        if (e.Value.GetType() == typeof(DateTime))
+        {
+            // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
+            if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+                e.DisplayText = "";
+        }
+    }
+    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            if (e.EditModel.GetType() == typeof(BOMData))
+            {
+                var newObject = (BOMData)e.EditModel;
+                // newDepartmentQueueLocations.DepartmentQueueOID = DepartmentQueue.OID;
+                // newDepartmentQueueLocations.Workcenter = DepartmentQueue.workcenter;
+
+            }
+            if (e.EditModel.GetType() == typeof(FreightData))
+            {
+                var newObject = (FreightData)e.EditModel;
+                // newDepartmentQueueProcesses.FOID = DepartmentQueue.OID;
+                // newDepartmentQueueProcesses.workcenter = DepartmentQueue.workcenter;
+
+            }
+            // var newEmployee = (EditableEmployee)e.EditModel;
+            // newEmployee.FirstName = "John";
+            // newEmployee.LastName = "Doe";
+        }
+    }
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        if (e.EditModel.GetType() == typeof(BOMData))
+        {
+            var editableObject = (BOMData)e.EditModel;
+
+            // if (e.IsNew)
+            //...
+        }
+        if (e.EditModel.GetType() == typeof(FreightData))
+        {
+            var editableObject = (FreightData)e.EditModel;
+
+            // if (e.IsNew)
+            //...
+        }
+
+        // var editableEmployee = (EditableEmployee)e.EditModel;
+        // if (e.IsNew)
+        //     await NwindDataService.InsertEmployeeAsync(editableEmployee);
+        // else
+        //     await NwindDataService.UpdateEmployeeAsync((EditableEmployee)e.DataItem, editableEmployee);
+        await UpdateDataAsync();
+    }
+    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        if (e.DataItem.GetType() == typeof(BOMData))
+        {
+            var deletingObject = (BOMData)e.DataItem;
+
+        }
+        if (e.DataItem.GetType() == typeof(FreightData))
+        {
+            var deletingObject = (FreightData)e.DataItem;
+
+        }
+
+        // await NwindDataService.RemoveEmployeeAsync((EditableEmployee)e.DataItem);
+        await UpdateDataAsync();
+    }
+    async Task UpdateDataAsync()
+    {
+        // DataSource = await NwindDataService.GetEmployeesEditableAsync();
+    }
+    
+    #endregion
+
+    // ============================================================ \\
+}

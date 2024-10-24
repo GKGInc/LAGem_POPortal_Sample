@@ -50,8 +50,8 @@
                              NewButtonVisible="true" />
     </Columns>
     <DetailRowTemplate>
-        @* <SODetailDataPage SOData="(POData)context.DataItem" /> *@
-        <PODataPage SOData="(POData)context.DataItem" />
+        <SODetailDataPage SOData="(SOData)context.DataItem" />
+        @* <PODataPage SOData="(POData)context.DataItem" /> *@
     </DetailRowTemplate>
 </DxGrid>
 <div class="pager-container">
@@ -70,6 +70,8 @@
 @code {
     // ============================================================ \\
 
+    #region Variables
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationState { get; set; }
 
@@ -77,7 +79,7 @@
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     IGrid SOGrid { get; set; }
-    IEnumerable<POData> SOGridData { get; set; }
+    IEnumerable<SOData> SOGridData { get; set; }
 
     int PageSize { get; set; } = 20;
     int ActivePageIndex { get; set; } = 0;
@@ -99,7 +101,11 @@
     string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
     GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
 
+    #endregion
+
     // ============================================================ \\
+
+    #region Constructors/Page Functions
 
     protected async override Task OnInitializedAsync()
     {
@@ -132,7 +138,11 @@
         SOGridData = await sqlData.GetSOData();
     }
 
+    #endregion
+
     // ============================================================ \\
+
+    #region Main Grid Functions
 
     public void AutoCollapseDetailRow_Changed(bool newValue)
     {
@@ -246,6 +256,8 @@
     {
         // Northwind?.Dispose();
     }
+
+    #endregion
 
     // ============================================================ \\
 }

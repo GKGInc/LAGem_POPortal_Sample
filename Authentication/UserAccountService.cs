@@ -56,7 +56,6 @@ namespace LAGem_POPortal.Authentication
                     Oid = webUser.Oid
                 };
 
-                //TestGetSqlData(user);
                 return user;
             }
             else
@@ -121,6 +120,15 @@ namespace LAGem_POPortal.Authentication
       ,[Level] AS [UserStatus]
       ,'1900-01-01 00:00:00.000' AS [LastLogin]
   FROM [Jade01].[dbo].[MobileUsers]";
+            query = @"SELECT 0 AS [Oid]
+      ,'admin' AS [UserName]
+      ,'admin' AS [UserPassword]
+	  ,'' AS [PromoCode]
+      ,'Test User' AS [UserFirstName]
+      ,'' AS [UserLastName]
+      ,'' AS [UserEmail]
+      ,'ADMIN' AS [UserStatus]
+      ,'1900-01-01 00:00:00.000' AS [LastLogin]";
 
             try
             {

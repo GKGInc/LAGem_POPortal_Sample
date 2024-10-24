@@ -105,6 +105,10 @@
       "PackagePath": "staticwebassets\\images\\home.svg"
     },
     {
+      "Id": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\wwwroot\\images\\icons\\add.svg",
+      "PackagePath": "staticwebassets\\images\\icons\\add.svg"
+    },
+    {
       "Id": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\wwwroot\\images\\icons\\delete.svg",
       "PackagePath": "staticwebassets\\images\\icons\\delete.svg"
     },
@@ -135,6 +139,10 @@
     {
       "Id": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\wwwroot\\images\\menu.svg",
       "PackagePath": "staticwebassets\\images\\menu.svg"
+    },
+    {
+      "Id": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\wwwroot\\images\\plus-37.svg",
+      "PackagePath": "staticwebassets\\images\\plus-37.svg"
     },
     {
       "Id": "C:\\Users\\Helder\\Documents\\Visual Studio 2015\\Projects\\LAGem\\LAGem_POPortal_Sample\\wwwroot\\images\\sad.svg",

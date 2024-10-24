@@ -1,0 +1,637 @@
+﻿@page "/TasksPage"
+@using DevExpress.Blazor
+@using DevExpress.Data.Filtering;
+@using DevExpress.Xpo
+@using LAGem_POPortal.Authentication
+@using LAGem_POPortal.Data
+@using LAGem_POPortal.Models
+@using Microsoft.EntityFrameworkCore
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@inject UserAccountService userAccountService
+
+@implements IDisposable
+
+<AuthorizeView>
+    <Authorized Context="Authorized">
+        @* <div hidden="!@HiddenGrid">
+            <a href="/login">@HeaderMessage</a>
+        </div> *@
+
+        @* <div hidden="@HiddenGrid"> *@
+        <div>
+            <DxGrid @ref="Grid"
+                    Data="GridData" 
+                    CssClass="@gridCss"
+                    KeyFieldName="TaskId"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25, 30 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PageSize="@PageSize"
+                    @bind-PageIndex="@ActivePageIndex"
+                    AutoFitColumnWidths="true"
+                    AutoCollapseDetailRow="true"
+                    ColumnResizeMode="@CurrentColumnResizeMode"
+                    EditMode="@CurrentEditMode"
+                    PopupEditFormCssClass="my-popup-style"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    FooterDisplayMode="GridFooterDisplayMode.Auto"
+                    TextWrapEnabled="@TextWrapEnabled"
+                    ValidationEnabled="false"
+                    WordWrapEnabled="@WordWrapEnabled"
+                    HighlightRowOnHover="true"
+                    ShowFilterRow="true"
+                    ShowGroupPanel="false"
+                    ShowSearchBox="true"
+                    SearchText=""
+                    SearchTextParseMode="CurrentSearchTextParseMode"
+                    CustomizeElement="Grid_CustomizeElement"
+                    CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                    CustomizeEditModel="Grid_CustomizeEditModel"
+                    EditModelSaving="Grid_EditModelSaving"
+                    DataItemDeleting="Grid_DataItemDeleting"
+                    CustomSort="Grid_OnCustomSort">
+                <Columns>
+                    <DxGridCommandColumn Width="150px" Visible="true"
+                                         DeleteButtonVisible="false"
+                                         EditButtonVisible="true"
+                                         CancelButtonVisible="true"
+                                         SaveButtonVisible="true"
+                                         NewButtonVisible="true" 
+                                         FixedPosition="GridColumnFixedPosition.Right" />
+
+                    <DxGridDataColumn FieldName="TaskName" Caption="Task Name" ReadOnly="false" Width="100" MinWidth="120" FixedPosition="GridColumnFixedPosition.Left" />
+                    <DxGridDataColumn FieldName="TaskDescription" Caption="Task Description" ReadOnly="false" MinWidth="100" />
+                    <DxGridDataColumn FieldName="TaskType" Caption="Task Type" ReadOnly="false" Width="100" MinWidth="100" />
+
+                    <DxGridDataColumn FieldName="TaskSequence" Caption="Sequence" ReadOnly="false" Width="60"
+                                      SortMode="GridColumnSortMode.Custom" />
+                    <DxGridDataColumn FieldName="Required" Caption="Required" ReadOnly="false" Width="60" />
+                    <DxGridDataColumn FieldName="Qty" Caption="Qty" ReadOnly="false" MinWidth="100" />
+                    <DxGridDataColumn FieldName="AssignedTo" Caption="AssignedTo" ReadOnly="false" MinWidth="100" />
+
+                </Columns>
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var task = (Tasks)EditFormContext.EditModel; // previously -> supplier
+                    }
+                    <DxFormLayout CssClass="w-100">                         
+                        <DxFormLayoutItem Caption="Task Name:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("TaskName")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Task Types:" ColSpanMd="6">
+                            <DxComboBox Data="@taskTypeLookupList"
+                                        NullText="Select Task Type..."
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        TextFieldName="LookupText"
+                                        ValueFieldName="LookupText"
+                                        Value="@task.TaskType"
+                                        ValueChanged="(string newCellValue) => { task.TaskType = newCellValue; }">
+                            </DxComboBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Task Description:" ColSpanMd="12">
+                            @EditFormContext.GetEditor("TaskDescription")
+                        </DxFormLayoutItem>
+                                                
+                        <DxFormLayoutItem Caption="Task Qty:" ColSpanMd="4">
+                            @EditFormContext.GetEditor("Qty")
+                        </DxFormLayoutItem>                        
+                        <DxFormLayoutItem Caption="Task AssignedTo:" ColSpanMd="8" Visible="!useAssignedToDropdownList">
+                            @EditFormContext.GetEditor("AssignedTo")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Task AssignedTo:" ColSpanMd="8" Visible="useAssignedToDropdownList">
+                            <DxComboBox Data="@assignedToListData"
+                                        NullText="Select..."
+                                        Value="@task.AssignedTo"
+                                        ValueChanged="(string newCellValue) => {
+                                                    //shipping.VendorId = newCellValue;
+                                                    //shipping.VendorName = POOpenVendorData.Where(c => c.VendorId == newCellValue).FirstOrDefault()?.VendorName;
+                                                    //shipping.POHeaderId = 0;
+                                            task.AssignedTo = newCellValue;
+                                        }">
+                            </DxComboBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Task Sequence:" ColSpanMd="4">
+                            @EditFormContext.GetEditor("TaskSequence")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Task Required:" ColSpanMd="4">
+                            @EditFormContext.GetEditor("Required")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="4" Visible="displayUseDropdownListToggle">
+                            <DxCheckBox Checked="useAssignedToDropdownList" CheckedChanged="new Func<bool, Task>(UseAssignedToDropdownList_CheckedChanged)">Use Dropdown List</DxCheckBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem ColSpanMd="4" Visible="!displayUseDropdownListToggle">
+                        </DxFormLayoutItem>
+
+                    </DxFormLayout>
+                </EditFormTemplate>
+
+                <ToolbarTemplate Context="GridToolbar" >
+                    <DxToolbar Context="GridToolbar" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                        <Items>
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Auto Fit Columns" RenderStyle="ButtonRenderStyle.Secondary" Click="Grid_FitWidths"  />
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Column Chooser" RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="grid-icon-column-chooser" Click="ColumnChooserButton_Click" />
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Refresh Data" RenderStyle="ButtonRenderStyle.Secondary" Click="RefreshData_Click" />
+                            <DxToolbarItem BeginGroup="true" Alignment="ToolbarItemAlignment.Left">
+                                <Template Context="toolbar_item_context">
+                                    <div class="d-flex flex-row align-items-center h-100">
+                                        <DxCheckBox Checked="usePopupEditForm" CheckedChanged="new Func<bool, Task>(UsePopupEditForm_CheckedChanged)">Use Popup Edit Form</DxCheckBox>
+                                    </div>
+                                </Template>
+                            </DxToolbarItem>
+                        </Items>
+                    </DxToolbar>
+                </ToolbarTemplate>
+            </DxGrid>
+            <div class="pager-container">
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized Context="NotAuthorized">
+        @*  @{ navManager.NavigateTo("/Login");} *@
+        <h3>Please <a href="/login">Login</a> to access the Portal</h3>
+        @* <LoginPage /> *@
+        @* <LoginRedirect /> *@
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .highlighted-item > td {
+        background-color: rgba(245, 198, 203, 0.5);
+    }
+    .dx-datagrid-headers {
+        white-space: normal;
+    }
+    .dx-datagrid-nowrap.dx-datagrid-headers .dx-header-row > td > .dx-datagrid-text-content {
+        white-space: normal;
+    }
+
+    .hide-toolbar .dxbl-grid-toolbar-container {
+        display: none;
+    }
+
+    /*.dxbl-grid {
+        height: 522px;
+    } */
+
+    .my-popup-style {
+        min-width: 1200px;
+        min-height: 450px;
+    }
+
+  /*   .dxbl-grid table {
+        table-layout: auto !important;
+    }
+    .dxbl-grid table > colgroup > col {
+        width: auto !important;
+    } */
+
+</style>
+@* <script>
+    var _input;
+    window.AssignGotFocus = function () {
+        _input = document.getElementsByClassName("focus-text-box")[0];
+        _input.select();
+        _input.addEventListener("focus", function (event) {
+            setTimeout(function () { _input.select(); }, 0);
+        });
+    }
+</script> *@
+
+@code {
+    // ============================================================ \\
+
+    #region Variables
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    [CascadingParameter] 
+    protected Task<AuthenticationState> AuthStat { get; set; }
+
+    bool AutoCollapseDetailRow { get; set; }
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    IGrid Grid { get; set; }
+    IEnumerable<Tasks> GridData { get; set; }
+    List<Lookup> taskTypeLookupList { get; set; }
+
+    bool TextWrapEnabled = true;
+    bool WordWrapEnabled = false;
+
+    int PageCount { get; set; } = 0;
+    int TotalRecords { get; set; } = 0;
+    int PageSize { get; set; } = 20;
+    int ActivePageIndex { get; set; } = 0;
+
+    Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
+        { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
+        { "Group Words By Or", GridSearchTextParseMode.GroupWordsByOr },
+        { "Exact Match", GridSearchTextParseMode.ExactMatch }
+    };
+    void ChangeSearchMode(string key)
+    {
+        CurrentSearchTextParseModeDisplayText = key;
+        CurrentSearchTextParseMode = SearchTextParseModes[key];
+    }
+    string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
+    GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
+
+    GridColumnResizeMode CurrentColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer; // GridColumnResizeMode.NextColumn;
+    string CurrentColumnResizeModeDisplayText { get; set; } = "Next Column";
+    Dictionary<string, GridColumnResizeMode> GridColumnResizeModes { get; } = new Dictionary<string,
+    GridColumnResizeMode>{
+        { "Disabled", GridColumnResizeMode.Disabled },                  //A user cannot resize columns.
+        { "Next Column", GridColumnResizeMode.NextColumn },             //When a user resizes a column, the width of the column to the right changes, but the Grid's total width does not change.
+        { "Columns Container", GridColumnResizeMode.ColumnsContainer }  //When a user resizes a column, all other columns retain width settings, but the width of the entire column container changes proportionally.
+    }; 
+    void ChangeResizeMode(string key)
+    {
+        CurrentColumnResizeModeDisplayText = key;
+        CurrentColumnResizeMode = GridColumnResizeModes[key];
+    }
+
+    bool usePopupEditForm { get; set; } = true;
+    GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+
+    IReadOnlyList<object> SelectedDataItems { get; set; }
+    IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
+    GridSelectAllCheckboxMode CurrentSelectAllCheckboxMode { get; set; }
+
+    string headerMessage { get; set; } = "Loading Data...";
+    bool hiddenGrid { get; set; } = true;
+    bool autoFitColWidths { get; set; } = true;
+    bool isAutoFitPending { get; set; } = true;
+    bool isVendorEditable { get; set; } = true;
+    bool selectCheckboxToEdit { get; set; } = false;
+    string FocusedColumn { get; set; } = "TaskName";
+    bool showToolbar { get; set; } = false;
+    string gridCss => !showToolbar ? "hide-toolbar" : string.Empty;
+
+    bool useAssignedToDropdownList { get; set; } = true;
+    List<string> assignedToListData { get; set; } = new List<string>();
+    bool displayUseDropdownListToggle { get; set; } = true;
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Constructors/Page Functions
+
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetTasksList();
+        taskTypeLookupList = await sqlData.GetLookupList("TASK TYPE");
+
+        assignedToListData = new List<string>() { "Me","Myself","I"};
+
+        isAutoFitPending = true;
+
+        var user = (await AuthStat).User;
+        if (!user.Identity.IsAuthenticated)
+        {
+            @* NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}"); *@
+            //navManager.NavigateTo("/Login", true);
+            hiddenGrid = true;
+        }
+        else
+        {
+            hiddenGrid = false;
+            headerMessage = "";
+        }
+
+        var authstate = await authStateProvider.GetAuthenticationStateAsync();
+        var userClaimsPrincipal = authstate.User; // ClaimsPrincipal
+        var userClaimsPrincipalName = userClaimsPrincipal.Identity.Name;
+
+        if (userClaimsPrincipalName != null)
+        {
+            var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
+
+            if (userData != null)
+            {
+                if (userData.Role == "Administrator")
+                {
+                    //workingMode = WorkingMode.Designer;
+                    //showWorkingModeToggleButton = true;
+                }
+
+                //headers = new Dictionary<string, string>() {
+                //    { "Oid", userData.Oid.ToString() },
+                //    { "User", userData.UserName },
+                //    { "PromoCode", userData.PromoCode }
+                //};
+            }
+            else
+            {
+
+            }
+        }
+        else
+        {
+            //navManager.NavigateTo("/Login", true);
+
+            userClaimsPrincipal = authenticationState.Result.User;
+            var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
+
+            if (userData != null)
+            {
+                if (userData.Role == "Administrator")
+                {
+                    //workingMode = WorkingMode.Designer;
+                    //showWorkingModeToggleButton = true;
+                }
+
+                //headers = new Dictionary<string, string>() {
+                //    { "Oid", userData.Oid.ToString() },
+                //    { "User", userData.UserName },
+                //    { "PromoCode", userData.PromoCode }
+                //};
+            }
+            else
+            {
+
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task; // Waits for grid data to load
+                                      // Grid.ExpandDetailRow(0);
+        }
+        @* CurrentColumnResizeMode = GridColumnResizeMode.ColumnsContainer;
+        Grid.AutoFitColumnWidths(); *@
+
+        //https://supportcenter.devexpress.com/ticket/details/t1207460/dxgrid-autofitcolumnwidths-true-does-not-set-widths-as-i-expected
+        @* if (AutoFitColWidths && IsAutoFitPending)
+        {
+            IsAutoFitPending = false;
+            await Grid.WaitForDataLoadAsync();
+            Grid.AutoFitColumnWidths();
+        } *@
+        if (Grid != null && GridData != null && isAutoFitPending)
+        {
+            isAutoFitPending = false;
+            await Grid.WaitForDataLoadAsync();
+            Grid.AutoFitColumnWidths();
+        }
+
+       @*  if (POShipmentListGrid != null && POShipmentListGridData != null)
+        {
+            try
+            {
+                POShipmentListGrid.SetFilterCriteria(shippingGridFilterCriteria);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }       *@
+    }
+
+    public void Dispose()
+    {
+        headerMessage = "";
+        hiddenGrid = true;
+        // Northwind?.Dispose();
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Load/Refresh Functions
+
+    public void AutoCollapseDetailRow_Changed(bool newValue)
+    {
+        AutoCollapseDetailRow = newValue;
+        if (newValue)
+        {
+            Grid.BeginUpdate();
+            Grid.CollapseAllDetailRows();
+            Grid.ExpandDetailRow(0);
+            Grid.EndUpdate();
+        }
+    }
+
+    public List<Lookup> GetTaskTypeLookupList()
+    {
+        @* if (taskTypeLookupList == null)
+        {
+            SqlData sqlData = new SqlData();
+            taskTypeLookupList = await sqlData.GetLookupList("TASK TYPE").Result;
+        } *@
+
+        return taskTypeLookupList;
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Button Functions
+
+    void Grid_FitWidths()
+    {
+        Grid.AutoFitColumnWidths();
+    }
+    
+    void ColumnChooserButton_Click()
+    {
+        Grid.ShowColumnChooser();
+    }
+    
+    async void RefreshData_Click()
+    {
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetTasksList();
+    }
+    
+    async Task UsePopupEditForm_CheckedChanged(bool value)
+    {
+        usePopupEditForm = value;
+        await Grid.CancelEditAsync();
+    }
+
+    async Task UseAssignedToDropdownList_CheckedChanged(bool value)
+    {
+        useAssignedToDropdownList = value;
+    }
+    
+    #endregion
+
+    // ============================================================ \\
+
+    #region Main Grid Functions
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        //bool isShipping = false;
+        //if (Grid.GetDataItem(e.VisibleIndex) is ShippingData)
+        //{
+        //    isShipping = true;
+        //}
+
+        // if (e.ElementType == GridElementType.DataRow && (System.Decimal)e.Grid.GetRowValue(e.VisibleIndex, "Total") > 1000)
+        // {
+        //     e.CssClass = "highlighted-item";
+        // }
+
+      @*   if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "CustomerName")
+        {
+            string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
+            if (customerName == "MACYS")
+                e.Style = "background: green";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
+        {
+            e.Style = "font-weight: 800";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
+        {
+            e.Style = "font-weight: 800";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
+        {
+            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
+            if (units > 100)
+                e.Style = "color: red";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "SOQty")
+        {
+            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "SOQty");
+            if (units > 100)
+                e.Style = "color: red";
+        } *@
+    }
+    
+    void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
+    {
+        //string[] dateList = { "SODate", "StartDate", "EndDate", "PODate", "ShipmentDate", "ShipToETA", "FactoryCancel" };
+        //if (dateList.Contains(e.FieldName)) 
+        if (e.Value.GetType() == typeof(DateTime))
+        {
+            // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
+            if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+                e.DisplayText = "";
+        }
+    }
+
+    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            if (e.EditModel.GetType() == typeof(Tasks))
+            {
+                var newObject = (Tasks)e.EditModel;
+
+                newObject.TaskId = GridData.Where(x => x.TaskId > 0).Select(x => x.TaskId).Max() + 1;
+                newObject.TaskName = "";
+                newObject.TaskDescription = "";
+                newObject.TaskType = "";
+                newObject.LegacySystemId = 0;
+            }
+        }
+        else
+        {
+            if (e.EditModel.GetType() == typeof(Tasks))
+            {
+            }
+        }
+    }
+
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        e.Cancel = true;
+
+        if (e.EditModel.GetType() == typeof(Tasks))
+        {
+            var savingObject = (Tasks)e.EditModel;
+
+            if (e.IsNew)
+                await InsertTasksDataAsync(savingObject);
+            else
+                await UpdateTasksDataAsync(savingObject);
+
+            await Grid.CancelEditAsync();
+        }
+    }
+
+    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        if (e.DataItem.GetType() == typeof(Tasks))
+        {
+            var deletingObject = (Tasks)e.DataItem;
+
+        }
+
+        // await NwindDataService.RemoveEmployeeAsync((EditableEmployee)e.DataItem);
+        //await UpdateDataAsync();
+    }
+
+    void Grid_OnCustomSort(GridCustomSortEventArgs e)
+    {
+        if (e.FieldName == "TaskSequence")
+        {
+           @*  var date1 = Convert.ToDateTime(e.Value1);
+            var date2 = Convert.ToDateTime(e.Value2);
+
+            if(date1.Month == date2.Month)
+                e.Result = date1.Day.Compare(date2.Day);
+            else
+                e.Result = date1.Month.Compare(date2.Month); *@
+                
+            //e.Result = 100;
+            e.Handled = true;
+        }
+    }
+
+    async Task InsertTasksDataAsync(Tasks item)
+    {
+        string query = @"INSERT INTO [PIMS].[dbo].[Task] ([TaskId],[TaskName],[TaskDescription],[TaskType],[Required],[Qty],[AssignedTo],[TaskSequence],[LegacySystemId])
+        SELECT {0},'{1}','{2}','{3}',{4},{5},'{6}',{7},{8}";
+        string fullQuery = string.Format(query, item.TaskId, item.TaskName, item.TaskDescription, item.TaskType, ((item.Required.Value) ? 1: 0), item.Qty, item.AssignedTo, item.TaskSequence,item.LegacySystemId);
+
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetTasksList();
+    }
+
+    async Task UpdateTasksDataAsync(Tasks item)
+    {
+        string query = @"UPDATE [PIMS].[dbo].[Task] SET
+       [TaskName] = '{1}'
+      ,[TaskDescription] = '{2}'
+      ,[TaskType] = '{3}'
+      ,[Required] = {4}
+      ,[Qty] = {5}
+      ,[AssignedTo] = '{6}'
+      ,[TaskSequence] = {7}
+      WHERE [TaskId] = {0}";
+        string fullQuery = string.Format(query, item.TaskId, item.TaskName, item.TaskDescription, item.TaskType, ((item.Required.Value) ? 1 : 0), item.Qty, item.AssignedTo, item.TaskSequence);
+
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetTasksList();
+    }
+
+    #endregion
+
+    // ============================================================ \\
+}

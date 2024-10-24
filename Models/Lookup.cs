@@ -9,11 +9,11 @@ namespace LAGem_POPortal.Models
 {
     public class Lookup
     {
-        public int Id { get; set; }
+        public int Id { get; set; }             // [LookupDetailId]
 
-        public int LookupValue { get; set; }
-        public string LookupText { get; set; }
-        public string LookupCode { get; set; }
+        public int LookupValue { get; set; }    
+        public string LookupText { get; set; }  // [LookupDescription]
+        public string LookupCode { get; set; }  // [LookupCode]
 
     }
 }

@@ -5,6 +5,6 @@ using System.Collections.Generic;
 namespace LAGem_POPortal.Models {
     public partial class GlobalData
     {
-        public string firstLoadScreen { get; set; } = "Shipments";
+        public string firstLoadScreen { get; set; } = "EDIOrdersPage"; //"CustomerSoPage"; // 
     }
 }

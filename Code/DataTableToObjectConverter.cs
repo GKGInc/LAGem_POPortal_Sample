@@ -84,9 +84,9 @@ namespace LAGem_POPortal.Code
             catch (Exception ex)
             {
                 LogError("GetDataTableFromQuery", ex, ex.Message);
-            }
 
-            return null;
+                return null;
+            }
         }
 
         public static DataTable BuildTableFromMetaData(SelectStatementResult columns)

@@ -16,6 +16,7 @@
 </div>
 <DxGrid @ref="POGrid"
         Data="POGridData"
+        KeyFieldName="Id"
         PagerPosition="GridPagerPosition.Bottom"
         PageSizeSelectorVisible="true"
         PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
@@ -24,7 +25,6 @@
         FooterDisplayMode="GridFooterDisplayMode.Auto"
         PageSize="@PageSize"
         AutoCollapseDetailRow="true"
-        KeyFieldName="PONumber"
         ValidationEnabled="false"
         EditMode="GridEditMode.EditRow"
         FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"

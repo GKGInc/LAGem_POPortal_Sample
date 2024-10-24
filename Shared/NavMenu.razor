@@ -1,21 +1,60 @@
 ﻿<div class="sidebar @StateCssClass">
 
-
     <DxTreeView AllowSelectNodes="true" CssClass="app-sidebar">
-        <Nodes>    
+        <Nodes>
             <AuthorizeView>
                 <Authorized>
-                    <DxTreeViewNode NavigateUrl="./Overview" Text="Overview"></DxTreeViewNode>
-                    <DxTreeViewNode NavigateUrl="./PODataPage" Text="PO Data"></DxTreeViewNode>
-                    <DxTreeViewNode NavigateUrl="./SODataPage" Text="SO Data"></DxTreeViewNode>
-                    <DxTreeViewNode NavigateUrl="./Shipments" Text="Shipments"></DxTreeViewNode>
+                    <DxTreeViewNode Name="DataView" Text="Data Views" Expanded="true">
+                        <Nodes>
+                            <DxTreeViewNode NavigateUrl="./EDIOrdersPage" Text="EDI Orders"
+                                            IconUrl="../images/icons/new.svg"
+                                            IconCssClass="my-style"></DxTreeViewNode>
+                            <DxTreeViewNode NavigateUrl="./CustomerSoPage" Text="I2 Orders"
+                                            IconUrl="../images/icons/new.svg"
+                                            IconCssClass="my-style"></DxTreeViewNode>
+                            <DxTreeViewNode NavigateUrl="./OverviewPage" Text="Overview"
+                                            IconUrl="../images/icons/new.svg"
+                                            IconCssClass="my-style"></DxTreeViewNode>
+                        </Nodes>
+                    </DxTreeViewNode>
+
+                    @* <DxTreeViewNode NavigateUrl="./PODataPage" Text="PO Data"></DxTreeViewNode> *@
+                    @* <DxTreeViewNode NavigateUrl="./SODataPage" Text="SO Data"></DxTreeViewNode> *@
+
+                    <DxTreeViewNode NavigateUrl="./ShipmentsPage" Text="Shipments"
+                                    IconUrl="../images/icons/new.svg"
+                                    IconCssClass="my-style"></DxTreeViewNode>
+
+                    <DxTreeViewNode Name="Maintenance" Text="Maintenance" Expanded="true">
+                        <Nodes>
+                            <DxTreeViewNode Name="Tasks" Text="Tasks" Expanded="true">
+                                <Nodes>
+                                    <DxTreeViewNode NavigateUrl="./TasksPage" Text="Tasks Maint"
+                                                    IconUrl="../images/icons/new.svg"
+                                                    IconCssClass="my-style"></DxTreeViewNode>
+                                    <DxTreeViewNode NavigateUrl="./BusinessPartnerTasksPage" Text="Business Partner Tasks"
+                                                    IconUrl="../images/icons/new.svg"
+                                                    IconCssClass="my-style"></DxTreeViewNode>
+                                </Nodes>
+                            </DxTreeViewNode>
+
+                            <DxTreeViewNode Name="SOTasks" Text="SO Tasks" Expanded="true">
+                                <Nodes>
+                                    <DxTreeViewNode NavigateUrl="./SOTasksHeaderPage" Text="Assign Tasks"
+                                                    IconUrl="../images/icons/new.svg"
+                                                    IconCssClass="my-style"></DxTreeViewNode>
+                                    @* <DxTreeViewNode NavigateUrl="./SOTasksHeaderPage" Text="Update Tasks"></DxTreeViewNode> *@
+                                </Nodes>
+                            </DxTreeViewNode>
+                        </Nodes>
+                    </DxTreeViewNode>
                 </Authorized>
                 <NotAuthorized>
                     <DxTreeViewNode NavigateUrl="./Login" Text="Login"></DxTreeViewNode>
                 </NotAuthorized>
             </AuthorizeView>
         </Nodes>
-            </DxTreeView>
+    </DxTreeView>
 
     @* <DxTreeView AllowSelectNodes="true" CssClass="app-sidebar">
         <Nodes>
@@ -58,6 +97,11 @@
         </AuthorizeView>
         </ul>*@
 </div>
+<style>
+    .my-style {
+        width: 16px;
+    }
+</style>
 
 @* @code {
     [Parameter] public string? StateCssClass { get; set; }

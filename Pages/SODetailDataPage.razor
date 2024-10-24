@@ -63,6 +63,8 @@
 @code {
     // ============================================================ \\
 
+    #region Variables
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationState { get; set; }
 
@@ -70,7 +72,7 @@
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     [Parameter]
-    public POData SOData { get; set; }
+    public SOData SOData { get; set; }
 
     IGrid SODetailGrid { get; set; }
     IEnumerable<PODetailData> SODetailGridData { get; set; }
@@ -93,11 +95,15 @@
     string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
     GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
 
+    #endregion
+
     // ============================================================ \\
+
+    #region Constructors/Page Functions
 
     protected async override Task OnInitializedAsync()
     {
-        // base.OnInitialized();
+        base.OnInitialized();
         // var user = (await authenticationState).User;
         // if (!user.Identity.IsAuthenticated)
         // {
@@ -130,8 +136,6 @@
 
     }
 
-    // ============================================================ \\
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -140,6 +144,12 @@
                                       // Grid.ExpandDetailRow(0);
         }
     }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Main Grid Functions
 
     void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
     {
@@ -238,6 +248,8 @@
     {
         // DataSource = await NwindDataService.GetEmployeesEditableAsync();
     }
+
+    #endregion
 
     // ============================================================ \\
 }

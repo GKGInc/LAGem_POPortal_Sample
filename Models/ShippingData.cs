@@ -29,6 +29,9 @@ namespace LAGem_POPortal.Models
 
         public int POHeaderId { get; set; }
         public int SOHeaderId { get; set; }
+        public int SODetailId { get; set; }
+
+
         public int VendorId { get; set; }
         public string VendorName { get; set; }
         public int CustomerId { get; set; }
@@ -40,6 +43,13 @@ namespace LAGem_POPortal.Models
         public DateTime StartDate { get; set; }
         public string SONumber { get; set; }
 
+
+        public string ForProductNo { get; set; }
+        public int LastShipmentQty { get; set; }
+
+        public bool isNew { get; set; }
+        public bool isUpdate { get; set; }
+        public bool isDirty { get; set; }
 
     }
 }

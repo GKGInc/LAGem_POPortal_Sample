@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (dist\css\dx-analytics.common.css)
-* Version:  23.2.5
-* Build date: Mar 12, 2024
+* Version:  24.1.5
+* Build date: Aug 12, 2024
 * Copyright (c) 2012 - 2024 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -243,6 +243,9 @@
 }
 .dx-editors .dx-editor .dx-field-label.dx-accordion-header.dx-accordion-empty {
   right: 8px;
+}
+.dxrd-parameters-group .dx-editors .dx-editor .dxrd-vertical-label .propertygrid-editor-displayName {
+  width: 100%;
 }
 .dx-collapsing-image {
   padding: 4.5px;
@@ -1179,6 +1182,7 @@
   margin-right: 17px;
   overflow: visible;
   max-width: 60%;
+  min-width: 25%;
 }
 .dx-expressioneditor .dx-expression-tree .dx-expressioneditor-tools .dx-expressioneditor-tools-tabs .ui-resizable.dx-expressioneditor-tools-tab-content-wrapper {
   min-width: 100px;
@@ -2520,9 +2524,6 @@
   width: 24px;
   min-width: 24px;
 }
-.dx-designer .dx-dropdowneditor .dx-dropdowneditor-button.dx-ellipsiseditor-button {
-  height: 24px;
-}
 .dx-designer .dx-dropdowneditor .dx-dropdowneditor-icon {
   width: 100%;
 }
@@ -2572,6 +2573,14 @@
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
+}
+.dx-designer .dx-designer-viewport.dxrv-parameters-panel-standalone {
+  overflow: visible;
+}
+.dx-designer .dx-designer-viewport.dxrv-parameters-panel-standalone .dxrd-preview-parameters-wrapper {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  height: calc(100% - 30px);
 }
 .dx-designer .dx-designer-viewport .dxrd-action-items-container {
   border-radius: 0;

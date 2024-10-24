@@ -26,7 +26,7 @@ namespace LAGem_POPortal.Models
 
         public decimal QtyOrdered { get; set; }     //Units
 
-        public DateTime? SODate { get; set; }        //PO Order Date 
+        public DateTime? SODate { get; set; }        //SO Order Date 
         public DateTime? PODate { get; set; }        //PO Order Date 
         public DateTime? EndDate { get; set; }       //Factory Cancel Date
         public DateTime? StartDate { get; set; }     //Customer Ship date

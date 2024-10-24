@@ -1,0 +1,300 @@
+﻿@page "/CustomerSoPoDetailPage"
+@using LAGem_POPortal.Authentication
+@using DevExpress.Blazor;
+@using LAGem_POPortal.Data
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@* @inject UserAccountService userAccountService *@
+
+@using LAGem_POPortal.Models
+@using Microsoft.EntityFrameworkCore
+
+<DxGrid @ref="SODetailGrid"
+        Data="SODetailGridData"
+        KeyFieldName="Id"
+        PagerPosition="GridPagerPosition.Bottom"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        @bind-PageIndex="@ActivePageIndex"
+        AutoFitColumnWidths="true"
+        PageSize="@PageSize"
+        AutoCollapseDetailRow="true"
+        ValidationEnabled="false"
+        EditMode="GridEditMode.EditRow"
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        FooterDisplayMode="GridFooterDisplayMode.Auto"
+        ShowSearchBox="false"
+        SearchText=""
+        SearchTextParseMode="CurrentSearchTextParseMode"
+        ShowGroupPanel="false"
+        ColumnResizeMode="@CurrentColumnResizeMode"
+        TextWrapEnabled="true"
+        CustomizeElement="Grid_CustomizeElement"
+        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+        EditModelSaving="Grid_EditModelSaving"
+        DataItemDeleting="Grid_DataItemDeleting"
+        CustomizeEditModel="Grid_CustomizeEditModel"
+        HighlightRowOnHover="true">
+    <Columns>
+        @* <DxGridDataColumn FieldName="SOShipYear" Caption="SO Ship Year" DisplayFormat="n0" ReadOnly="true" />
+        <DxGridDataColumn FieldName="SOShipWeek" Caption="SO Ship Week" DisplayFormat="n0" ReadOnly="true" /> *@
+        <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" ReadOnly="true" Visible="false" />
+        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="true" />
+        <DxGridDataColumn FieldName="ProgramName" Caption="Program Name" ReadOnly="true" Visible="false" />
+        <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="StartDate" Caption="Start Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="EndDate" Caption="End Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="SOLineNo" Caption="SO Line No" DisplayFormat="n0" ReadOnly="true" />
+
+        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" />
+        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" Visible="false" />
+
+        <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" ReadOnly="true" />
+        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="n3" ReadOnly="true" />
+        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n3" ReadOnly="true" />
+
+        <DxGridDataColumn FieldName="VendorPO" Caption="Vendor PO" ReadOnly="true" />
+        <DxGridDataColumn FieldName="VendorName" Caption="Vendor Name" ReadOnly="true" />
+
+        <DxGridDataColumn FieldName="POQty" Caption="PO Qty" DisplayFormat="n0" ReadOnly="true" />
+        <DxGridDataColumn FieldName="ShipmentDate" Caption="Ship Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking No" ReadOnly="true" />
+
+        <DxGridDataColumn FieldName="ShipToETA" Caption="Ship To ETA" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="ShipmentQty" Caption="Ship Qty" DisplayFormat="n0" ReadOnly="true" />
+
+        <DxGridCommandColumn Width="150px" Visible="false"
+                             DeleteButtonVisible="false"
+                             EditButtonVisible="false"
+                             CancelButtonVisible="false"
+                             SaveButtonVisible="false"
+                             NewButtonVisible="false" />
+    </Columns>
+    <ToolbarTemplate Context="GridToolbar">
+        <DxToolbar Context="GridToolbar" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+            <Items>
+                <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Auto Fit Columns" Click="Grid_FitWidths" RenderStyle="ButtonRenderStyle.Secondary" />
+                <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Column Chooser" RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="grid-icon-column-chooser" Click="ColumnChooserButton_Click" />
+                <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Refresh Data" RenderStyle="ButtonRenderStyle.Secondary" Click="RefreshData_Click" />
+            </Items>
+        </DxToolbar>
+    </ToolbarTemplate>
+    @* <DetailRowTemplate>
+        <CustomerSoPoDetailPage SODetailData="(CustomerSoPoData)context.DataItem" />
+    </DetailRowTemplate> *@
+</DxGrid>
+
+<style>
+    .highlighted-item > td {
+        background-color: rgba(245, 198, 203, 0.5);
+    }
+    .dx-datagrid-headers {
+        white-space: normal;
+    }
+    .dx-datagrid-nowrap.dx-datagrid-headers .dx-header-row > td > .dx-datagrid-text-content {
+        white-space: normal;
+    }
+</style>
+
+@code {
+    // ============================================================ \\
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    bool AutoCollapseDetailRow { get; set; }
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    [Parameter]
+    public CustomerSoPoData SODetailData { get; set; }
+
+    IGrid SODetailGrid { get; set; }
+    IEnumerable<CustomerSoPoData> SODetailGridData { get; set; }
+
+    int PageSize { get; set; } = 20;
+    int ActivePageIndex { get; set; } = 0;
+    int PageCount { get; set; } = 0;
+    int TotalRecords { get; set; } = 0;
+
+    Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
+        { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
+        { "Group Words By Or", GridSearchTextParseMode.GroupWordsByOr },
+        { "Exact Match", GridSearchTextParseMode.ExactMatch }
+    };
+    void ChangeSearchMode(string key)
+    {
+        CurrentSearchTextParseModeDisplayText = key;
+        CurrentSearchTextParseMode = SearchTextParseModes[key];
+    }
+    string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
+    GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
+
+    GridColumnResizeMode CurrentColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer; // GridColumnResizeMode.NextColumn;
+    string CurrentColumnResizeModeDisplayText { get; set; } = "Next Column";
+    Dictionary<string, GridColumnResizeMode> GridColumnResizeModes { get; } = new Dictionary<string,
+    GridColumnResizeMode>{
+        { "Disabled", GridColumnResizeMode.Disabled },                  //A user cannot resize columns.
+        { "Next Column", GridColumnResizeMode.NextColumn },             //When a user resizes a column, the width of the column to the right changes, but the Grid's total width does not change.
+        { "Columns Container", GridColumnResizeMode.ColumnsContainer }  //When a user resizes a column, all other columns retain width settings, but the width of the entire column container changes proportionally.
+    };
+    void ChangeResizeMode(string key)
+    {
+        CurrentColumnResizeModeDisplayText = key;
+        CurrentColumnResizeMode = GridColumnResizeModes[key];
+    }
+
+    bool AutoFitColWidths { get; set; } = true;
+    bool IsAutoFitPending { get; set; } = true;
+
+    // ============================================================ \\
+
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        IsAutoFitPending = true;
+
+        // var user = (await authenticationState).User;
+        // if (!user.Identity.IsAuthenticated)
+        // {
+        //     //NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
+        //     //navManager.NavigateTo("/Login", true);
+        //     //navManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(navManager.Uri)}");
+        // }
+        // else { }
+
+        // var authstate = await authStateProvider.GetAuthenticationStateAsync();
+        // var userClaimsPrincipal = authstate.User; // ClaimsPrincipal
+        // var userClaimsPrincipalName = userClaimsPrincipal.Identity.Name;
+
+        // if (userClaimsPrincipalName != null)
+        // {
+        //     var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
+
+        //     if (userData != null)
+        //     {
+        //         if (userData.Role == "Administrator") { }
+        //     }
+        //     else { }
+        // }
+
+        // DetailGridData = QueueProcesses.Where(i => i.FOID == DepartmentQueue.OID).ToArray();
+        // LocationGridData = QueueLocations.Where(i => i.DepartmentQueueOID == DepartmentQueue.OID).ToArray();
+
+        SqlData sqlData = new SqlData();
+        SODetailGridData = await sqlData.GetCustomerSoPoDetailData(SODetailData.SOHeaderId);
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task; // Waits for grid data to load
+                                      // Grid.ExpandDetailRow(0);
+        }
+
+        if (SODetailGrid != null && SODetailGrid != null && IsAutoFitPending)
+        {
+            IsAutoFitPending = false;
+            await SODetailGrid.WaitForDataLoadAsync();
+            //StateHasChanged();
+            SODetailGrid.AutoFitColumnWidths();
+        }
+    }
+
+    // ============================================================ \\
+
+    void Grid_FitWidths()
+    {
+        //StateHasChanged();
+        SODetailGrid.AutoFitColumnWidths();
+    }
+
+    void ColumnChooserButton_Click()
+    {
+        SODetailGrid.ShowColumnChooser();
+    }
+
+    async void RefreshData_Click()
+    {
+        SqlData sqlData = new SqlData();
+        SODetailGridData = await sqlData.GetCustomerSoPoDetailData(SODetailData.SOHeaderId);
+    }
+
+    // ============================================================ \\
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        // // if (e.ElementType == GridElementType.DataRow && (System.Decimal)e.Grid.GetRowValue(e.VisibleIndex, "Total") > 1000)
+        // // {
+        // //     e.CssClass = "highlighted-item";
+        // // }
+        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
+        // {
+        //     e.Style = "font-weight: 800";
+        // }
+        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
+        // {
+        //     e.Style = "font-weight: 800";
+        // }
+        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
+        // {
+        //     decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
+        //     if (units > 100)
+        //         e.Style = "color: red";
+        // }
+    }
+    void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
+    {
+        // string[] dateList = new string[] { "SODate", "StartDate", "EndDate", "ShipmentDate", "ShipToETA" };
+        // if (dateList.Contains(e.FieldName))            
+        if (e.Value.GetType() == typeof(DateTime))
+        {
+            if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+                e.DisplayText = "";
+        }
+    }
+    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            if (e.EditModel.GetType() == typeof(CustomerSoPoData))
+            {
+                var newObject = (CustomerSoPoData)e.EditModel;;
+
+            }
+        }
+    }
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        if (e.EditModel.GetType() == typeof(CustomerSoPoData))
+        {
+            var editableObject = (CustomerSoPoData)e.EditModel;
+
+            // if (e.IsNew)
+            //...
+        }
+
+        await UpdateDataAsync();
+    }
+    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        if (e.DataItem.GetType() == typeof(CustomerSoPoData))
+        {
+            var deletingObject = (CustomerSoPoData)e.DataItem;
+
+        }
+
+        // await NwindDataService.RemoveEmployeeAsync((EditableEmployee)e.DataItem);
+        await UpdateDataAsync();
+    }
+    async Task UpdateDataAsync()
+    {
+        // DataSource = await NwindDataService.GetEmployeesEditableAsync();
+    }
+
+    // ============================================================ \\
+}

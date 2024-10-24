@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (dist\css\dx-analytics.material.lime.light.compact.css)
-* Version:  23.2.5
-* Build date: Mar 12, 2024
+* Version:  24.1.5
+* Build date: Aug 12, 2024
 * Copyright (c) 2012 - 2024 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -312,6 +312,9 @@
 .dx-designer .dx-designer-viewport .dxrd-designer-wrapper.dxrd-designer-wrapper.dxrd-preview .dxrd-right-panel .dxrd-right-panel-body {
   height: calc(100% - 61px);
 }
+.dx-designer .dx-designer-viewport .dxrd-designer-wrapper.dxrd-designer-wrapper .dxrd-right-panel-body .dxrd-right-panel-content .dx-editors .dx-fieldset .dxrv-daterange-editor .dx-state-readonly.dx-widget {
+  border-style: none;
+}
 .dx-designer .dx-designer-viewport .dxrd-designer-wrapper.dxrd-designer-wrapper .dxrd-right-panel .dxrd-right-panel-header {
   font-size: 16px;
   text-transform: unset;
@@ -413,9 +416,6 @@
   text-transform: uppercase;
   font-weight: 500;
   letter-spacing: 0.04em;
-}
-.dx-designer .dx-designer-viewport .dxrd-designer-wrapper.dxrd-designer-wrapper .dxrd-right-panel .dxrd-right-panel-content .dx-editors .dx-fieldset .dxrv-daterange-editor .dx-state-readonly.dx-widget {
-  border-style: none;
 }
 .dx-designer .dx-designer-viewport .dxrd-designer-wrapper.dxrd-designer-wrapper .dxrd-right-panel .dxrd-right-panel .dxrd-properties-wrapper .dxrd-properties-grid .dx-editors {
   padding: 0;
@@ -579,14 +579,17 @@
 .dx-overlay-wrapper .dxrdp-export-to-menu .dx-submenu .dx-menu-items-container {
   padding: 0;
 }
-.dx-overlay-wrapper .dxrdp-export-to-menu .dx-submenu .dx-menu-items-container .dx-menu-item .dxrd-preview-export-menu-item {
+.dx-overlay-wrapper .dxrdp-export-to-menu .dx-submenu .dx-menu-items-container .dx-menu-item .dx-menu-item-content {
   padding: 6px 6px;
   height: 35px;
   width: 70px;
 }
-.dx-overlay-wrapper .dxrdp-export-to-menu .dx-submenu .dx-menu-items-container .dx-menu-item .dxrd-preview-export-menu-item .dxrd-preview-export-item-text {
+.dx-overlay-wrapper .dxrdp-export-to-menu .dx-submenu .dx-menu-items-container .dx-menu-item .dx-menu-item-content .dxrd-preview-export-item-text {
   font-family: Roboto, RobotoFallback, "Noto Kufi Arabic", Helvetica, Arial, sans-serif;
   font-size: 13px;
+}
+.dx-overlay-wrapper .dx-popup-content .dxa-tasks-smart-tag-content .dx-editors .dx-fieldset .dx-editor .dx-checkbox.propertygrid-editor-checkbox {
+  margin-top: 0;
 }
 .dx-designer-viewport .dxd-description_info-icon-fill {
   fill: #AAAAAA;
@@ -639,7 +642,7 @@
   margin-bottom: 4px;
 }
 .dx-designer-viewport .dx-editors .dx-field-value:not(.dx-widget) > .dx-checkbox.propertygrid-editor-checkbox {
-  margin-top: 0.65em;
+  margin-top: 0.55em;
   margin-bottom: 0px;
 }
 .dx-designer-viewport .dx-editors .dxrd-properties-wrapper .dx-property-grid-header .dx-property-grid-header-content .dx-property-grid-sorting-action .dx-icon-dxrd {
@@ -668,8 +671,14 @@
 .dx-designer-viewport .dx-texteditor.dx-editor-filled .dx-texteditor-buttons-container .dx-numberbox-spin-container,
 .dx-designer-viewport .dx-texteditor.dx-editor-outlined .dx-texteditor-buttons-container .dx-numberbox-spin-container,
 .dx-designer-viewport .dx-texteditor.dx-editor-filled .dx-texteditor-buttons-container .dx-clear-button-area:last-child,
-.dx-designer-viewport .dx-texteditor.dx-editor-outlined .dx-texteditor-buttons-container .dx-clear-button-area:last-child {
+.dx-designer-viewport .dx-texteditor.dx-editor-outlined .dx-texteditor-buttons-container .dx-clear-button-area:last-child,
+.dx-designer-viewport .dx-texteditor.dx-editor-filled .dx-texteditor-buttons-container .dx-ellipsiseditor-button.dx-ellipsis-button,
+.dx-designer-viewport .dx-texteditor.dx-editor-outlined .dx-texteditor-buttons-container .dx-ellipsiseditor-button.dx-ellipsis-button {
   margin-right: 4px;
+}
+.dx-designer-viewport .dx-texteditor.dx-editor-filled .dx-texteditor-buttons-container .dx-ellipsiseditor-button .dx-ellipsiseditor-icon.dx-ellipsis-image .dx-inkripple,
+.dx-designer-viewport .dx-texteditor.dx-editor-outlined .dx-texteditor-buttons-container .dx-ellipsiseditor-button .dx-ellipsiseditor-icon.dx-ellipsis-image .dx-inkripple {
+  display: none;
 }
 .dx-designer-viewport .dx-texteditor.dx-editor-filled .dx-colorbox-input-container .dx-colorbox-input,
 .dx-designer-viewport .dx-texteditor.dx-editor-outlined .dx-colorbox-input-container .dx-colorbox-input {
@@ -708,8 +717,20 @@
   top: 0px;
   right: 0px;
 }
+.dx-designer-viewport .dxrd-error-panel .dxrd-error-panel-content .dx-buttongroup-first-item .dx-buttongroup-item-content {
+  padding-left: 4px;
+}
+.dx-designer-viewport .dxrd-error-panel .dxrd-error-panel-content .dx-buttongroup-last-item {
+  border-right: none;
+}
+.dx-designer-viewport .dxrd-error-panel .dxrd-error-panel-content .dx-datagrid-header-panel .dx-datagrid-search-panel {
+  background-color: #FFFFFF;
+}
 .dx-designer-viewport .dxrd-error-panel .dxrd-error-panel-content .dx-datagrid .dx-tagbox .dx-tag-container {
   padding-left: 0px;
+}
+.dx-designer-viewport .dxrd-error-panel .dxrd-error-panel-content .dx-datagrid .dx-tagbox .dx-tag {
+  margin: 2px 4px 0 0;
 }
 .dx-designer-viewport .dxrd-error-panel .dxrd-error-panel-content .dx-datagrid-header-panel .dx-toolbar .dx-toolbar-items-container {
   height: 36px;
@@ -766,29 +787,27 @@
 .dxrd-reportdialog .dx-popup-normal .dx-popup-bottom .dx-toolbar-items-container {
   margin-top: 15px;
 }
-.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dxrd-preview-export-menu-item {
+.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dx-menu-item-content {
   padding: 5px;
 }
-.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dxrd-preview-export-menu-item .dxrd-preview-export-item-image-wrapper {
+.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dx-menu-item-content .dxrd-preview-export-item-image-wrapper {
   padding: 0;
 }
-.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dxrd-preview-export-menu-item .dxrd-preview-export-item-image-wrapper .dxrd-preview-export-item-image.dxrd-image-export-to {
+.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dx-menu-item-content .dxrd-preview-export-item-image-wrapper .dxrd-preview-export-item-image.dxrd-image-export-to {
   height: auto;
 }
-.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dxrd-preview-export-menu-item .dx-menu-item-popout-container {
+.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dx-menu-item-content .dx-menu-item-popout-container {
   width: 2em;
 }
-.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dxrd-preview-export-menu-item .dx-menu-item-popout-container .dx-menu-item-popout {
+.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dx-menu-item-content .dx-menu-item-popout-container .dx-menu-item-popout {
   font: 24px/12px DXIcons;
+  margin-inline-start: 0;
 }
-.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dxrd-preview-export-menu-item .dx-menu-item-popout-container .dx-menu-item-popout::before {
+.dxrd-toolbar .dxrd-preview-export-toolbar-item .dxrd-preview-export-to .dx-menu-horizontal .dx-menu-item .dx-menu-item-content .dx-menu-item-popout-container .dx-menu-item-popout::before {
   content: "\f001";
-  position: absolute;
-  display: block;
   width: 18px;
-  top: 50%;
-  margin-top: -9px;
-  left: 50%;
+  height: 100%;
+  margin-top: 0.25rem;
   margin-left: -9px;
 }
 .dxrd-wizard .dxrd-wizard-content .dx-list-search {

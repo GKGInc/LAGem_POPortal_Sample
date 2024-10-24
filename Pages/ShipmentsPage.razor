@@ -1,0 +1,1256 @@
+﻿@page "/ShipmentsPage"
+@using DevExpress.Blazor
+@using DevExpress.Data.Filtering;
+@using DevExpress.Xpo
+@using LAGem_POPortal.Authentication
+@using LAGem_POPortal.Data
+@using LAGem_POPortal.Models
+@using Microsoft.EntityFrameworkCore
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@inject UserAccountService userAccountService
+
+@implements IDisposable
+
+<AuthorizeView>
+    <Authorized Context="Authorized">
+        @* <div hidden="!@HiddenGrid">
+            <a href="/login">@HeaderMessage</a>
+        </div> *@
+
+        @* <div hidden="@HiddenGrid"> *@
+        <div>
+            <DxGrid @ref="Grid"
+                    Data="GridData"
+                    KeyFieldName="Id"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25, 30 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PageSize="@PageSize"
+                    @bind-PageIndex="@ActivePageIndex"
+                    AutoFitColumnWidths="true"
+                    AutoCollapseDetailRow="true"
+                    ColumnResizeMode="@CurrentColumnResizeMode"
+                    EditMode="@CurrentEditMode"
+                    PopupEditFormCssClass="my-popup-style"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    FooterDisplayMode="GridFooterDisplayMode.Auto"
+                    TextWrapEnabled="@TextWrapEnabled"
+                    ValidationEnabled="false"
+                    WordWrapEnabled="@WordWrapEnabled"
+                    HighlightRowOnHover="true"
+                    ShowFilterRow="true"
+                    ShowGroupPanel="true"
+                    ShowSearchBox="true"
+                    SearchText=""
+                    SearchTextParseMode="CurrentSearchTextParseMode"
+                    Visible="false"
+                    CustomizeElement="Grid_CustomizeElement"
+                    CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                    CustomizeEditModel="Grid_CustomizeEditModel"
+                    EditModelSaving="Grid_EditModelSaving"
+                    DataItemDeleting="Grid_DataItemDeleting">
+                <Columns>
+                    <DxGridCommandColumn Width="150px" Visible="true"
+                                         DeleteButtonVisible="false"
+                                         EditButtonVisible="true"
+                                         CancelButtonVisible="true"
+                                         SaveButtonVisible="true"
+                                         NewButtonVisible="true" FixedPosition="GridColumnFixedPosition.Right" />
+
+                    <DxGridDataColumn FieldName="VendorName" Caption="Vendor" ReadOnly="true" Width="100" MinWidth="120" FixedPosition="GridColumnFixedPosition.Left" />
+                    <DxGridDataColumn FieldName="ShipmentDate" Caption="Shipment Date" ReadOnly="false" DisplayFormat="d" Width="100" MinWidth="80" />                    
+                    <DxGridDataColumn FieldName="InvoiceNo" Caption="Invoice No" ReadOnly="false" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking Number" ReadOnly="false" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="ShipToETA" Caption="Ship To ETA" DisplayFormat="d" ReadOnly="false" Width="100" MinWidth="80" />
+
+                    <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="PODate" Caption="PODate" DisplayFormat="d" Width="100" MinWidth="80" />
+
+                    <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Width="100" MinWidth="150" />
+                    <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" Width="100" MinWidth="200" Visible="false" />
+                    
+                    <DxGridDataColumn FieldName="OrderQty" Caption="Order Qty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" />
+                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Shipment Qty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" />
+
+                    <DxGridDataColumn FieldName="SONumber" Caption="SO No" ReadOnly="true" SortIndex="0" Width="100" MinWidth="60" />
+                    <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" ReadOnly="true" Width="100" MinWidth="80" />
+                    <DxGridDataColumn FieldName="CustomerName" Caption="Customer" ReadOnly="true" Width="100" MinWidth="100" />
+
+                </Columns>
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var shipping = (ShippingData)EditFormContext.EditModel; // previously -> supplier
+                    }
+                    <DxFormLayout CssClass="w-100">
+                         <DxFormLayoutItem Caption="Vendor:" ColSpanMd="6">
+                            <DxComboBox Data="@POOpenVendorData"
+                                        NullText="Select Vendor..."
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        TextFieldName="VendorName"
+                                        ValueFieldName="VendorId"
+                                        Value="@shipping.VendorId"
+                                        ReadOnly="!isVendorEditable"
+                                        ValueChanged="(int newCellValue) => {
+                                                    shipping.VendorId = newCellValue;
+                                                    shipping.VendorName = POOpenVendorData.Where(c => c.VendorId == newCellValue).FirstOrDefault()?.VendorName;
+                                                    shipping.POHeaderId = 0;
+                                              }">
+                            </DxComboBox>
+                        </DxFormLayoutItem>
+                          <DxFormLayoutItem Caption="Open POs:" ColSpanMd="6">
+                            @{
+                                SqlData sqlData = new SqlData();
+                                //POOpenDetailData = sqlData.GetPOOpenDetailData(shipping.VendorId).Result;
+                                //var openPOsDirect = sqlData.GetPOOpenDetailData(shipping.VendorId).Result;
+                                //var openPOs = POOpenDetailData.Where(x => x.VendorId == shipping.VendorId).Select(x => x.PONumber).Distinct().ToList();
+                                openPOList = GetPOListData(shipping.VendorId);
+                            }
+                            @* <DxComboBox Data="@openPOs"
+                                        NullText="Select PO..."
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        @bind-Value="@shipping.POHeaderId"
+                                        TextFieldName="PONumber"
+                                        ValueFieldName="POHeaderId">             
+                            </DxComboBox> *@
+                            @* <DxComboBox Data="@openPOs"
+                                        NullText="Select PO..."
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        TextFieldName="PONumber"
+                                        ValueFieldName="POHeaderId"
+                                        ValueChanged="(int newCellValue) => {
+                                                    shipping.POHeaderId = newCellValue;
+                                                    shipping.PONumber = openPOs.Where(c => c.POHeaderId == newCellValue).FirstOrDefault()?.PONumber;
+                                            }">                                        
+                            </DxComboBox> *@
+                            <DxComboBox Data="@openPOList"
+                                        NullText="Select PO..."
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        TextFieldName="LookupText"
+                                        ValueFieldName="LookupValue"
+                                        Value="@POHeaderIdSelected"
+                                        ValueChanged="(int newCellValue) => {
+                                                    shipping.POHeaderId = newCellValue;
+                                                    POHeaderIdSelected = shipping.POHeaderId;
+                                                    //shipping.PONumber = POOpenDetailData.Where(c => c.POHeaderId == shipping.POHeaderId).FirstOrDefault()?.PONumber;
+                                                    //AddToPOListGridData(POOpenDetailData.Where(c => c.POHeaderId == shipping.POHeaderId).FirstOrDefault());
+                                                    ShippingData poSelected = OpenPOShipmentData.Where(c => c.POHeaderId == shipping.POHeaderId).FirstOrDefault();
+                                                    //poSelected.PONumber = poSelected?.PONumber;
+                                                    AddToPOListGridData(poSelected);
+                                                    LoadItemGridData(poSelected.PONumber);
+                                            }">
+                                @* Value="@shipping.POHeaderId" *@
+                            </DxComboBox>
+                        </DxFormLayoutItem>
+                        @* <DxFormLayoutItem Caption="Vendor Name:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("VendorName")
+                        </DxFormLayoutItem> *@
+                        <DxFormLayoutItem Caption="Shipment Date:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("ShipmentDate")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Tracking No:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("TrackingNumber")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Ship To ETA:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("ShipToETA")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Invoice No:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("InvoiceNo")
+                        </DxFormLayoutItem>
+                        @* <DxFormLayoutItem Caption="PO No:" ColSpanMd="6">
+                           @EditFormContext.GetEditor("PONumber")
+                        </DxFormLayoutItem> *@  
+                        <DxFormLayoutItem ColSpanMd="6"/>
+
+                        <DxFormLayoutItem Caption="PO No:" ColSpanMd="1">
+                            <DxGrid @ref="POListGrid"
+                                    Data="POListGridData"
+                                    PageSize="5"
+                                    AutoExpandAllGroupRows="true"
+                                    KeyFieldName="Id"
+                                    ValidationEnabled="false"
+                                    EditMode="GridEditMode.EditRow"
+                                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Default"
+                                    ShowFilterRow="false"
+                                    ColumnResizeMode="GridColumnResizeMode.NextColumn"
+                                    TextWrapEnabled="false"
+                                    HighlightRowOnHover="true"
+                                    @bind-SelectedDataItems="SelectedDataPOListGridItems"
+                                    RowClick="POListGrid_OnRowClick"
+                                    RowDoubleClick="POListGrid_OnRowDoubleClick"
+                                    CustomizeElement="POListGrid_CustomizeElement"
+                                    style="min-width: 150px; width: 150px;">
+                                <Columns>
+                                    <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" MinWidth="140" />                                
+                                </Columns>
+                            </DxGrid>
+                        </DxFormLayoutItem>                        
+                        <DxFormLayoutItem ColSpanMd="1"/>
+
+                        <DxFormLayoutItem Caption=" " ColSpanMd="10">
+                            <DxGrid @ref="POShipmentListGrid"
+                                    Data="POShipmentListGridData"
+                                    PageSize="5"
+                                    AutoExpandAllGroupRows="true"
+                                    KeyFieldName="Id"
+                                    ValidationEnabled="false"
+                                    EditMode="GridEditMode.EditCell"
+                                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Default"
+                                    ShowFilterRow="false"
+                                    ColumnResizeMode="GridColumnResizeMode.NextColumn"
+                                    TextWrapEnabled="false"
+                                    HighlightRowOnHover="true"
+                                    SelectAllCheckboxMode="CurrentSelectAllCheckboxMode"
+                                    SelectedDataItems="@SelectedDataItems"
+                                    SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged(selectedItems))"
+                                    RowClick="ItemGrid_OnRowClick"
+                                    RowDoubleClick="ItemGrid_OnRowDoubleClick"
+                                    FilterCriteriaChanged="ItemGrid_FilterCriteriaChanged"
+                                    EditStart="ItemGrid_OnEditStart"
+                                    CustomizeEditModel="ItemGrid_CustomizeEditModel"
+                                    CustomizeElement="ItemGrid_CustomizeElement"
+                                    EditModelSaving="ItemGrid_EditModelSaving"
+                                    >
+                                @* @bind-SelectedDataItems="SelectedDataItems"
+                                SelectedDataItems="@SelectedDataItems"
+                                SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged(selectedItems))"
+                                style="margin-top: 20px;"*@
+                                <Columns>
+                                    <DxGridSelectionColumn Width="75px"/>
+                                    <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Width="100" MinWidth="100" />
+                                    <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" MinWidth="50" />
+                                    <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" Width="100" MinWidth="110" />
+                                    <DxGridDataColumn FieldName="OrderQty" Caption="Order Qty" DisplayFormat="n0" ReadOnly="true" Width="100" MinWidth="50" TextAlignment="GridTextAlignment.Right" >
+                                        <EditSettings>
+                                            <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="true" NullText="Order Qty" />
+                                        </EditSettings>
+                                    </DxGridDataColumn>
+                                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Ship Qty" DisplayFormat="n0" ReadOnly="false" Width="100" MinWidth="50" TextAlignment="GridTextAlignment.Right">
+                                        <EditSettings>
+                                            <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="false" NullText="Ship Qty" InputCssClass="focus-text-box" />
+                                        </EditSettings>
+                                        @* <EditSettings>
+                                            <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="false" NullText="Ship Qty" />
+                                        </EditSettings> *@
+                                       @*  <CellEditTemplate Context="CellEditTemplateContext">
+                                            @{
+                                               var shipping = (ShippingData)EditFormContext.EditModel;
+                                            }
+                                            <CascadingValue Name="FocusOnEditStart" Value="CellEditTemplateContext.DataColumn.FieldName == FocusedColumn">
+
+                                            </CascadingValue>
+                                        </CellEditTemplate> *@
+                                    </DxGridDataColumn>
+                                    @* <DxGridCommandColumn Width="150px" Visible="true"
+                                                         DeleteButtonVisible="false"
+                                                         EditButtonVisible="true"
+                                                         CancelButtonVisible="true"
+                                                         SaveButtonVisible="true"
+                                                         NewButtonVisible="false"
+                                                         FixedPosition="GridColumnFixedPosition.Right" /> *@
+                                </Columns>
+                                @* <ToolbarTemplate>
+                                    <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                        <Items>
+                                            <DxToolbarItem BeginGroup="true" Alignment="ToolbarItemAlignment.Left">
+                                                <Template Context="toolbar_item_context">
+                                                    <div class="d-flex flex-row align-items-center">
+                                                        <div class="me-2">Select All Checkbox Mode:</div>
+                                                        <DxComboBox Label="" Data="@SelectAllCheckboxModes"
+                                                                    @bind-Value="@CurrentSelectAllCheckboxMode" />
+                                                    </div>
+                                                </Template>
+                                            </DxToolbarItem>
+                                        </Items>
+                                    </DxToolbar>
+                                </ToolbarTemplate> *@
+                            </DxGrid>
+                        </DxFormLayoutItem>
+
+                        @* <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton Text="Cancel" SubmitFormOnClick="true" Click="@CancelAddItem" IconCssClass="oi oi-cancel" CssClass="dxbl-btn dxbl-btn-secondary"></DxButton>
+                            <DxButton Text="Save" SubmitFormOnClick="false" Click="@UpdateAddItem" IconCssClass="oi oi-save" CssClass="dxbl-btn dxbl-btn-primary"></DxButton>
+                        </DxFormLayoutItem> *@
+                        @* <DxFormLayoutItem >
+                            <DxButton Click="ItemGrid_Click" Text="BatchEdit"></DxButton>
+                        </DxFormLayoutItem> *@
+                    </DxFormLayout>
+                </EditFormTemplate>
+                <ToolbarTemplate Context="GridToolbar">
+                    <DxToolbar Context="GridToolbar" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                        <Items>
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Auto Fit Columns" RenderStyle="ButtonRenderStyle.Secondary" Click="Grid_FitWidths"  />
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Column Chooser" RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="grid-icon-column-chooser" Click="ColumnChooserButton_Click" />
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Refresh Data" RenderStyle="ButtonRenderStyle.Secondary" Click="RefreshData_Click" />
+                            <DxToolbarItem BeginGroup="true" Alignment="ToolbarItemAlignment.Left">
+                                <Template Context="toolbar_item_context">
+                                    <div class="d-flex flex-row align-items-center h-100">
+                                        <DxCheckBox Checked="usePopupEditForm" CheckedChanged="new Func<bool, Task>(UsePopupEditForm_CheckedChanged)">Use Popup Edit Form</DxCheckBox>
+                                    </div>
+                                </Template>
+                            </DxToolbarItem>
+                        </Items>
+                    </DxToolbar>
+                </ToolbarTemplate>
+                @* <DetailRowTemplate Context="DetailRow">
+                    <PODataPage SODetailData="(ShippingData)DetailRow.DataItem" />
+                </DetailRowTemplate> *@
+            </DxGrid>
+            <div class="pager-container">
+                @* <DxPager PageCount="@PageCount" @bind-ActivePageIndex="@ActivePageIndex" /> *@
+                @* <div>
+                Total: @TotalRecords records
+                </div> *@
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized Context="NotAuthorized">
+        @*  @{ navManager.NavigateTo("/Login");} *@
+        <h3>Please <a href="/login">Login</a> to access the Portal</h3>
+        @* <LoginPage /> *@
+        @* <LoginRedirect /> *@
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .highlighted-item > td {
+        background-color: rgba(245, 198, 203, 0.5);
+    }
+    .dx-datagrid-headers {
+        white-space: normal;
+    }
+    .dx-datagrid-nowrap.dx-datagrid-headers .dx-header-row > td > .dx-datagrid-text-content {
+        white-space: normal;
+    }
+
+    /*.dxbl-grid {
+        height: 522px;
+    } */
+
+    .my-popup-style {
+        min-width: 1200px;
+        min-height: 450px;
+    }
+
+  /*   .dxbl-grid table {
+        table-layout: auto !important;
+    }
+    .dxbl-grid table > colgroup > col {
+        width: auto !important;
+    } */
+
+</style>
+@* <script>
+    var _input;
+    window.AssignGotFocus = function () {
+        _input = document.getElementsByClassName("focus-text-box")[0];
+        _input.select();
+        _input.addEventListener("focus", function (event) {
+            setTimeout(function () { _input.select(); }, 0);
+        });
+    }
+</script> *@
+
+@code {
+    // ============================================================ \\
+
+    #region Variables
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    [CascadingParameter] 
+    protected Task<AuthenticationState> AuthStat { get; set; }
+
+    bool AutoCollapseDetailRow { get; set; }
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    IGrid Grid { get; set; }
+    //IGrid ItemGrid { get; set; }
+    IGrid POListGrid { get; set; }
+    // IGrid POListGrid { get; set; }
+    IGrid POShipmentListGrid { get; set; }
+    IGrid TestGrid { get; set; }
+    
+    IEnumerable<ShippingData> GridData { get; set; }
+    IEnumerable<POOpenVendor> POOpenVendorData { get; set; }
+    // IEnumerable<POOpenDetail> POOpenDetailData { get; set; }
+    // IEnumerable<POOpenDetail> ItemGridData { get; set; }
+    // IEnumerable<POOpenDetail> POListGridData { get; set; }
+    IEnumerable<ShippingData> OpenPOShipmentData { get; set; }
+    IEnumerable<ShippingData> POListGridData { get; set; }
+    IEnumerable<ShippingData> POShipmentListGridData { get; set; }
+    IEnumerable<ShippingData> TestGridData { get; set; }
+    List<Lookup> openPOList { get; set; }
+
+    bool TextWrapEnabled = true;
+    bool WordWrapEnabled = false;
+
+    int PageCount { get; set; } = 0;
+    int TotalRecords { get; set; } = 0;
+    int PageSize { get; set; } = 20;
+    int ActivePageIndex { get; set; } = 0;
+
+    Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
+        { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
+        { "Group Words By Or", GridSearchTextParseMode.GroupWordsByOr },
+        { "Exact Match", GridSearchTextParseMode.ExactMatch }
+    };
+    void ChangeSearchMode(string key)
+    {
+        CurrentSearchTextParseModeDisplayText = key;
+        CurrentSearchTextParseMode = SearchTextParseModes[key];
+    }
+    string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
+    GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
+
+    GridColumnResizeMode CurrentColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer; // GridColumnResizeMode.NextColumn;
+    string CurrentColumnResizeModeDisplayText { get; set; } = "Next Column";
+    Dictionary<string, GridColumnResizeMode> GridColumnResizeModes { get; } = new Dictionary<string,
+    GridColumnResizeMode>{
+        { "Disabled", GridColumnResizeMode.Disabled },                  //A user cannot resize columns.
+        { "Next Column", GridColumnResizeMode.NextColumn },             //When a user resizes a column, the width of the column to the right changes, but the Grid's total width does not change.
+        { "Columns Container", GridColumnResizeMode.ColumnsContainer }  //When a user resizes a column, all other columns retain width settings, but the width of the entire column container changes proportionally.
+    }; 
+    void ChangeResizeMode(string key)
+    {
+        CurrentColumnResizeModeDisplayText = key;
+        CurrentColumnResizeMode = GridColumnResizeModes[key];
+    }
+
+    bool usePopupEditForm { get; set; } = false;
+    GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+
+    IReadOnlyList<object> SelectedDataItems { get; set; }
+    IReadOnlyList<object> SelectedDataPOListGridItems { get; set; }
+    IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
+    GridSelectAllCheckboxMode CurrentSelectAllCheckboxMode { get; set; }
+
+    string headerMessage { get; set; } = "Loading Data...";
+    bool hiddenGrid { get; set; } = true;
+    bool autoFitColWidths { get; set; } = true;
+    bool isAutoFitPending { get; set; } = true;
+    bool isVendorEditable { get; set; } = true;
+    bool selectCheckboxToEdit { get; set; } = false;
+    string FocusedColumn { get; set; } = "OrderQty";
+    int POHeaderIdSelected { get; set; }
+
+    CriteriaOperator shippingGridFilterCriteria { get; set; }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Constructors/Page Functions
+
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetShippingDetailData();
+        POOpenVendorData = await sqlData.GetPOOpenVendorData();
+        //POOpenDetailData = await sqlData.GetPOOpenDetailData();
+        OpenPOShipmentData = await sqlData.GetOpenPOShipmentData();
+
+        isAutoFitPending = true;
+
+        var user = (await AuthStat).User;
+        if (!user.Identity.IsAuthenticated)
+        {
+            @* NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}"); *@
+            //navManager.NavigateTo("/Login", true);
+            hiddenGrid = true;
+        }
+        else
+        {
+            hiddenGrid = false;
+            headerMessage = "";
+        }
+
+        var authstate = await authStateProvider.GetAuthenticationStateAsync();
+        var userClaimsPrincipal = authstate.User; // ClaimsPrincipal
+        var userClaimsPrincipalName = userClaimsPrincipal.Identity.Name;
+
+        if (userClaimsPrincipalName != null)
+        {
+            var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
+
+            if (userData != null)
+            {
+                if (userData.Role == "Administrator")
+                {
+                    //workingMode = WorkingMode.Designer;
+                    //showWorkingModeToggleButton = true;
+                }
+
+                //headers = new Dictionary<string, string>() {
+                //    { "Oid", userData.Oid.ToString() },
+                //    { "User", userData.UserName },
+                //    { "PromoCode", userData.PromoCode }
+                //};
+            }
+            else
+            {
+
+            }
+        }
+        else
+        {
+            //navManager.NavigateTo("/Login", true);
+
+            userClaimsPrincipal = authenticationState.Result.User;
+            var userData = userAccountService.GetUserAccountFromClaims(userClaimsPrincipal);
+
+            if (userData != null)
+            {
+                if (userData.Role == "Administrator")
+                {
+                    //workingMode = WorkingMode.Designer;
+                    //showWorkingModeToggleButton = true;
+                }
+
+                //headers = new Dictionary<string, string>() {
+                //    { "Oid", userData.Oid.ToString() },
+                //    { "User", userData.UserName },
+                //    { "PromoCode", userData.PromoCode }
+                //};
+            }
+            else
+            {
+
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task; // Waits for grid data to load
+                                      // Grid.ExpandDetailRow(0);
+        }
+        @* CurrentColumnResizeMode = GridColumnResizeMode.ColumnsContainer;
+        Grid.AutoFitColumnWidths(); *@
+
+        //https://supportcenter.devexpress.com/ticket/details/t1207460/dxgrid-autofitcolumnwidths-true-does-not-set-widths-as-i-expected
+        @* if (AutoFitColWidths && IsAutoFitPending)
+        {
+            IsAutoFitPending = false;
+            await Grid.WaitForDataLoadAsync();
+            Grid.AutoFitColumnWidths();
+        } *@
+        if (Grid != null && GridData != null && isAutoFitPending)
+        {
+            isAutoFitPending = false;
+            await Grid.WaitForDataLoadAsync();
+            Grid.AutoFitColumnWidths();
+        }
+
+        if (POShipmentListGrid != null && POShipmentListGridData != null)
+        {
+            try
+            {
+                POShipmentListGrid.SetFilterCriteria(shippingGridFilterCriteria);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }      
+    }
+
+    public void Dispose()
+    {
+        headerMessage = "";
+        hiddenGrid = true;
+        // Northwind?.Dispose();
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Load/Refresh Functions
+
+    public void AutoCollapseDetailRow_Changed(bool newValue)
+    {
+        AutoCollapseDetailRow = newValue;
+        if (newValue)
+        {
+            Grid.BeginUpdate();
+            Grid.CollapseAllDetailRows();
+            Grid.ExpandDetailRow(0);
+            Grid.EndUpdate();
+        }
+    }
+
+    public List<Lookup> GetPOListData(int vendorId)
+    {
+        List<Lookup> list = new List<Lookup>();
+
+        var polist = OpenPOShipmentData.Where(x => x.VendorId == vendorId).Select(x => x.PONumber).Distinct().ToList();
+        foreach (string po in polist)
+        {
+            Lookup l = new Lookup()
+                {
+                    LookupText = po,
+                    LookupValue = OpenPOShipmentData.Where(c => c.PONumber == po).FirstOrDefault().POHeaderId
+                };
+            list.Add(l);
+        }
+        return list;
+    }
+
+    public void AddToPOListGridData_old(POOpenDetail poData)
+    {
+        @* POOpenDetail poOListGridDataItrem = POListGridData.Where(c => c.POHeaderId == poData.POHeaderId).FirstOrDefault();
+
+        if (poOListGridDataItrem == null)
+        {
+            //POListGridData.Append<POOpenDetail>(poData); 
+            //POListGridData.Concat(new[] { poData });
+            POListGridData = POListGridData.Concat(new[] { poData });
+        }
+        SelectedDataPOListGridItems = new List<object>();
+        SelectedDataPOListGridItems.Append(poData); *@
+    } 
+    public void AddToPOListGridData(ShippingData poData)
+    {
+        if (poData != null)
+        {
+            bool isAddon = false;
+            if (POListGridData == null)
+            {
+                isAddon = true;
+                //POListGridData = POListGridData.Concat(new[] { poData });
+                POListGridData = new List<ShippingData>()
+                    { 
+                        poData
+                    };
+            }
+            else
+            {
+                ShippingData poOListGridDataItem = POListGridData.Where(c => c.POHeaderId == poData.POHeaderId).FirstOrDefault();
+                if (poOListGridDataItem == null) // if NOT found
+                {
+                    isAddon = true;
+                    POListGridData = POListGridData.Concat(new[] { poData });
+                }
+            }
+
+            SelectedDataPOListGridItems = new List<object>();
+            SelectedDataPOListGridItems.Append(poData);
+
+            // Append to POShipmentListGridData
+            IEnumerable<ShippingData> poShipmentList = OpenPOShipmentData.Where(c => c.PONumber == poData.PONumber);
+            if (POShipmentListGridData == null)
+            {
+                POShipmentListGridData = poShipmentList;
+            }
+            else
+            {
+                if (isAddon)
+                {
+                    POShipmentListGridData = POShipmentListGridData.Concat(poShipmentList);
+                }
+            }
+        }
+        else
+        {
+
+        }
+    }
+
+    public void LoadItemGridData(string poNo)
+    {
+        //POShipmentListGridData = OpenPOShipmentData.Where(c => c.PONumber == poNo);
+        TestGridData = OpenPOShipmentData.Where(c => c.PONumber == poNo);
+
+        var criteria = new InOperator("PONumber", new string[] { poNo });
+        //var criteria = new InOperator("ProductNo", new string[] { "468403PTT" });
+        shippingGridFilterCriteria = criteria;
+
+        if (POShipmentListGrid != null)
+        {
+            //POShipmentListGrid.SetFilterCriteria(CriteriaOperator.FromLambda<ShippingData>(x => x.ProductNo == "468403PTT"));
+            //POShipmentListGrid.SetFilterCriteria(filterCriteria);
+
+            //var criteria = new FunctionOperator(FunctionOperatorType.StartsWith, new OperandProperty("ShipCountry"), "it");
+            //var criteria = new FunctionOperator(FunctionOperatorType.Contains, new OperandProperty("ProductNo"), "468403PTT");
+
+            //var criteria = new InOperator("PONumber", new string[] { poNo });
+            @* var criteria = new InOperator("ProductNo", new string[] { "468403PTT" }); *@
+            try
+            {
+                POShipmentListGrid.SetFilterCriteria(criteria);
+            }
+            catch(Exception ex)
+            {
+
+            }
+        }
+        else
+        {
+
+        }
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Button Functions
+
+    void Grid_FitWidths()
+    {
+        Grid.AutoFitColumnWidths();
+    }
+    void ColumnChooserButton_Click()
+    {
+        Grid.ShowColumnChooser();
+    }
+    async void RefreshData_Click()
+    {
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetShippingDetailData();
+    }
+    async Task UsePopupEditForm_CheckedChanged(bool value)
+    {
+        usePopupEditForm = value;
+        await Grid.CancelEditAsync();
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Main Grid Functions
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        //bool isShipping = false;
+        //if (Grid.GetDataItem(e.VisibleIndex) is ShippingData)
+        //{
+        //    isShipping = true;
+        //}
+
+        // if (e.ElementType == GridElementType.DataRow && (System.Decimal)e.Grid.GetRowValue(e.VisibleIndex, "Total") > 1000)
+        // {
+        //     e.CssClass = "highlighted-item";
+        // }
+
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "CustomerName")
+        {
+            string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
+            if (customerName == "MACYS")
+                e.Style = "background: green";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
+        {
+            e.Style = "font-weight: 800";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
+        {
+            e.Style = "font-weight: 800";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
+        {
+            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
+            if (units > 100)
+                e.Style = "color: red";
+        }
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "SOQty")
+        {
+            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "SOQty");
+            if (units > 100)
+                e.Style = "color: red";
+        }
+    }
+    void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
+    {
+        //string[] dateList = { "SODate", "StartDate", "EndDate", "PODate", "ShipmentDate", "ShipToETA", "FactoryCancel" };
+        //if (dateList.Contains(e.FieldName)) 
+        if (e.Value.GetType() == typeof(DateTime))
+        {
+            // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
+            if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+                e.DisplayText = "";
+        }
+    }
+
+    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            if (e.EditModel.GetType() == typeof(ShippingData))
+            {
+                var newObject = (ShippingData)e.EditModel;
+                newObject.Id = GridData.Count() + 1;
+                newObject.ShipmentDate = DateTime.Now;
+
+                POHeaderIdSelected = 0;
+                isVendorEditable = true;
+
+                //ItemGridData = new List<POOpenDetail>();
+                //POListGridData = new List<POOpenDetail>();
+
+                POListGridData = new List<ShippingData>();
+                POShipmentListGridData = new List<ShippingData>();
+            }
+        }
+        else
+        {
+            if (e.EditModel.GetType() == typeof(ShippingData))
+            {
+                LoadItemGridData(((ShippingData)e.EditModel).PONumber);
+                POHeaderIdSelected = ((ShippingData)e.EditModel).POHeaderId;
+                //POListGridData = new List<POOpenDetail>();
+                POListGridData = new List<ShippingData>();
+                POShipmentListGridData = new List<ShippingData>();
+
+                ShippingData poItem = OpenPOShipmentData.Where(c => c.PONumber == ((ShippingData)e.EditModel).PONumber).FirstOrDefault();
+                AddToPOListGridData(poItem);
+                isVendorEditable = false;
+            }
+        }
+    }
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        e.Cancel = true;
+
+        if (e.EditModel.GetType() == typeof(ShippingData))
+        {
+            var savingObject = (ShippingData)e.EditModel;
+
+            if (e.IsNew)
+                await InsertShippingDataAsync(savingObject);
+            else
+                await UpdateShippingDataAsync(savingObject);
+
+            await Grid.CancelEditAsync();
+        }
+    }
+    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        if (e.DataItem.GetType() == typeof(BOMData))
+        {
+            var deletingObject = (BOMData)e.DataItem;
+
+        }
+        if (e.DataItem.GetType() == typeof(FreightData))
+        {
+            var deletingObject = (FreightData)e.DataItem;
+
+        }
+
+        if (e.DataItem.GetType() == typeof(ShippingData))
+        {
+            var deletingObject = (ShippingData)e.DataItem;
+
+        }
+
+        // await NwindDataService.RemoveEmployeeAsync((EditableEmployee)e.DataItem);
+        //await UpdateDataAsync();
+    }
+
+    async Task InsertShippingDataAsync(ShippingData item)
+    {
+        if (item.TrackingNumber == null) item.TrackingNumber = "";
+        if (item.InvoiceNo == null) item.InvoiceNo = "";
+
+        string query = @"INSERT INTO [PIMS].[dbo].[ShipmentHeader] ([ShipmentDate],[TrackingNumber],[InvoiceNo],[CreatedOn]) 
+        SELECT '{0}','{1}','{2}',GETDATE()
+        SELECT @@IDENTITY AS 'pk'";
+        string fullQuery = string.Format(query, item.ShipmentDate, item.TrackingNumber, item.InvoiceNo);
+
+        int shipmentHeaderId = 0;
+        using (var uow = new UnitOfWork())
+        {
+            DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(fullQuery);
+
+            if (selectedData.ResultSet.Length > 0)
+            {
+                DevExpress.Xpo.DB.SelectStatementResult result = selectedData.ResultSet[0];
+
+                if (result.Rows.Count() > 0)
+                {
+                    string rValue = result.Rows[0].Values[0].ToString();
+                    int.TryParse(rValue, out shipmentHeaderId);
+                }
+            }
+        }
+        if (shipmentHeaderId > 0)
+        {
+            //POShipmentListGridData.Where(c => c.Id == ship.Id).FirstOrDefault().ShipmentDetailId = shipmentDetailId;
+            //ship.ShipmentDetailId = shipmentDetailId;
+        }
+
+        // Save POShipmentListGrid data
+        foreach (ShippingData ship in POShipmentListGridData)
+        {
+            if (ship.ShipmentDetailId == 0)
+            {
+                //int shipmentHeaderId = item.ShipmentHeaderId;
+                int poDetailId = ship.PODetailId;
+                int shipmentQty = ship.ShipmentQty;
+
+                // NEW insert
+                string detailInsertQuery = @"INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
+                SELECT {0},{1},{2}, GETDATE()
+                SELECT @@IDENTITY AS 'pk'";
+                string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty);
+
+                int shipmentDetailId = 0;
+                using (var uow = new UnitOfWork())
+                {
+                    DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(detailInsertFullQuery);
+
+                    if (selectedData.ResultSet.Length > 0)
+                    {
+                        DevExpress.Xpo.DB.SelectStatementResult result = selectedData.ResultSet[0];
+
+                        if (result.Rows.Count() > 0)
+                        {
+                            string rValue = result.Rows[0].Values[0].ToString();
+                            int.TryParse(rValue, out shipmentDetailId);
+                        }
+                    }
+                }
+                if (shipmentDetailId > 0)
+                {
+                    //POShipmentListGridData.Where(c => c.Id == ship.Id).FirstOrDefault().ShipmentDetailId = shipmentDetailId;
+                    ship.ShipmentDetailId = shipmentDetailId;
+                }
+                ship.LastShipmentQty = ship.ShipmentQty;
+                //UpdateOpenPOShipmentData(ship);
+            }
+            else
+            {
+                if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
+                {
+                    // UPDATE
+                    string detailUpdateQuery = @"UPDATE [PIMS].[dbo].[ShipmentDetails] 
+SET [ShipmentQty] = {1}
+--, [LastModifiedOn] = GETDATE() 
+WHERE [PODetailId] = {0}";
+                    string detailUpdateFullQuery = string.Format(detailUpdateQuery, item.PODetailId, item.OrderQty);
+
+                    using (var uow = new UnitOfWork())
+                    {
+                        await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
+                    }
+                    ship.LastShipmentQty = ship.ShipmentQty;
+                    //UpdateOpenPOShipmentData(ship);
+                }
+            }
+        }
+
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetShippingDetailData();
+
+    }
+    async Task UpdateShippingDataAsync(ShippingData item)
+    {
+        string query = @"UPDATE [PIMS].[dbo].[ShipmentHeader] SET
+       [ShipmentDate] = '{1}'
+      ,[TrackingNumber] = '{2}'
+      ,[ShipToETA] = '{3}'
+      ,[InvoiceNo] = '{4}'
+      --,[LastModifiedOn] = GETDATE()
+      WHERE [ShipmentHeaderId] = {0}";
+        string fullQuery = string.Format(query,item.ShipmentHeaderId, item.ShipmentDate, item.TrackingNumber, item.ShipToETA, item.InvoiceNo);
+
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        // Save POShipmentListGrid data
+        foreach (ShippingData ship in POShipmentListGridData)
+        {
+            if (ship.ShipmentDetailId == 0 && ship.ShipmentQty != ship.LastShipmentQty)
+            {
+                int shipmentHeaderId = item.ShipmentHeaderId;
+                int poDetailId = ship.PODetailId;
+                int shipmentQty = ship.ShipmentQty;
+
+                // NEW insert
+                string detailInsertQuery = @"INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
+                SELECT {0},{1},{2}, GETDATE()
+                SELECT @@IDENTITY AS 'pk'";
+                string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty);
+
+                int shipmentDetailId = 0;
+                using (var uow = new UnitOfWork())
+                {
+                    DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(detailInsertFullQuery);
+
+                    if (selectedData.ResultSet.Length > 0)
+                    {
+                        DevExpress.Xpo.DB.SelectStatementResult result = selectedData.ResultSet[0];
+
+                        if (result.Rows.Count() > 0)
+                        {
+                            string rValue = result.Rows[0].Values[0].ToString();
+                            int.TryParse(rValue, out shipmentDetailId);
+                        }
+                    }
+                }
+                if (shipmentDetailId > 0)
+                {
+                    //POShipmentListGridData.Where(c => c.Id == ship.Id).FirstOrDefault().ShipmentDetailId = shipmentDetailId;
+                    ship.ShipmentDetailId = shipmentDetailId;
+                }
+                ship.LastShipmentQty = ship.ShipmentQty;
+                //UpdateOpenPOShipmentData(ship);
+            }
+            else
+            {
+                //if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
+                if (ship.ShipmentQty != ship.LastShipmentQty)
+                {
+                    // UPDATE
+                    string detailUpdateQuery = @"UPDATE [PIMS].[dbo].[ShipmentDetails] 
+SET [ShipmentQty] = {1}
+--, [LastModifiedOn] = GETDATE() 
+WHERE [PODetailId] = {0}";
+                    string detailUpdateFullQuery = string.Format(detailUpdateQuery, ship.PODetailId, ship.ShipmentQty);
+
+                    using (var uow = new UnitOfWork())
+                    {
+                        await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
+                    }
+                    ship.LastShipmentQty = ship.ShipmentQty;
+                    //UpdateOpenPOShipmentData(ship);
+                }
+            }
+        }
+
+        SqlData sqlData = new SqlData();
+        GridData = await sqlData.GetShippingDetailData();
+    }
+
+    public void CancelAddItem(MouseEventArgs args)
+    {
+        //...
+    }
+
+    public void UpdateAddItem(MouseEventArgs args)
+    {
+        //...
+    }
+
+    void UpdateOpenPOShipmentData(ShippingData poShipmentListGridDataItem)
+    {
+        //OpenPOShipmentData = await sqlData.GetOpenPOShipmentData();
+
+        @* ShippingData openPOShipmentDataItem = OpenPOShipmentData.Where(c => c.Id == poShipmentListGridDataItem.Id).FirstOrDefault();
+        if (openPOShipmentDataItem != null)
+        {
+            openPOShipmentDataItem.ShipmentHeaderId = poShipmentListGridDataItem.ShipmentHeaderId;
+            openPOShipmentDataItem.ShipmentDate = poShipmentListGridDataItem.ShipmentDate;
+            openPOShipmentDataItem.InvoiceNo = poShipmentListGridDataItem.InvoiceNo;
+            openPOShipmentDataItem.TrackingNumber = poShipmentListGridDataItem.TrackingNumber;
+            openPOShipmentDataItem.ShipToETA = poShipmentListGridDataItem.ShipToETA;
+            openPOShipmentDataItem.PONumber = poShipmentListGridDataItem.PONumber;
+            openPOShipmentDataItem.ProductNo = poShipmentListGridDataItem.ProductNo;
+            openPOShipmentDataItem.ProductName = poShipmentListGridDataItem.ProductName;
+            openPOShipmentDataItem.OrderQty = poShipmentListGridDataItem.OrderQty;
+            openPOShipmentDataItem.ShipmentQty = poShipmentListGridDataItem.ShipmentQty;
+            openPOShipmentDataItem.ShipmentDetailId = poShipmentListGridDataItem.ShipmentDetailId;
+            openPOShipmentDataItem.PODetailId = poShipmentListGridDataItem.PODetailId;
+            openPOShipmentDataItem.ProductId = poShipmentListGridDataItem.ProductId;
+
+            openPOShipmentDataItem.POHeaderId = poShipmentListGridDataItem.POHeaderId;
+            openPOShipmentDataItem.SOHeaderId = poShipmentListGridDataItem.SOHeaderId;
+            openPOShipmentDataItem.SODetailId = poShipmentListGridDataItem.SODetailId;
+
+            openPOShipmentDataItem.VendorId = poShipmentListGridDataItem.VendorId;
+            openPOShipmentDataItem.VendorName = poShipmentListGridDataItem.VendorName;
+            openPOShipmentDataItem.CustomerId = poShipmentListGridDataItem.CustomerId;
+            openPOShipmentDataItem.CustomerName = poShipmentListGridDataItem.CustomerName;
+
+            openPOShipmentDataItem.SODate = poShipmentListGridDataItem.SODate;
+            openPOShipmentDataItem.PODate = poShipmentListGridDataItem.PODate;
+            openPOShipmentDataItem.EndDate = poShipmentListGridDataItem.EndDate;
+            openPOShipmentDataItem.StartDate = poShipmentListGridDataItem.StartDate;
+            openPOShipmentDataItem.SONumber = poShipmentListGridDataItem.SONumber;
+
+            openPOShipmentDataItem.ForProductNo = poShipmentListGridDataItem.ForProductNo;
+        } *@
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Template POList Grid Functions
+
+    void POListGrid_OnRowClick(GridRowClickEventArgs e)
+    {
+        //if (ItemGrid != null)
+        //{
+        //    ItemGrid.StartEditRowAsync(e.VisibleIndex);
+        //}
+
+        if (POListGrid != null)
+        {
+            @* if (POListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
+                POHeaderIdSelected = (POListGrid.GetDataItem(e.VisibleIndex) as POOpenDetail).POHeaderId;
+            LoadItemGridData((POListGrid.GetDataItem(e.VisibleIndex) as POOpenDetail).PONumber); *@
+
+            if (POListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
+                POHeaderIdSelected = (POListGrid.GetDataItem(e.VisibleIndex) as ShippingData).POHeaderId;
+            LoadItemGridData((POListGrid.GetDataItem(e.VisibleIndex) as ShippingData).PONumber);
+        }
+    }
+
+    async Task POListGrid_OnRowDoubleClick(GridRowClickEventArgs e)
+    {
+        //await e.Grid.SaveChangesAsync();
+        //await e.Grid.StartEditRowAsync(e.VisibleIndex);
+    }
+
+    void POListGrid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
+        {
+            e.Style = "font-weight: 800";
+            e.Style = "color: red";
+        }
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Template PO Items Grid Functions
+
+    void ItemGrid_OnRowClick(GridRowClickEventArgs e)
+    {
+        if (POShipmentListGrid != null)
+        {
+       @*      if (POShipmentListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
+            {
+                ShippingData ship = POShipmentListGrid.GetDataItem(e.VisibleIndex) as ShippingData;
+                if (ship.ShipmentQty == 0)
+                    ship.ShipmentQty = ship.OrderQty;
+            }
+
+            POShipmentListGrid.StartEditRowAsync(e.VisibleIndex); *@
+        } 
+    }
+
+    async Task ItemGrid_OnRowDoubleClick(GridRowClickEventArgs e)
+    {
+        @* //await e.Grid.SaveChangesAsync();
+        //FocusedColumn = (e.Column as DxGridDataColumn).FieldName;
+        await e.Grid.StartEditRowAsync(e.VisibleIndex); *@
+    }
+
+    void OnSelectedDataItemsChanged(IReadOnlyList<object> selectedDataItems)
+    {
+        SelectedDataItems = selectedDataItems;
+        //onTicketSelectionChanged.InvokeAsync(selectedDataItems);
+
+        foreach (ShippingData ship in selectedDataItems.Cast<ShippingData>())
+        {
+            if (ship.ShipmentQty == 0)
+                ship.ShipmentQty = ship.OrderQty;
+        }
+    }
+
+    void ItemGrid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
+        {
+            //decimal qty = (int)e.Grid.GetRowValue(e.VisibleIndex, "OrderQty");
+            e.Style = "font-weight: 800";
+            e.Style = "color: red";
+        }
+        if (e.ElementType == GridElementType.EditCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
+        {
+            //decimal qty = (int)e.Grid.GetRowValue(e.VisibleIndex, "OrderQty");
+            e.Style = "font-weight: 800";
+            e.Style = "color: red";
+        }
+
+        @* if (e.Column is DevExpress.Blazor.DxGridDataColumn  && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
+        {
+            if (e.ElementType != GridElementType.DataCell)
+                e.Style = "color: white";
+        }
+        if (e.ElementType == GridElementType.EditCell)
+        {
+
+        } *@
+    }
+
+    void ItemGrid_FilterCriteriaChanged(GridFilterCriteriaChangedEventArgs args)
+    {
+        //CriteriaOperator newCriteria = args.FilterCriteria;
+        // ...
+    }
+
+    void ItemGrid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.EditModel.GetType() == typeof(ShippingData))
+        {
+            var editObject = (ShippingData)e.EditModel;
+            if (editObject.ShipmentDetailId == 0)
+                editObject.isNew = true;
+
+            if (e.IsNew)
+            {
+                editObject.isNew = true;
+            }
+            else
+            {
+                editObject.isUpdate = true;
+            }
+        }
+    }
+
+    async Task ItemGrid_OnEditStart(GridEditStartEventArgs e)
+    {
+        //await e.Grid.SaveChangesAsync();
+        if (selectCheckboxToEdit)
+        {
+            if (!e.IsNew && !e.Grid.IsDataItemSelected(e.DataItem))
+                e.Cancel = true;
+        }
+        else
+        {
+        }
+    }
+
+    async Task ItemGrid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        if (e.EditModel.GetType() == typeof(ShippingData))
+        {
+            var savingObject = (ShippingData)e.EditModel;
+
+            savingObject.isDirty = true;
+            if (savingObject.ShipmentDetailId == 0)
+                savingObject.isNew = true;
+
+            if (e.IsNew)
+            {
+                savingObject.isNew = true;
+            }
+            else
+            {
+                savingObject.isUpdate = true;
+            }
+
+            POShipmentListGridData.Where(c => c.Id == savingObject.Id).FirstOrDefault().ShipmentQty = savingObject.ShipmentQty;
+        }
+    }
+
+    #endregion
+
+    // ============================================================ \\
+}
