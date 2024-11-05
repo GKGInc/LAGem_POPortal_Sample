@@ -40,10 +40,15 @@
 
                             <DxTreeViewNode Name="SOTasks" Text="SO Tasks" Expanded="true">
                                 <Nodes>
-                                    <DxTreeViewNode NavigateUrl="./SOTasksHeaderPage" Text="Assign Tasks"
+                                    @* <DxTreeViewNode NavigateUrl="./SOTasksHeaderPage" Text="Assign SO Tasks"
+                                                    IconUrl="../images/icons/new.svg"
+                                                    IconCssClass="my-style"></DxTreeViewNode> *@
+                                    <DxTreeViewNode NavigateUrl="./ProductTestsHeaderPage" Text="Product Tests"
                                                     IconUrl="../images/icons/new.svg"
                                                     IconCssClass="my-style"></DxTreeViewNode>
-                                    @* <DxTreeViewNode NavigateUrl="./SOTasksHeaderPage" Text="Update Tasks"></DxTreeViewNode> *@
+                                    <DxTreeViewNode NavigateUrl="./ProductsAndMaterialsTasksHeaderPage" Text="Tasks & Notes"
+                                                    IconUrl="../images/icons/new.svg"
+                                                    IconCssClass="my-style"></DxTreeViewNode>
                                 </Nodes>
                             </DxTreeViewNode>
                         </Nodes>

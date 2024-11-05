@@ -1,3 +1,4 @@
+using DevExpress.DataProcessing.InMemoryDataProcessor;
 using DevExpress.Office.Utils;
 using LAGem_POPortal.Authentication;
 using LAGem_POPortal.Code;
@@ -423,6 +424,509 @@ ORDER BY [SONumber], [SOLineNo]";
         }
 
 
+        public async Task<List<Tasks>> GetTasksList()
+        {
+            string query = @"SELECT [TaskId]
+      ,ISNULL([TaskName], '')			AS [TaskName]
+      ,ISNULL([TaskDescription], '')	AS [TaskDescription]
+      ,ISNULL([TaskType], '')			AS [TaskType]
+
+      ,ISNULL([TaskSequence], 0)		AS [TaskSequence]
+      ,ISNULL([Required], 0)			AS [Required]
+      ,ISNULL([Qty], 0)					AS [Qty]
+      ,ISNULL([AssignedTo], '')			AS [AssignedTo]
+
+      ,ISNULL([LegacySystemId], 0)		AS [LegacySystemId]
+
+  FROM [PIMS].[dbo].[Task]
+  WHERE [DeletedOn] IS NULL
+  ORDER BY CASE WHEN [TaskSequence] = 0 THEN 1000 ELSE [TaskSequence] END
+	--[TaskSequence]
+	,[TaskName]";
+
+            return await GetSqlData<Tasks>(query);
+        }
+
+        public async Task<List<BusinessPartnerTask>> GetBusinessPartnerTaskList(int businessPartnerId)
+        {
+            string query = @"SELECT [BusinessPartnerTaskId]
+      ,ISNULL([BusinessPartnerId], 0) AS [BusinessPartnerId]
+
+      ,ISNULL([TaskId], 0) AS [TaskId]
+      ,ISNULL([TaskName], '') AS [TaskName]
+      ,ISNULL([TaskDescription], '') AS [TaskDescription]
+      ,ISNULL([TaskType], '') AS [TaskType]
+
+      ,ISNULL([TaskSequence], 0) AS [TaskSequence]
+      ,ISNULL([Required], 0) AS [Required]
+      ,ISNULL([Qty], 0) AS [Qty]
+      ,ISNULL([AssignedTo], '') AS [AssignedTo]
+
+      ,ISNULL([LegacySystemId], 0) AS [LegacySystemId]
+
+  FROM [PIMS].[dbo].[BusinessPartnerTask]
+  WHERE [BusinessPartnerId] = {0}
+  --WHERE [DeletedOn] IS NULL
+  ORDER BY [TaskSequence],[TaskId]";
+
+            string fullQuery = string.Format(query, businessPartnerId);
+            return await GetSqlData<BusinessPartnerTask>(fullQuery);
+        }
+        public async Task<List<BusinessPartnerTask>> GetAllBusinessPartnerTaskList()
+        {
+            string query = @"SELECT [BusinessPartnerTaskId]
+      ,ISNULL([BusinessPartnerId], 0)   AS [BusinessPartnerId]
+
+      ,ISNULL([TaskId], 0)              AS [TaskId]
+      ,ISNULL([TaskName], '')			AS [TaskName]
+      ,ISNULL([TaskDescription], '')	AS [TaskDescription]
+      ,ISNULL([TaskType], '')			AS [TaskType]
+
+      ,ISNULL([TaskSequence], 0)		AS [TaskSequence]
+      ,ISNULL([Required], 0)			AS [Required]
+      ,ISNULL([Qty], 0)					AS [Qty]
+      ,ISNULL([AssignedTo], '')			AS [AssignedTo]
+
+      ,ISNULL([LegacySystemId], 0) AS [LegacySystemId]
+
+  FROM [PIMS].[dbo].[BusinessPartnerTask]
+  ORDER BY CASE WHEN [TaskSequence] = 0 THEN 1000 ELSE [TaskSequence] END
+	--[TaskSequence]
+	,[TaskName]";
+
+            return await GetSqlData<BusinessPartnerTask>(query);
+        }
+
+        public async Task<List<BusinessPartner>> GetCustomerBusinessPartnerList(int businessPartnerId = -1)
+        {
+            string query = @"SELECT [BusinessPartnerId]
+      ,[BusinessPartnerType]
+      ,LTRIM(RTRIM(ISNULL([BusinessPartnerCode],'')))	AS [BusinessPartnerCode]
+      ,LTRIM(RTRIM(ISNULL([BusinessPartnerName],'')))	AS [BusinessPartnerName]
+      ,LTRIM(RTRIM(ISNULL([DBAName],'')))				AS [DBAName]
+      ,ISNULL([Address1],'')	AS [Address1]
+      ,ISNULL([Address2],'')	AS [Address2]
+      ,ISNULL([Address3],'')	AS [Address3]
+      ,ISNULL([Address4],'')	AS [Address4]
+      ,ISNULL([City],'')		AS [City]
+      ,ISNULL([State],'')		AS [State]
+      ,ISNULL([Zip],'')			AS [Zip]
+      ,ISNULL([RowStatus],1)	AS [RowStatus]
+FROM [PIMS].[dbo].[BusinessPartner]
+WHERE [BusinessPartnerType] IS NOT NULL AND [DeletedOn] IS NULL
+    AND UPPER([BusinessPartnerType]) = 'C'
+	AND [BusinessPartnerName] <> '' AND [BusinessPartnerName] <> '---'";
+
+            string fullQuery = "";
+            if (businessPartnerId >= 0)
+            {
+                query += @"
+	AND [BusinessPartnerId] = {0}";
+
+                fullQuery = string.Format(query, businessPartnerId) + @"
+ORDER BY [BusinessPartnerName]";
+            }
+            else
+            {
+                fullQuery = query + @"
+ORDER BY [BusinessPartnerName]";
+            }
+
+            return await GetSqlData<BusinessPartner>(fullQuery);
+        }
+
+
+        public async Task<List<SODetailMaterial>> GetSODetailMaterialSummaryData(int soHeaderId = 0, bool showDuty = true) // 
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY [MaterialNo]) AS [Id], *
+FROM (
+SELECT DISTINCT 
+	[MaterialId]
+	,[MaterialNo]
+	,[MaterialName]
+	,[MaterialStatusId]
+	,[MaterialNote]
+	,[SOHeaderId]
+	,[LineTypeName]
+	,[LineTypeGroup]
+	,[SalesProgramId]
+	,[ProgramName]
+	,[SONumber]
+	,[BusinessPartnerId_Customer]
+	,[CustomerName]
+FROM [PIMS].[dbo].[SODetailMaterialVw]";
+
+            string fullQuery = "";
+            if (soHeaderId >= 0)
+            {
+                if (showDuty)
+                    query += @"
+	WHERE [SOHeaderId] = {0}";
+                else
+                    query += @"
+	WHERE [SOHeaderId] = {0}
+        AND [MaterialId] <> 2180";
+
+                fullQuery = string.Format(query, soHeaderId) + @"
+)x
+ORDER BY [MaterialNo]";
+            }
+            else
+            {
+                if (!showDuty)
+                    query += @"
+	WHERE [MaterialId] <> 2180";
+
+                fullQuery = query + @"
+)x
+ORDER BY [MaterialNo]";
+            }
+
+            return await GetSqlData<SODetailMaterial>(fullQuery);
+        }
+
+        public async Task<List<SODetailMaterial>> GetSODetailMaterialData(int soHeaderId = 0, bool showDuty = true) // 
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY [SONumber],[SOLineNo],[SOSubLineNo]) AS [Id], *
+FROM (
+SELECT DISTINCT 
+	[SODetailId]
+	,[SoLineNo]
+	,[SoSubLineNo]
+	,[SoSubLineTypeId]
+	--,[SoSubLineType]
+	,[ProductId]
+	,[ProductNo]
+	,[ProductName]
+	,[MaterialId]
+	,[MaterialNo]
+	,[MaterialName]
+	--,[Qty]
+	,[MaterialStatusId]
+	,[MaterialNote]
+	,[SOHeaderId]
+	,[LineTypeName]
+	,[LineTypeGroup]
+	,[ForSoDetailId]
+	,[SalesProgramId]
+	,[ProgramName]
+	,[OrderQty]
+	,[ReceivedQty]
+	,[UOMId]
+	,[Cost]
+	,[Price]
+	,[SONumber]
+	,[BusinessPartnerId_Customer]
+	,[CustomerName]
+FROM [PIMS].[dbo].[SODetailMaterialVw]";
+
+            string fullQuery = "";
+            if (soHeaderId >= 0)
+            {
+                if (showDuty)
+                    query += @"
+	WHERE [SOHeaderId] = {0}";
+                else
+                    query += @"
+	WHERE [SOHeaderId] = {0}
+        AND [MaterialId] <> 2180";
+
+                fullQuery = string.Format(query, soHeaderId) + @"
+)x
+ORDER BY [SONumber],[SOLineNo],[SOSubLineNo]";
+            }
+            else
+            {
+                if (!showDuty)
+                    query += @"
+	WHERE [MaterialId] <> 2180";
+
+                fullQuery = query + @"
+)x
+ORDER BY [SONumber],[SOLineNo],[SOSubLineNo]";
+            }
+
+            return await GetSqlData<SODetailMaterial>(fullQuery);
+        }
+
+        public async Task<List<SODetailMaterial>> GetSODetailMaterialDataExt(int soHeaderId, bool mainLineItemOnly = true, bool showDuty = false) // 
+        {
+            string query = @"SELECT ROW_NUMBER() OVER (ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]) AS [Id]
+	,matView.*
+	,COUNT(sodetask.[SODetailTaskId]) AS TasksCount
+FROM (
+	SELECT DISTINCT 
+		[SODetailMaterialId]
+		,[SODetailId]
+		,[SoLineNo]
+		,[SoSubLineNo]
+		,[SoSubLineTypeId]
+		,[ProductId]
+		,[ProductNo]
+		,[ProductName]
+		,[MaterialId]
+		,[MaterialNo]
+		,[MaterialName]
+		,[MaterialStatusId]
+		,[MaterialNote]
+		,[SOHeaderId]
+		,[LineTypeName]
+		,[LineTypeGroup]
+		,[ForSoDetailId]
+		,[SalesProgramId]
+		,[ProgramName]
+		,[OrderQty]
+		,[ReceivedQty]
+		,[UOMId]
+		,[Cost]
+		,[Price]
+		,[SONumber]
+		,[BusinessPartnerId_Customer]
+		,[CustomerName]
+	FROM [PIMS].[dbo].[SODetailMaterialVw] 
+	WHERE [SOHeaderId] = {0}
+)matView
+	LEFT JOIN [PIMS].[dbo].[SODetailTask] sodetask
+		ON matView.[SODetailId] = sodetask.[SODetailId]
+			AND matView.[SOLineNo] = sodetask.[SOLineNo]
+			AND matView.[MaterialId] = sodetask.[MaterialId]";
+
+            if (mainLineItemOnly || !showDuty)
+            {
+                //WHERE matView.[SoSubLineNo] = 0
+                //	AND matView.[MaterialId] <> 2180 -- DUTY
+                query += @"
+WHERE ";
+                if (mainLineItemOnly)
+                    query += @" matView.[SoSubLineNo] = 0";
+
+                if (!showDuty)
+                {
+                    if (mainLineItemOnly)
+                        query += @"
+    AND ";
+                    query += @" matView.[MaterialId] <> 2180";
+                }
+            }
+
+            query += @"
+GROUP BY
+	matView.[SODetailMaterialId]
+	,matView.[SODetailId]
+	,matView.[SoLineNo]
+	,matView.[SoSubLineNo]
+	,matView.[SoSubLineTypeId]
+	,matView.[ProductId]
+	,matView.[ProductNo]
+	,matView.[ProductName]
+	,matView.[MaterialId]
+	,matView.[MaterialNo]
+	,matView.[MaterialName]
+	,matView.[MaterialStatusId]
+	,matView.[MaterialNote]
+	,matView.[SOHeaderId]
+	,matView.[LineTypeName]
+	,matView.[LineTypeGroup]
+	,matView.[ForSoDetailId]
+	,matView.[SalesProgramId]
+	,matView.[ProgramName]
+	,matView.[OrderQty]
+	,matView.[ReceivedQty]
+	,matView.[UOMId]
+	,matView.[Cost]
+	,matView.[Price]
+	,matView.[SONumber]
+	,matView.[BusinessPartnerId_Customer]
+	,matView.[CustomerName]
+ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]";
+
+            string fullQuery = string.Format(query, soHeaderId);
+
+            return await GetSqlData<SODetailMaterial>(fullQuery);
+        }
+
+        public async Task<List<SODetailMaterial>> GetSODetailMaterialTasksData(int soHeaderId = 0) //
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]) AS [Id]
+	  ,matView.*
+	  ,ISNULL(sodetask.[SODetailTaskId], 0) AS [SODetailTaskId] 
+	  ,ISNULL(sodetask.[TaskId], 0) AS [TaskId] 
+      ,ISNULL(sodetask.[Task], '') AS [Task] 
+      ,ISNULL(sodetask.[TaskStatusId], 0) AS [TaskStatusId] 
+      ,ISNULL(sodetask.[TaskNote], '') AS [TaskNote]  
+
+      ,ISNULL(biztask.[TaskSequence], 0)		AS [TaskSequence]
+      ,ISNULL(biztask.[Required], 0)			AS [Required]
+      ,ISNULL(biztask.[Qty], 0)					AS [TaskQty]
+      ,ISNULL(biztask.[AssignedTo], '')			AS [AssignedTo]
+
+FROM [PIMS].[dbo].[SODetailMaterialVw] matView
+	LEFT JOIN [PIMS].[dbo].[SODetailTask] sodetask
+		ON matView.[SODetailId] = sodetask.[SODetailId]
+			AND matView.[SOLineNo] = sodetask.[SOLineNo]
+			AND matView.[SODetailMaterialId] = sodetask.[SODetailMaterialId]
+	LEFT JOIN [PIMS].[dbo].[SODetail] sod
+		ON sodetask.[SODetailId] = sod.[SODetailId]
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON sod.[SOHeaderId] = soh.[SOHeaderId]
+	LEFT JOIN [PIMS].[dbo].[BusinessPartnerTask] biztask
+		ON soh.[BusinessPartnerId] = biztask.[BusinessPartnerId] AND sodetask.[TaskId] = biztask.[TaskId] ";
+
+            string fullQuery = "";
+            if (soHeaderId >= 0)
+            {
+                query += @"
+	WHERE matView.[SOHeaderId] = {0}";
+
+                fullQuery = string.Format(query, soHeaderId) + @"
+ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]";
+            }
+            else
+            {
+                fullQuery = query + @"
+ORDER BY  CASE WHEN ISNULL(biztask.[TaskSequence], 0) = 0 THEN 1000 ELSE [TaskSequence] END
+    matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]";
+            }
+
+            return await GetSqlData<SODetailMaterial>(fullQuery);
+        }
+
+        public async Task<List<SODetailMaterial>> GetSODetailMaterialTasksData(int soHeaderId, int soDetailId, int materialId) //
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]) AS [Id]
+	  ,matView.*
+	  ,ISNULL(sodetask.[SODetailTaskId], 0) AS [SODetailTaskId] 
+	  ,ISNULL(sodetask.[TaskId], 0) AS [TaskId] 
+      ,ISNULL(sodetask.[Task], '') AS [Task] 
+      ,ISNULL(sodetask.[TaskStatusId], 0) AS [TaskStatusId] 
+      ,ISNULL(sodetask.[TaskNote], '') AS [TaskNote]  
+	  
+      ,ISNULL(biztask.[TaskSequence], 0)		AS [TaskSequence]
+      ,ISNULL(biztask.[Required], 0)			AS [Required]
+      ,ISNULL(biztask.[Qty], 0)					AS [TaskQty]
+      ,ISNULL(biztask.[AssignedTo], '')			AS [AssignedTo]
+
+FROM [PIMS].[dbo].[SODetailMaterialVw] matView
+	LEFT JOIN [PIMS].[dbo].[SODetailTask] sodetask
+		ON matView.[SODetailId] = sodetask.[SODetailId]
+			AND matView.[SOLineNo] = sodetask.[SOLineNo]
+			AND matView.[SODetailMaterialId] = sodetask.[SODetailMaterialId]			
+	--LEFT JOIN [PIMS].[dbo].[SODetail] sod
+	--	ON sodetask.[SODetailId] = sod.[SODetailId]
+	--LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+	--	ON sod.[SOHeaderId] = soh.[SOHeaderId]
+	--LEFT JOIN [PIMS].[dbo].[BusinessPartnerTask] biztask
+	--	ON soh.[BusinessPartnerId] = biztask.[BusinessPartnerId] AND sodetask.[TaskId] = biztask.[TaskId] 
+	LEFT JOIN [PIMS].[dbo].[BusinessPartnerTask] biztask
+		ON matView.[BusinessPartnerId_Customer] = biztask.[BusinessPartnerId] AND sodetask.[TaskId] = biztask.[TaskId] 
+
+WHERE matView.[SOHeaderId] = {0}
+	AND matView.[SODetailId] = {1}
+	AND matView.[MaterialId] = {2}
+    AND [SODetailTaskId] > 0
+ORDER BY  CASE WHEN ISNULL(biztask.[TaskSequence], 0) = 0 THEN 1000 ELSE [TaskSequence] END
+	,matView.[SONumber]
+	,matView.[SOLineNo]
+	,matView.[SOSubLineNo]
+";
+
+            string fullQuery = string.Format(query, soHeaderId, soDetailId, materialId);
+            return await GetSqlData<SODetailMaterial>(fullQuery);
+        }
+
+        public async Task<List<SODetailMaterial>> GetSODetailMaterialAndTestData(int soHeaderId = 0, bool showDuty = true) // 
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY soDetail.[SONumber],soDetail.[SOLineNo],soDetail.[SOSubLineNo]) AS [Id]
+	, soDetail.*
+	, ISNULL(test.[RequestedDate], '1900-01-01 00:00:00')	AS [RequestedDate]
+	, ISNULL(test.[RequestedBy], '')						AS [RequestedBy]
+	, ISNULL(test.[ReceivedDate], '1900-01-01 00:00:00')	AS [ReceivedDate]
+
+	, CASE WHEN test.[PassedDate] IS NOT NULL AND test.[PassedDate] > '1900-01-01 00:00:00' THEN test.[PassedDate]	
+		WHEN test.[FailedDate] IS NOT NULL AND test.[FailedDate] > '1900-01-01 00:00:00' THEN test.[FailedDate]	
+		ELSE '1900-01-01 00:00:00' END AS [ProcessedDate]
+	, CASE WHEN test.[PassedDate] IS NOT NULL AND test.[PassedDate] > '1900-01-01 00:00:00' THEN test.[PassedBy]	
+		WHEN test.[FailedDate] IS NOT NULL AND test.[FailedDate] > '1900-01-01 00:00:00' THEN test.[FailedBy]	
+		ELSE '' END AS [ProcessedBy]
+	, CASE 
+		WHEN test.[RequestedDate] IS NULL OR test.[RequestedDate] = '1900-01-01 00:00:00' THEN 'Un-Tested'	
+		WHEN test.[RequestedDate] IS NOT NULL AND test.[RequestedDate] > '1900-01-01 00:00:00' 
+			AND (test.[PassedDate] IS NULL OR test.[PassedDate] = '1900-01-01 00:00:00')
+			AND (test.[FailedDate] IS NULL OR test.[FailedDate] = '1900-01-01 00:00:00')
+			THEN 'Pending'	
+		WHEN test.[PassedDate] IS NOT NULL AND test.[PassedDate] > '1900-01-01 00:00:00' THEN 'Passed'	
+		WHEN test.[FailedDate] IS NOT NULL AND test.[FailedDate] > '1900-01-01 00:00:00' THEN 'Failed'
+		ELSE '' END AS [TestResult]
+FROM (
+SELECT DISTINCT 
+	[SODetailId]
+	,[SoLineNo]
+	,[SoSubLineNo]
+	,[SoSubLineTypeId]
+	--,[SoSubLineType]
+	,[ProductId]
+	,[ProductNo]
+	,[ProductName]
+	,[MaterialId]
+	,[MaterialNo]
+	,[MaterialName]
+	--,[Qty]
+	,[MaterialStatusId]
+	,[MaterialNote]
+	,[SOHeaderId]
+	,[LineTypeName]
+	,[LineTypeGroup]
+	,[ForSoDetailId]
+	,[SalesProgramId]
+	,[ProgramName]
+	,[OrderQty]
+	,[ReceivedQty]
+	,[UOMId]
+	,[Cost]
+	,[Price]
+	,[SONumber]
+	,[BusinessPartnerId_Customer]
+	,[CustomerName]
+FROM [PIMS].[dbo].[SODetailMaterialVw]";
+
+            string fullQuery = "";
+            if (soHeaderId >= 0)
+            {
+                if (showDuty)
+                    query += @"
+	WHERE [SOHeaderId] = {0}";
+                else
+                    query += @"
+	WHERE [SOHeaderId] = {0}
+        AND [MaterialId] <> 2180";
+
+                fullQuery = string.Format(query, soHeaderId) + @"
+)soDetail
+	LEFT JOIN [PIMS].[dbo].[ProductTest] test
+		ON soDetail.[ProductId] = test.[ProductId]
+ORDER BY soDetail.[SONumber],soDetail.[SOLineNo],soDetail.[SOSubLineNo]";
+            }
+            else
+            {
+                if (!showDuty)
+                    query += @"
+	WHERE [MaterialId] <> 2180";
+
+                fullQuery = query + @"
+)soDetail
+	LEFT JOIN [PIMS].[dbo].[ProductTest] test
+		ON soDetail.[ProductId] = test.[ProductId]
+ORDER BY soDetail.[SONumber],soDetail.[SOLineNo],soDetail.[SOSubLineNo]";
+            }
+
+            return await GetSqlData<SODetailMaterial>(fullQuery);
+        }
+
         public async Task<List<EdiOrderDetailData>> GetEdiOrderSummaryViewData() // [EdiOrderSummaryVw]
         {
             string query = @"
@@ -479,6 +983,266 @@ SELECT ROW_NUMBER() OVER (ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] 
             return await GetSqlData<EdiOrderDetailData>(fullQuery);
         }
 
+
+        public async Task<List<ProductTest>> GetProductTests(List<int> productIdList, bool getEmptyTests = false) //
+        {
+            string query = "";
+
+            if (getEmptyTests)
+                query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY prod.[ProductNo]) AS [Id]
+      ,ISNULL(test.[ProductTestId], 0)	AS [ProductTestId]
+      ,prod.[ProductId]
+	  ,ISNULL(prod.[ProductNo], '')		AS [ProductNo]
+	  ,ISNULL(prod.[ProductName], '')	AS [ProductName]
+      ,ISNULL(test.[Qty], 0)			AS [Qty]
+      ,ISNULL(test.[RequestedDate], '1900-01-01 00:00:00')	AS [RequestedDate]
+      ,ISNULL(test.[RequestedBy], '')	AS [RequestedBy]
+      ,ISNULL(test.[ReceivedDate], '1900-01-01 00:00:00')	AS [ReceivedDate]
+      ,ISNULL(test.[PassedDate], '1900-01-01 00:00:00')		AS [PassedDate]
+      ,ISNULL(test.[PassedBy], '')							AS [PassedBy]
+      ,ISNULL(test.[FailedDate], '1900-01-01 00:00:00')		AS [FailedDate]
+      ,ISNULL(test.[FailedBy], '')		AS [FailedBy]
+      ,ISNULL(test.[Comments], '')		AS [Comments]
+      ,ISNULL(test.[Attachment], '')	AS [Attachment]
+	  	, CASE 
+		WHEN test.[RequestedDate] IS NULL OR test.[RequestedDate] = '1900-01-01 00:00:00' THEN 'Un-Tested'	
+		WHEN test.[RequestedDate] IS NOT NULL AND test.[RequestedDate] > '1900-01-01 00:00:00' 
+			AND (test.[PassedDate] IS NULL OR test.[PassedDate] = '1900-01-01 00:00:00')
+			AND (test.[FailedDate] IS NULL OR test.[FailedDate] = '1900-01-01 00:00:00')
+			THEN 'Pending'	
+		WHEN test.[PassedDate] IS NOT NULL AND test.[PassedDate] > '1900-01-01 00:00:00' THEN 'Passed'	
+		WHEN test.[FailedDate] IS NOT NULL AND test.[FailedDate] > '1900-01-01 00:00:00' THEN 'Failed'
+		ELSE '' END AS [TestStatus]
+FROM [PIMS].[dbo].[Product] prod
+	LEFT JOIN [PIMS].[dbo].[ProductTest] test
+		ON test.[ProductId] = prod.[ProductId]
+WHERE test.[ProductId] IN ({0}) 
+ORDER BY prod.[ProductNo]
+";
+            else
+                query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY prod.[ProductNo]) AS [Id]
+      ,test.[ProductTestId]
+      ,test.[ProductId]
+	  ,ISNULL(prod.[ProductNo], '')		AS [ProductNo]
+	  ,ISNULL(prod.[ProductName], '')	AS [ProductName]
+      ,ISNULL(test.[Qty], 0)			AS [Qty]
+      ,ISNULL(test.[RequestedDate], '1900-01-01 00:00:00')	AS [RequestedDate]
+      ,ISNULL(test.[RequestedBy], '')	AS [RequestedBy]
+      ,ISNULL(test.[ReceivedDate], '1900-01-01 00:00:00')	AS [ReceivedDate]
+      ,ISNULL(test.[PassedDate], '1900-01-01 00:00:00')		AS [PassedDate]
+      ,ISNULL(test.[PassedBy], '')							AS [PassedBy]
+      ,ISNULL(test.[FailedDate], '1900-01-01 00:00:00')		AS [FailedDate]
+      ,ISNULL(test.[FailedBy], '')		AS [FailedBy]
+      ,ISNULL(test.[Comments], '')		AS [Comments]
+      ,ISNULL(test.[Attachment], '')	AS [Attachment]
+	  	, CASE 
+		WHEN test.[RequestedDate] IS NULL OR test.[RequestedDate] = '1900-01-01 00:00:00' THEN 'Un-Tested'	
+		WHEN test.[RequestedDate] IS NOT NULL AND test.[RequestedDate] > '1900-01-01 00:00:00' 
+			AND (test.[PassedDate] IS NULL OR test.[PassedDate] = '1900-01-01 00:00:00')
+			AND (test.[FailedDate] IS NULL OR test.[FailedDate] = '1900-01-01 00:00:00')
+			THEN 'Pending'	
+		WHEN test.[PassedDate] IS NOT NULL AND test.[PassedDate] > '1900-01-01 00:00:00' THEN 'Passed'	
+		WHEN test.[FailedDate] IS NOT NULL AND test.[FailedDate] > '1900-01-01 00:00:00' THEN 'Failed'
+		ELSE '' END AS [TestStatus]
+FROM [PIMS].[dbo].[ProductTest] test
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON test.[ProductId] = prod.[ProductId]
+WHERE test.[ProductId] IN ({0}) 
+ORDER BY prod.[ProductNo]
+";
+            string fullQuery = "";
+            fullQuery = string.Format(query, string.Join(",", productIdList));
+
+            return await GetSqlData<ProductTest>(fullQuery);
+        }
+        public async Task<List<ProductTest>> GetProductTests(int soHeaderId, bool getEmptyTests = false) //
+        {
+            string query = "";
+
+            if (getEmptyTests)
+                query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY prod.[ProductNo]) AS [Id]
+      ,ISNULL(test.[ProductTestId], 0)	AS [ProductTestId]
+      ,prod.[ProductId]
+	  ,ISNULL(prod.[ProductNo], '')		AS [ProductNo]
+	  ,ISNULL(prod.[ProductName], '')	AS [ProductName]
+      ,ISNULL(test.[Qty], 0)			AS [Qty]
+      ,ISNULL(test.[RequestedDate], '1900-01-01 00:00:00')	AS [RequestedDate]
+      ,ISNULL(test.[RequestedBy], '')	AS [RequestedBy]
+      ,ISNULL(test.[ReceivedDate], '1900-01-01 00:00:00')	AS [ReceivedDate]
+      ,ISNULL(test.[PassedDate], '1900-01-01 00:00:00')		AS [PassedDate]
+      ,ISNULL(test.[PassedBy], '')							AS [PassedBy]
+      ,ISNULL(test.[FailedDate], '1900-01-01 00:00:00')		AS [FailedDate]
+      ,ISNULL(test.[FailedBy], '')		AS [FailedBy]
+      ,ISNULL(test.[Comments], '')		AS [Comments]
+      ,ISNULL(test.[Attachment], '')	AS [Attachment]	  	  
+      --,soheader.[SOHeaderId]
+	  --,sodetail.[SODetailId]
+	  	, CASE 
+		WHEN test.[RequestedDate] IS NULL OR test.[RequestedDate] = '1900-01-01 00:00:00' THEN 'Un-Tested'	
+		WHEN test.[RequestedDate] IS NOT NULL AND test.[RequestedDate] > '1900-01-01 00:00:00' 
+			AND (test.[PassedDate] IS NULL OR test.[PassedDate] = '1900-01-01 00:00:00')
+			AND (test.[FailedDate] IS NULL OR test.[FailedDate] = '1900-01-01 00:00:00')
+			THEN 'Pending'	
+		WHEN test.[PassedDate] IS NOT NULL AND test.[PassedDate] > '1900-01-01 00:00:00' THEN 'Passed'	
+		WHEN test.[FailedDate] IS NOT NULL AND test.[FailedDate] > '1900-01-01 00:00:00' THEN 'Failed'
+		ELSE '' END AS [TestStatus]
+FROM [PIMS].[dbo].[ProductTest] test
+	LEFT JOIN [PIMS].[dbo].[Product] prod	
+		ON test.[ProductId] = prod.[ProductId]
+	LEFT JOIN [PIMS].[dbo].[SODetail] sodetail
+		ON test.[ProductId] = sodetail.[ProductId]
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soheader
+		ON sodetail.[SOHeaderId] = soheader.[SOHeaderId]
+WHERE soheader.[SOHeaderId] = {0}
+ORDER BY sodetail.SOLineNo, prod.[ProductNo]
+";
+            else
+                query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY prod.[ProductNo]) AS [Id]
+      ,ISNULL(test.[ProductTestId], 0)	AS [ProductTestId]
+      ,prod.[ProductId]
+	  ,ISNULL(prod.[ProductNo], '')		AS [ProductNo]
+	  ,ISNULL(prod.[ProductName], '')	AS [ProductName]
+      ,ISNULL(test.[Qty], 0)			AS [Qty]
+      ,ISNULL(test.[RequestedDate], '1900-01-01 00:00:00')	AS [RequestedDate]
+      ,ISNULL(test.[RequestedBy], '')	AS [RequestedBy]
+      ,ISNULL(test.[ReceivedDate], '1900-01-01 00:00:00')	AS [ReceivedDate]
+      ,ISNULL(test.[PassedDate], '1900-01-01 00:00:00')		AS [PassedDate]
+      ,ISNULL(test.[PassedBy], '')							AS [PassedBy]
+      ,ISNULL(test.[FailedDate], '1900-01-01 00:00:00')		AS [FailedDate]
+      ,ISNULL(test.[FailedBy], '')		AS [FailedBy]
+      ,ISNULL(test.[Comments], '')		AS [Comments]
+      ,ISNULL(test.[Attachment], '')	AS [Attachment]	  	  
+      --,soheader.[SOHeaderId]
+	  --,sodetail.[SODetailId]
+	  	, CASE 
+		WHEN test.[RequestedDate] IS NULL OR test.[RequestedDate] = '1900-01-01 00:00:00' THEN 'Un-Tested'	
+		WHEN test.[RequestedDate] IS NOT NULL AND test.[RequestedDate] > '1900-01-01 00:00:00' 
+			AND (test.[PassedDate] IS NULL OR test.[PassedDate] = '1900-01-01 00:00:00')
+			AND (test.[FailedDate] IS NULL OR test.[FailedDate] = '1900-01-01 00:00:00')
+			THEN 'Pending'	
+		WHEN test.[PassedDate] IS NOT NULL AND test.[PassedDate] > '1900-01-01 00:00:00' THEN 'Passed'	
+		WHEN test.[FailedDate] IS NOT NULL AND test.[FailedDate] > '1900-01-01 00:00:00' THEN 'Failed'
+		ELSE '' END AS [TestStatus]
+FROM [PIMS].[dbo].[ProductTest] test
+	LEFT JOIN [PIMS].[dbo].[Product] prod	
+		ON test.[ProductId] = prod.[ProductId]
+	LEFT JOIN [PIMS].[dbo].[SODetail] sodetail
+		ON test.[ProductId] = sodetail.[ProductId]
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soheader
+		ON sodetail.[SOHeaderId] = soheader.[SOHeaderId]
+WHERE soheader.[SOHeaderId] = {0}
+ORDER BY sodetail.SOLineNo, prod.[ProductNo]
+";
+            string fullQuery = "";
+            fullQuery = string.Format(query, soHeaderId);
+
+            return await GetSqlData<ProductTest>(fullQuery);
+        }
+
+        public async Task<List<ProductMaterialTask>> GetProductMaterialTasks(List<int> productIdList) //
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY prodtask.[ProductNo], prodtask.[OrigTaskSequence]) AS [Id]
+      ,prodtask.[ProductTaskId]
+      ,prodtask.[ProductId]
+      ,prodtask.[MaterialId]
+      ,prodtask.[Qty]
+      ,prodtask.[TaskId]
+      ,prodtask.[TaskName]
+      ,prodtask.[TaskDescription]
+      ,prodtask.[TaskStatusId]
+      ,prodtask.[LegacySystemId]
+      ,prodtask.[ProductNo]
+      ,prodtask.[ProductName]
+      ,prodtask.[MaterialNo]
+      ,prodtask.[MaterialName]
+      ,prodtask.[OrigTaskName]
+      ,prodtask.[OrigTaskDescription]
+      ,prodtask.[OrigTaskType]
+      ,prodtask.[OrigTaskAssignedTo]
+      ,prodtask.[OrigTaskRequired]
+      ,prodtask.[OrigTaskSequence]
+FROM [PIMS].[dbo].[ProductMaterialTaskVw] prodtask
+WHERE prodtask.[ProductId] IN ({0}) 
+ORDER BY prodtask.[ProductNo], prodtask.[OrigTaskSequence]";
+
+            string fullQuery = "";
+            fullQuery = string.Format(query, string.Join(",", productIdList));
+
+            return await GetSqlData<ProductMaterialTask>(fullQuery);
+        }
+
+        public async Task<List<ProductMaterialTask>> GetMaterialTasks(List<int> materialIdList) //
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY prodtask.[ProductNo], prodtask.[OrigTaskSequence]) AS [Id]
+      ,prodtask.[ProductTaskId]
+      ,0 AS [ProductId]
+      ,prodtask.[MaterialId]
+      ,prodtask.[Qty]
+      ,prodtask.[TaskId]
+      ,prodtask.[TaskName]
+      ,prodtask.[TaskDescription]
+      ,prodtask.[TaskStatusId]
+      ,prodtask.[LegacySystemId]
+      ,'' AS [ProductNo]
+      ,'' AS [ProductName]
+      ,prodtask.[MaterialNo]
+      ,prodtask.[MaterialName]
+      ,prodtask.[OrigTaskName]
+      ,prodtask.[OrigTaskDescription]
+      ,prodtask.[OrigTaskType]
+      ,prodtask.[OrigTaskAssignedTo]
+      ,prodtask.[OrigTaskRequired]
+      ,prodtask.[OrigTaskSequence]
+FROM [PIMS].[dbo].[ProductMaterialTaskVw] prodtask
+WHERE prodtask.[MaterialId] IN ({0}) 
+ORDER BY prodtask.[ProductNo], prodtask.[OrigTaskSequence] ";
+
+            string fullQuery = "";
+            fullQuery = string.Format(query, string.Join(",", materialIdList));
+
+            return await GetSqlData<ProductMaterialTask>(fullQuery);
+        }
+
+        public async Task<List<ProductMaterialTask>> GetMaterialTasks(int soHeaderId) //
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY prodtask.[ProductNo], prodtask.[OrigTaskSequence]) AS [Id]
+      ,prodtask.[ProductTaskId]
+      ,0 AS [ProductId]
+      ,prodtask.[MaterialId]
+      ,prodtask.[Qty]
+      ,prodtask.[TaskId]
+      ,prodtask.[TaskName]
+      ,prodtask.[TaskDescription]
+      ,prodtask.[TaskStatusId]
+      ,prodtask.[LegacySystemId]
+      ,'' AS [ProductNo]
+      ,'' AS [ProductName]
+      ,prodtask.[MaterialNo]
+      ,prodtask.[MaterialName]
+      ,prodtask.[OrigTaskName]
+      ,prodtask.[OrigTaskDescription]
+      ,prodtask.[OrigTaskType]
+      ,prodtask.[OrigTaskAssignedTo]
+      ,prodtask.[OrigTaskRequired]
+      ,prodtask.[OrigTaskSequence]
+FROM [PIMS].[dbo].[ProductMaterialTaskVw] prodtask
+WHERE prodtask.[MaterialId] IN (SELECT DISTINCT [MaterialId]
+FROM [PIMS].[dbo].[SODetailMaterialVw]
+	WHERE [SOHeaderId] = {0}) 
+ORDER BY prodtask.[ProductNo], prodtask.[OrigTaskSequence]  ";
+
+            string fullQuery = "";
+            fullQuery = string.Format(query, soHeaderId);
+
+            return await GetSqlData<ProductMaterialTask>(fullQuery);
+        }
         #endregion
 
         // ----------------------------------------------------------------------------------
@@ -1228,7 +1992,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY sod.[SOLineNo],sod.[SOSubLineTypeId]) AS [Id]
         }
 
 
-        public async Task<List<Lookup>> GetLookupList(string lookup)
+        public async Task<List<LAGem_POPortal.Models.Lookup>> GetLookupList(string lookup)
         {
             string query = @"
 SELECT ld.[LookupDetailId]		AS [Id]
@@ -1241,363 +2005,7 @@ WHERE lh.[LookupName] = '{0}'
 ORDER BY lh.[LookupName], ld.[LookupDescription]";
 
             string fullQuery = string.Format(query, lookup);
-            return await GetSqlData<Lookup>(fullQuery);
-        }
-
-
-        public async Task<List<Tasks>> GetTasksList()
-        {
-            string query = @"SELECT [TaskId]
-      ,ISNULL([TaskName], '')			AS [TaskName]
-      ,ISNULL([TaskDescription], '')	AS [TaskDescription]
-      ,ISNULL([TaskType], '')			AS [TaskType]
-
-      ,ISNULL([TaskSequence], 0)		AS [TaskSequence]
-      ,ISNULL([Required], 0)			AS [Required]
-      ,ISNULL([Qty], 0)					AS [Qty]
-      ,ISNULL([AssignedTo], '')			AS [AssignedTo]
-
-      ,ISNULL([LegacySystemId], 0)		AS [LegacySystemId]
-
-  FROM [PIMS].[dbo].[Task]
-  WHERE [DeletedOn] IS NULL
-  ORDER BY CASE WHEN [TaskSequence] = 0 THEN 1000 ELSE [TaskSequence] END
-	--[TaskSequence]
-	,[TaskName]";
-
-            return await GetSqlData<Tasks>(query);
-        }
-
-        public async Task<List<BusinessPartnerTask>> GetBusinessPartnerTaskList(int businessPartnerId)
-        {
-            string query = @"SELECT [BusinessPartnerTaskId]
-      ,ISNULL([BusinessPartnerId], 0) AS [BusinessPartnerId]
-
-      ,ISNULL([TaskId], 0) AS [TaskId]
-      ,ISNULL([TaskName], '') AS [TaskName]
-      ,ISNULL([TaskDescription], '') AS [TaskDescription]
-      ,ISNULL([TaskType], '') AS [TaskType]
-
-      ,ISNULL([TaskSequence], 0) AS [TaskSequence]
-      ,ISNULL([Required], 0) AS [Required]
-      ,ISNULL([Qty], 0) AS [Qty]
-      ,ISNULL([AssignedTo], '') AS [AssignedTo]
-
-      ,ISNULL([LegacySystemId], 0) AS [LegacySystemId]
-
-  FROM [PIMS].[dbo].[BusinessPartnerTask]
-  WHERE [BusinessPartnerId] = {0}
-  --WHERE [DeletedOn] IS NULL
-  ORDER BY [TaskSequence],[TaskId]";
-
-            string fullQuery = string.Format(query, businessPartnerId);
-            return await GetSqlData<BusinessPartnerTask>(fullQuery);
-        }
-        public async Task<List<BusinessPartnerTask>> GetAllBusinessPartnerTaskList()
-        {
-            string query = @"SELECT [BusinessPartnerTaskId]
-      ,ISNULL([BusinessPartnerId], 0)   AS [BusinessPartnerId]
-
-      ,ISNULL([TaskId], 0)              AS [TaskId]
-      ,ISNULL([TaskName], '')			AS [TaskName]
-      ,ISNULL([TaskDescription], '')	AS [TaskDescription]
-      ,ISNULL([TaskType], '')			AS [TaskType]
-
-      ,ISNULL([TaskSequence], 0)		AS [TaskSequence]
-      ,ISNULL([Required], 0)			AS [Required]
-      ,ISNULL([Qty], 0)					AS [Qty]
-      ,ISNULL([AssignedTo], '')			AS [AssignedTo]
-
-      ,ISNULL([LegacySystemId], 0) AS [LegacySystemId]
-
-  FROM [PIMS].[dbo].[BusinessPartnerTask]
-  ORDER BY CASE WHEN [TaskSequence] = 0 THEN 1000 ELSE [TaskSequence] END
-	--[TaskSequence]
-	,[TaskName]";
-
-            return await GetSqlData<BusinessPartnerTask>(query);
-        }
-
-        public async Task<List<BusinessPartner>> GetCustomerBusinessPartnerList(int businessPartnerId = -1)
-        {
-            string query = @"SELECT [BusinessPartnerId]
-      ,[BusinessPartnerType]
-      ,LTRIM(RTRIM(ISNULL([BusinessPartnerCode],'')))	AS [BusinessPartnerCode]
-      ,LTRIM(RTRIM(ISNULL([BusinessPartnerName],'')))	AS [BusinessPartnerName]
-      ,LTRIM(RTRIM(ISNULL([DBAName],'')))				AS [DBAName]
-      ,ISNULL([Address1],'')	AS [Address1]
-      ,ISNULL([Address2],'')	AS [Address2]
-      ,ISNULL([Address3],'')	AS [Address3]
-      ,ISNULL([Address4],'')	AS [Address4]
-      ,ISNULL([City],'')		AS [City]
-      ,ISNULL([State],'')		AS [State]
-      ,ISNULL([Zip],'')			AS [Zip]
-      ,ISNULL([RowStatus],1)	AS [RowStatus]
-FROM [PIMS].[dbo].[BusinessPartner]
-WHERE [BusinessPartnerType] IS NOT NULL AND [DeletedOn] IS NULL
-    AND UPPER([BusinessPartnerType]) = 'C'
-	AND [BusinessPartnerName] <> '' AND [BusinessPartnerName] <> '---'";
-
-            string fullQuery = "";
-            if (businessPartnerId >= 0)
-            {
-                query += @"
-	AND [BusinessPartnerId] = {0}";
-
-                fullQuery = string.Format(query, businessPartnerId) + @"
-ORDER BY [BusinessPartnerName]";
-            }
-            else
-            {
-                fullQuery = query + @"
-ORDER BY [BusinessPartnerName]";
-            }
-
-            return await GetSqlData<BusinessPartner>(fullQuery);
-        }
-
-
-        public async Task<List<SODetailMaterial>> GetSODetailMaterialData(int soHeaderId = 0) // 
-        {
-            string query = @"
-SELECT ROW_NUMBER() OVER (ORDER BY [SONumber],[SOLineNo],[SOSubLineNo]) AS [Id], *
-FROM (
-SELECT DISTINCT 
-	[SODetailId]
-	,[SoLineNo]
-	,[SoSubLineNo]
-	,[SoSubLineTypeId]
-	--,[SoSubLineType]
-	,[ProductId]
-	,[ProductNo]
-	,[ProductName]
-	,[MaterialId]
-	,[MaterialNo]
-	,[MaterialName]
-	--,[Qty]
-	,[MaterialStatusId]
-	,[MaterialNote]
-	,[SOHeaderId]
-	,[LineTypeName]
-	,[LineTypeGroup]
-	,[ForSoDetailId]
-	,[SalesProgramId]
-	,[ProgramName]
-	,[OrderQty]
-	,[ReceivedQty]
-	,[UOMId]
-	,[Cost]
-	,[Price]
-	,[SONumber]
-	,[BusinessPartnerId_Customer]
-	,[CustomerName]
-FROM [PIMS].[dbo].[SODetailMaterialVw]";
-
-            string fullQuery = "";
-            if (soHeaderId >= 0)
-            {
-                query += @"
-	WHERE [SOHeaderId] = {0}";
-
-                fullQuery = string.Format(query, soHeaderId) + @"
-)x
-ORDER BY [SONumber],[SOLineNo],[SOSubLineNo]";
-            }
-            else
-            {
-                fullQuery = query + @"
-)x
-ORDER BY [SONumber],[SOLineNo],[SOSubLineNo]";
-            }
-
-            return await GetSqlData<SODetailMaterial>(fullQuery);
-        }
-
-        public async Task<List<SODetailMaterial>> GetSODetailMaterialDataExt(int soHeaderId, bool mainLineItemOnly = true, bool showDuty = false) // 
-        {
-            string query = @"SELECT ROW_NUMBER() OVER (ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]) AS [Id]
-	,matView.*
-	,COUNT(sodetask.[SODetailTaskId]) AS TasksCount
-FROM (
-	SELECT DISTINCT 
-		[SODetailMaterialId]
-		,[SODetailId]
-		,[SoLineNo]
-		,[SoSubLineNo]
-		,[SoSubLineTypeId]
-		,[ProductId]
-		,[ProductNo]
-		,[ProductName]
-		,[MaterialId]
-		,[MaterialNo]
-		,[MaterialName]
-		,[MaterialStatusId]
-		,[MaterialNote]
-		,[SOHeaderId]
-		,[LineTypeName]
-		,[LineTypeGroup]
-		,[ForSoDetailId]
-		,[SalesProgramId]
-		,[ProgramName]
-		,[OrderQty]
-		,[ReceivedQty]
-		,[UOMId]
-		,[Cost]
-		,[Price]
-		,[SONumber]
-		,[BusinessPartnerId_Customer]
-		,[CustomerName]
-	FROM [PIMS].[dbo].[SODetailMaterialVw] 
-	WHERE [SOHeaderId] = {0}
-)matView
-	LEFT JOIN [PIMS].[dbo].[SODetailTask] sodetask
-		ON matView.[SODetailId] = sodetask.[SODetailId]
-			AND matView.[SOLineNo] = sodetask.[SOLineNo]
-			AND matView.[MaterialId] = sodetask.[MaterialId]";
-
-            if (mainLineItemOnly || !showDuty)
-            {
-                //WHERE matView.[SoSubLineNo] = 0
-                //	AND matView.[MaterialId] <> 2180 -- DUTY
-                query += @"
-WHERE ";
-                if (mainLineItemOnly)
-                    query += @" matView.[SoSubLineNo] = 0";
-
-                if (!showDuty)
-                {
-                    if (mainLineItemOnly)
-                        query += @"
-    AND ";
-                    query += @" matView.[MaterialId] <> 2180";
-                }
-            }
-
-                query += @"
-GROUP BY
-	matView.[SODetailMaterialId]
-	,matView.[SODetailId]
-	,matView.[SoLineNo]
-	,matView.[SoSubLineNo]
-	,matView.[SoSubLineTypeId]
-	,matView.[ProductId]
-	,matView.[ProductNo]
-	,matView.[ProductName]
-	,matView.[MaterialId]
-	,matView.[MaterialNo]
-	,matView.[MaterialName]
-	,matView.[MaterialStatusId]
-	,matView.[MaterialNote]
-	,matView.[SOHeaderId]
-	,matView.[LineTypeName]
-	,matView.[LineTypeGroup]
-	,matView.[ForSoDetailId]
-	,matView.[SalesProgramId]
-	,matView.[ProgramName]
-	,matView.[OrderQty]
-	,matView.[ReceivedQty]
-	,matView.[UOMId]
-	,matView.[Cost]
-	,matView.[Price]
-	,matView.[SONumber]
-	,matView.[BusinessPartnerId_Customer]
-	,matView.[CustomerName]
-ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]";
-
-            string fullQuery = string.Format(query, soHeaderId);
-
-            return await GetSqlData<SODetailMaterial>(fullQuery);
-        }
-        
-        public async Task<List<SODetailMaterial>> GetSODetailMaterialTasksData(int soHeaderId = 0) //
-        {
-            string query = @"
-SELECT ROW_NUMBER() OVER (ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]) AS [Id]
-	  ,matView.*
-	  ,ISNULL(sodetask.[SODetailTaskId], 0) AS [SODetailTaskId] 
-	  ,ISNULL(sodetask.[TaskId], 0) AS [TaskId] 
-      ,ISNULL(sodetask.[Task], '') AS [Task] 
-      ,ISNULL(sodetask.[TaskStatusId], 0) AS [TaskStatusId] 
-      ,ISNULL(sodetask.[TaskNote], '') AS [TaskNote]  
-
-      ,ISNULL(biztask.[TaskSequence], 0)		AS [TaskSequence]
-      ,ISNULL(biztask.[Required], 0)			AS [Required]
-      ,ISNULL(biztask.[Qty], 0)					AS [TaskQty]
-      ,ISNULL(biztask.[AssignedTo], '')			AS [AssignedTo]
-
-FROM [PIMS].[dbo].[SODetailMaterialVw] matView
-	LEFT JOIN [PIMS].[dbo].[SODetailTask] sodetask
-		ON matView.[SODetailId] = sodetask.[SODetailId]
-			AND matView.[SOLineNo] = sodetask.[SOLineNo]
-			AND matView.[SODetailMaterialId] = sodetask.[SODetailMaterialId]
-	LEFT JOIN [PIMS].[dbo].[SODetail] sod
-		ON sodetask.[SODetailId] = sod.[SODetailId]
-	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
-		ON sod.[SOHeaderId] = soh.[SOHeaderId]
-	LEFT JOIN [PIMS].[dbo].[BusinessPartnerTask] biztask
-		ON soh.[BusinessPartnerId] = biztask.[BusinessPartnerId] AND sodetask.[TaskId] = biztask.[TaskId] ";
-
-            string fullQuery = "";
-            if (soHeaderId >= 0)
-            {
-                query += @"
-	WHERE matView.[SOHeaderId] = {0}";
-
-                fullQuery = string.Format(query, soHeaderId) + @"
-ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]";
-            }
-            else
-            {
-                fullQuery = query + @"
-ORDER BY  CASE WHEN ISNULL(biztask.[TaskSequence], 0) = 0 THEN 1000 ELSE [TaskSequence] END
-    matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]";
-            }
-
-            return await GetSqlData<SODetailMaterial>(fullQuery);
-        }
-
-        public async Task<List<SODetailMaterial>> GetSODetailMaterialTasksData(int soHeaderId, int soDetailId, int materialId) //
-        {
-            string query = @"
-SELECT ROW_NUMBER() OVER (ORDER BY matView.[SONumber],matView.[SOLineNo],matView.[SOSubLineNo]) AS [Id]
-	  ,matView.*
-	  ,ISNULL(sodetask.[SODetailTaskId], 0) AS [SODetailTaskId] 
-	  ,ISNULL(sodetask.[TaskId], 0) AS [TaskId] 
-      ,ISNULL(sodetask.[Task], '') AS [Task] 
-      ,ISNULL(sodetask.[TaskStatusId], 0) AS [TaskStatusId] 
-      ,ISNULL(sodetask.[TaskNote], '') AS [TaskNote]  
-	  
-      ,ISNULL(biztask.[TaskSequence], 0)		AS [TaskSequence]
-      ,ISNULL(biztask.[Required], 0)			AS [Required]
-      ,ISNULL(biztask.[Qty], 0)					AS [TaskQty]
-      ,ISNULL(biztask.[AssignedTo], '')			AS [AssignedTo]
-
-FROM [PIMS].[dbo].[SODetailMaterialVw] matView
-	LEFT JOIN [PIMS].[dbo].[SODetailTask] sodetask
-		ON matView.[SODetailId] = sodetask.[SODetailId]
-			AND matView.[SOLineNo] = sodetask.[SOLineNo]
-			AND matView.[SODetailMaterialId] = sodetask.[SODetailMaterialId]			
-	--LEFT JOIN [PIMS].[dbo].[SODetail] sod
-	--	ON sodetask.[SODetailId] = sod.[SODetailId]
-	--LEFT JOIN [PIMS].[dbo].[SOHeader] soh
-	--	ON sod.[SOHeaderId] = soh.[SOHeaderId]
-	--LEFT JOIN [PIMS].[dbo].[BusinessPartnerTask] biztask
-	--	ON soh.[BusinessPartnerId] = biztask.[BusinessPartnerId] AND sodetask.[TaskId] = biztask.[TaskId] 
-	LEFT JOIN [PIMS].[dbo].[BusinessPartnerTask] biztask
-		ON matView.[BusinessPartnerId_Customer] = biztask.[BusinessPartnerId] AND sodetask.[TaskId] = biztask.[TaskId] 
-
-WHERE matView.[SOHeaderId] = {0}
-	AND matView.[SODetailId] = {1}
-	AND matView.[MaterialId] = {2}
-    AND [SODetailTaskId] > 0
-ORDER BY  CASE WHEN ISNULL(biztask.[TaskSequence], 0) = 0 THEN 1000 ELSE [TaskSequence] END
-	,matView.[SONumber]
-	,matView.[SOLineNo]
-	,matView.[SOSubLineNo]
-";
-
-            string fullQuery = string.Format(query, soHeaderId, soDetailId, materialId);
-            return await GetSqlData<SODetailMaterial>(fullQuery);
+            return await GetSqlData<LAGem_POPortal.Models.Lookup>(fullQuery);
         }
 
         #endregion

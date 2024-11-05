@@ -57,6 +57,14 @@ namespace LAGem_POPortal.Models
         public string? AssignedTo { get; set; }     //BusinessPartnerTask
 
 
-        public int? TasksCount { get; set; }        
+        public DateTime? Requested { get; set; }    // ProductTestTask
+        public string? RequestedBy { get; set; }    // ProductTestTask
+        public DateTime? Received { get; set; }     // ProductTestTask
+        public DateTime? ProcessedDate { get; set; }// ProductTestTask  CASE WHEN...
+        public string? ProcessedBy { get; set; }    // ProductTestTask  CASE WHEN...
+        public string? TestResult { get; set; }     // ProductTestTask  CASE WHEN...
+
+        public int? TasksCount { get; set; }
+        public bool? isSelected { get; set; }
     }
 }

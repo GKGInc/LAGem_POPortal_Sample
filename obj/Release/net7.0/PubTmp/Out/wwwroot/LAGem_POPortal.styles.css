@@ -512,6 +512,154 @@
 [b-osc8vbhg75] .grid-disabled-button {
     pointer-events: none;
 }
+/* _content/LAGem_POPortal/Pages/MaterialsTasksDetailsPage.razor.rz.scp.css */
+[b-68zksg6kwt] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-68zksg6kwt] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-68zksg6kwt] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-68zksg6kwt] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-68zksg6kwt] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-68zksg6kwt] .grid-toolbar-new,
+[b-68zksg6kwt] .grid-toolbar-delete,
+[b-68zksg6kwt] .grid-toolbar-save,
+[b-68zksg6kwt] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-68zksg6kwt] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-68zksg6kwt] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-68zksg6kwt] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-68zksg6kwt] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-68zksg6kwt] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/MaterialsTasksHeaderPage.razor.rz.scp.css */
+[b-jzzyv2fshl] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-jzzyv2fshl] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-jzzyv2fshl] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-jzzyv2fshl] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-jzzyv2fshl] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-jzzyv2fshl] .grid-toolbar-new,
+[b-jzzyv2fshl] .grid-toolbar-delete,
+[b-jzzyv2fshl] .grid-toolbar-save,
+[b-jzzyv2fshl] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-jzzyv2fshl] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-jzzyv2fshl] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-jzzyv2fshl] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-jzzyv2fshl] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-jzzyv2fshl] .grid-disabled-button {
+    pointer-events: none;
+}
 /* _content/LAGem_POPortal/Pages/OverviewPage.razor.rz.scp.css */
 [b-jpelzj0bre] .grid-cell-align-center {
     display: flex;
@@ -806,6 +954,154 @@
 }
 
 [b-cfk90prvvx] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/ProductTasksDetailsPage.razor.rz.scp.css */
+[b-j9hgn0rrss] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-j9hgn0rrss] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-j9hgn0rrss] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-j9hgn0rrss] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-j9hgn0rrss] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-j9hgn0rrss] .grid-toolbar-new,
+[b-j9hgn0rrss] .grid-toolbar-delete,
+[b-j9hgn0rrss] .grid-toolbar-save,
+[b-j9hgn0rrss] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-j9hgn0rrss] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-j9hgn0rrss] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-j9hgn0rrss] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-j9hgn0rrss] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-j9hgn0rrss] .grid-disabled-button {
+    pointer-events: none;
+}
+/* _content/LAGem_POPortal/Pages/ProductTasksHeaderPage.razor.rz.scp.css */
+[b-fo7wivq39y] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-fo7wivq39y] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-fo7wivq39y] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-fo7wivq39y] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-fo7wivq39y] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-fo7wivq39y] .grid-toolbar-new,
+[b-fo7wivq39y] .grid-toolbar-delete,
+[b-fo7wivq39y] .grid-toolbar-save,
+[b-fo7wivq39y] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-fo7wivq39y] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-fo7wivq39y] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-fo7wivq39y] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-fo7wivq39y] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-fo7wivq39y] .grid-disabled-button {
     pointer-events: none;
 }
 /* _content/LAGem_POPortal/Pages/ShipmentsPage.razor.rz.scp.css */
@@ -1250,80 +1546,6 @@
 }
 
 [b-1k0m3z9tyt] .grid-disabled-button {
-    pointer-events: none;
-}
-/* _content/LAGem_POPortal/Pages/SOTasksMaterialsPage.razor.rz.scp.css */
-[b-nuw1uw7ljx] .grid-cell-align-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: -4px;
-    margin-bottom: -4px;
-}
-
-[b-nuw1uw7ljx] .grid-icon {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    min-width: 1rem;
-    min-height: 1rem;
-    background-size: contain;
-    mask-repeat: no-repeat;
-    -webkit-mask-repeat: no-repeat;
-    background-position: center center;
-    background-color: currentColor;
-    vertical-align: middle;
-}
-
-[b-nuw1uw7ljx] .grid-icon-new {
-    -webkit-mask-image: url(../images/icons/new.svg);
-    mask-image: url(../images/icons/new.svg);
-}
-
-[b-nuw1uw7ljx] .grid-icon-add {
-    -webkit-mask-image: url(../images/icons/add.svg);
-    mask-image: url(../images/icons/add.svg);
-}
-
-:: deep .grid-icon-delete[b-nuw1uw7ljx] {
-    -webkit-mask-image: url("../images/icons/delete.svg");
-    mask-image: url("../images/icons/delete.svg");
-}
-
-[b-nuw1uw7ljx] .grid-toolbar-new,
-[b-nuw1uw7ljx] .grid-toolbar-delete,
-[b-nuw1uw7ljx] .grid-toolbar-save,
-[b-nuw1uw7ljx] .grid-toolbar-cancel {
-    background-size: contain;
-    mask-repeat: no-repeat;
-    -webkit-mask-repeat: no-repeat;
-    background-position: center center;
-    background-color: currentColor;
-    height: 16px;
-    width: 16px;
-    opacity: 0.7;
-}
-
-[b-nuw1uw7ljx] .grid-toolbar-new {
-    -webkit-mask-image: url("images/icons/new.svg");
-    mask-image: url("images/icons/new.svg");
-}
-
-[b-nuw1uw7ljx] .grid-toolbar-save {
-    -webkit-mask-image: url("images/icons/save.svg");
-    mask-image: url("images/icons/save.svg");
-}
-
-[b-nuw1uw7ljx] .grid-toolbar-cancel {
-    -webkit-mask-image: url("images/icons/undo.svg");
-    mask-image: url("images/icons/undo.svg");
-}
-
-[b-nuw1uw7ljx] .grid-modified-cell {
-    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
-}
-
-[b-nuw1uw7ljx] .grid-disabled-button {
     pointer-events: none;
 }
 /* _content/LAGem_POPortal/Pages/TasksPage.razor.rz.scp.css */

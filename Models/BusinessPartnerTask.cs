@@ -26,30 +26,33 @@ namespace LAGem_POPortal.Models
         public int? LegacySystemId { get; set; }
 
         public DateTime CreatedOn { get; set; }
-    }
 
-    public class BusinessPartnerTaskExt : BusinessPartnerTask
-    {
         public bool isUsed { get; set; }
-
-        public BusinessPartnerTaskExt(BusinessPartnerTask t)
-        {
-            this.BusinessPartnerTaskId = t.BusinessPartnerTaskId;
-            this.BusinessPartnerId = t.BusinessPartnerId;
-
-            this.TaskId = t.TaskId;
-            this.TaskName = t.TaskName;
-            this.TaskDescription = t.TaskDescription;
-            this.TaskType = t.TaskType;
-
-            this.TaskSequence = t.TaskSequence;
-            this.Required = t.Required;
-            this.Qty = t.Qty;
-            this.AssignedTo = t.AssignedTo;
-
-            this.LegacySystemId = t.LegacySystemId;
-            this.CreatedOn = t.CreatedOn;
-            this.isUsed = false;
-        }
+        public bool? isSelected { get; set; }
     }
+
+    //public class BusinessPartnerTaskExt : BusinessPartnerTask
+    //{
+    //    public bool isUsed { get; set; }
+    //
+    //    public BusinessPartnerTaskExt(BusinessPartnerTask t)
+    //    {
+    //        this.BusinessPartnerTaskId = t.BusinessPartnerTaskId;
+    //        this.BusinessPartnerId = t.BusinessPartnerId;
+    //
+    //        this.TaskId = t.TaskId;
+    //        this.TaskName = t.TaskName;
+    //        this.TaskDescription = t.TaskDescription;
+    //        this.TaskType = t.TaskType;
+    //
+    //        this.TaskSequence = t.TaskSequence;
+    //        this.Required = t.Required;
+    //        this.Qty = t.Qty;
+    //        this.AssignedTo = t.AssignedTo;
+    //
+    //        this.LegacySystemId = t.LegacySystemId;
+    //        this.CreatedOn = t.CreatedOn;
+    //        this.isUsed = false;
+    //    }
+    //}
 }

@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Identity;
 using LAGem_POPortal.Code;
 using LAGem_POPortal.Authentication;
 using LAGem_POPortal.Data;
-using LAGem_POPortal.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 

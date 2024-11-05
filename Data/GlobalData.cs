@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 #nullable disable
 
-namespace LAGem_POPortal.Models {
+namespace LAGem_POPortal.Data
+{
     public partial class GlobalData
     {
         public string firstLoadScreen { get; set; } = "EDIOrdersPage"; //"CustomerSoPage"; // 
