@@ -1,0 +1,73 @@
+[b-du40senswq] .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+[b-du40senswq] .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+[b-du40senswq] .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+[b-du40senswq] .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+:: deep .grid-icon-delete[b-du40senswq] {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+[b-du40senswq] .grid-toolbar-new,
+[b-du40senswq] .grid-toolbar-delete,
+[b-du40senswq] .grid-toolbar-save,
+[b-du40senswq] .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+[b-du40senswq] .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+[b-du40senswq] .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+[b-du40senswq] .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+[b-du40senswq] .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[b-du40senswq] .grid-disabled-button {
+    pointer-events: none;
+}

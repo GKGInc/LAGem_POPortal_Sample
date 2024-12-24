@@ -18,12 +18,12 @@ namespace LAGem_POPortal.Models
     public class EdiOrderDetailData //
     {
         public int Id { get; set; }
-        
-        public int TradingPartnerId { get; set; }   // EdiOrderSummaryVw
-        public string TradingPartnerCode { get; set; } // EdiOrderSummaryVw
-        public string TradingPartnerName { get; set; } // EdiOrderSummaryVw
-        public string PONumber { get; set; }        // EdiOrderSummaryVw
-        public DateTime PODate { get; set; }        
+
+        public int TradingPartnerId { get; set; }       // EdiOrderSummaryVw
+        public string TradingPartnerCode { get; set; }  // EdiOrderSummaryVw
+        public string TradingPartnerName { get; set; }  // EdiOrderSummaryVw
+        public string PONumber { get; set; }            // EdiOrderSummaryVw
+        public DateTime PODate { get; set; }
 
         public string POStatus { get; set; }
         public int ProductId { get; set; }
@@ -41,7 +41,18 @@ namespace LAGem_POPortal.Models
         public int ShipYear { get; set; }
         public int ShipMonth { get; set; }
         public int ShipWeek { get; set; }
+        public DateTime? MondayOfTheWeek { get; set; }
 
         public int ItemsCount { get; set; } = 0;       // EdiOrderSummaryVw.Items
+
+        public int EdiHdrId { get; set; }
+        public int EdiTrnId { get; set; }
+
+        public int SoHeaderId { get; set; }
+        public int SoDetailId { get; set; }
+
+        public int CustTPId { get; set; }
+        public string EDIPOType { get; set; }
+        public string EDITradingPartnerName { get; set; }
     }
 }

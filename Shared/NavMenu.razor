@@ -6,24 +6,37 @@
                 <Authorized>
                     <DxTreeViewNode Name="DataView" Text="Data Views" Expanded="true">
                         <Nodes>
+                            <DxTreeViewNode NavigateUrl="./OrdersMainPage" Text="Orders"
+                                            IconUrl="../images/icons/new.svg"
+                                            IconCssClass="my-style"></DxTreeViewNode>
                             <DxTreeViewNode NavigateUrl="./EDIOrdersPage" Text="EDI Orders"
                                             IconUrl="../images/icons/new.svg"
                                             IconCssClass="my-style"></DxTreeViewNode>
-                            <DxTreeViewNode NavigateUrl="./CustomerSoPage" Text="I2 Orders"
+                            @* <DxTreeViewNode NavigateUrl="./CustomerSoPage" Text="I2 Orders"
                                             IconUrl="../images/icons/new.svg"
-                                            IconCssClass="my-style"></DxTreeViewNode>
+                                            IconCssClass="my-style"></DxTreeViewNode> *@
                             <DxTreeViewNode NavigateUrl="./OverviewPage" Text="Overview"
                                             IconUrl="../images/icons/new.svg"
                                             IconCssClass="my-style"></DxTreeViewNode>
                         </Nodes>
                     </DxTreeViewNode>
 
-                    @* <DxTreeViewNode NavigateUrl="./PODataPage" Text="PO Data"></DxTreeViewNode> *@
-                    @* <DxTreeViewNode NavigateUrl="./SODataPage" Text="SO Data"></DxTreeViewNode> *@
-
-                    <DxTreeViewNode NavigateUrl="./ShipmentsPage" Text="Shipments"
-                                    IconUrl="../images/icons/new.svg"
-                                    IconCssClass="my-style"></DxTreeViewNode>
+                    <DxTreeViewNode Name="DataView" Text="Entries" Expanded="true">
+                        <Nodes>
+                            <DxTreeViewNode NavigateUrl="./ShipmentsPage" Text="Shipments"
+                                            IconUrl="../images/icons/new.svg"
+                                            IconCssClass="my-style"></DxTreeViewNode>
+                            <DxTreeViewNode NavigateUrl="./ProductTestsPage" Text="Product Tests"
+                                            IconUrl="../images/icons/new.svg"
+                                            IconCssClass="my-style"></DxTreeViewNode>
+                            @* <DxTreeViewNode NavigateUrl="./ProductTestsPage_simple" Text="Product Tests (s)"
+                                            IconUrl="../images/icons/new.svg"
+                                            IconCssClass="my-style"></DxTreeViewNode> *@
+                            <DxTreeViewNode NavigateUrl="./ProductTasksPage" Text="Product Tasks"
+                                            IconUrl="../images/icons/new.svg"
+                                            IconCssClass="my-style"></DxTreeViewNode>
+                        </Nodes>
+                    </DxTreeViewNode>
 
                     <DxTreeViewNode Name="Maintenance" Text="Maintenance" Expanded="true">
                         <Nodes>
@@ -38,15 +51,12 @@
                                 </Nodes>
                             </DxTreeViewNode>
 
-                            <DxTreeViewNode Name="SOTasks" Text="SO Tasks" Expanded="true">
+                            <DxTreeViewNode Name="SOTasks" Text="SO/PO Tasks" Expanded="true" Visible="false">
                                 <Nodes>
                                     @* <DxTreeViewNode NavigateUrl="./SOTasksHeaderPage" Text="Assign SO Tasks"
                                                     IconUrl="../images/icons/new.svg"
                                                     IconCssClass="my-style"></DxTreeViewNode> *@
-                                    <DxTreeViewNode NavigateUrl="./ProductTestsHeaderPage" Text="Product Tests"
-                                                    IconUrl="../images/icons/new.svg"
-                                                    IconCssClass="my-style"></DxTreeViewNode>
-                                    <DxTreeViewNode NavigateUrl="./ProductsAndMaterialsTasksHeaderPage" Text="Tasks & Notes"
+                                    <DxTreeViewNode NavigateUrl="./ProductsAndMaterialsTasksPage" Text="Tasks & Notes"
                                                     IconUrl="../images/icons/new.svg"
                                                     IconCssClass="my-style"></DxTreeViewNode>
                                 </Nodes>

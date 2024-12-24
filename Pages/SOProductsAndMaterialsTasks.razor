@@ -1,0 +1,1183 @@
+﻿@page "/SOProductsAndMaterialsTasksPage"
+@using DevExpress.Data.Filtering
+@using DevExpress.Xpo
+@using LAGem_POPortal.Authentication
+@using DevExpress.Blazor;
+@using LAGem_POPortal.Data
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@* @inject UserAccountService userAccountService *@
+
+@using LAGem_POPortal.Models
+@using Microsoft.EntityFrameworkCore
+
+<DxGrid @ref="SOGrid"
+        Data="SOGridData"
+        PagerPosition="GridPagerPosition.Bottom"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        @bind-PageIndex="@ActivePageIndex"
+        FooterDisplayMode="GridFooterDisplayMode.Auto"
+        PageSize="@PageSize"
+        AutoCollapseDetailRow="true"
+        KeyFieldName="SONumber"
+        ValidationEnabled="false"
+        EditMode="GridEditMode.EditRow"
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        ShowSearchBox="@ShowSearchBox"
+        SearchText=""
+        SearchTextParseMode="CurrentSearchTextParseMode"
+        ShowGroupPanel="false"
+        CustomizeElement="Grid_CustomizeElement"
+        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+        ColumnResizeMode="GridColumnResizeMode.NextColumn"
+        TextWrapEnabled="false"
+        HighlightRowOnHover="true">
+    <Columns>
+        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="true" />
+        <DxGridDataColumn FieldName="StartDate" Caption="Customer Ship Date" DisplayFormat="d" />
+        <DxGridDataColumn FieldName="CustomerName" Caption="Customer" ReadOnly="true" />
+        <DxGridDataColumn FieldName="CountryCode" Caption="Country of Origin" ReadOnly="true" />
+
+        <DxGridDataColumn FieldName="TotalCost" Caption="Total Cost" DisplayFormat="n3" ReadOnly="true" />
+        <DxGridDataColumn FieldName="TotalPrice" Caption="Total Price" DisplayFormat="n3" ReadOnly="true" />
+
+        <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" Visible="true" />
+        <DxGridDataColumn FieldName="StartDate" Caption="Start Date" DisplayFormat="d" Visible="true" />
+        <DxGridDataColumn FieldName="EndDate" Caption="End Date" DisplayFormat="d" Visible="true" />
+
+        <DxGridCommandColumn Width="150px" Visible="false"
+                             EditButtonVisible="true"
+                             CancelButtonVisible="true"
+                             SaveButtonVisible="true"
+                             NewButtonVisible="true" />
+    </Columns>
+    <DetailRowTemplate Context="SODataFormContext">
+            @{
+        SOData = (SOData)SODataFormContext.DataItem;
+        soHeaderId = SOData.SOHeaderId;
+        businessPartnerId_Customer = SOData.BusinessPartnerId_Customer;
+
+        LoadGridData(SOData.SOHeaderId);
+        <div class="mb-2">
+            @headerNote
+        </div>
+
+        <DxFormLayout CssClass="w-100">
+            <DxFormLayoutItem Context="SODetailData" ColSpanMd="4" CssClass="fl">
+
+                <DxGrid @ref="SODetailGrid"
+                        Data="SODetailGridData"
+                        CssClass="@gridCss"
+                        KeyFieldName="Id"
+                        Name="MainGrid"
+                        PagerPosition="GridPagerPosition.Bottom"
+                        PageSizeSelectorVisible="true"
+                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+                        PageSizeSelectorAllRowsItemVisible="true"
+                        PageSize="@PageSize"
+                        @bind-PageIndex="@grid1ActivePageIndex"
+                        AutoFitColumnWidths="true"
+                        AutoCollapseDetailRow="@AutoCollapseDetailRow"
+                        AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
+                        ColumnResizeMode="@CurrentColumnResizeMode"
+                        EditMode="GridEditMode.EditRow"
+                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                        FooterDisplayMode="GridFooterDisplayMode.Auto"
+                        ShowGroupPanel="@ShowGroupPanel"
+                        ShowSearchBox="@ShowSearchBox"
+                        SearchText=""
+                        SearchTextParseMode="CurrentSearchTextParseMode"
+                        CustomizeElement="Grid_CustomizeElement"
+                        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                        EditModelSaving="Grid_EditModelSaving"
+                        DataItemDeleting="Grid_DataItemDeleting"
+                        CustomizeEditModel="Grid_CustomizeEditModel"
+                        RowClick="Grid_OnRowClick"
+                        HighlightRowOnHover="true"
+                        TextWrapEnabled="true"
+                        ValidationEnabled="false">
+                    <Columns>
+                        <DxGridDataColumn FieldName="SOLineNo" Caption="Line No" DisplayFormat="n0" ReadOnly="true" Visible="true" Width="30" MinWidth="30" />
+                        <DxGridDataColumn FieldName="SOSubLineNo" Caption="SubLine No" DisplayFormat="n0" ReadOnly="true" Visible="false" />
+                        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Visible="true" MinWidth="60" />
+                        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" Visible="false" />
+                        <DxGridDataColumn FieldName="MaterialId" Caption="Material Id" DisplayFormat="n0" ReadOnly="true" Visible="false" />
+                        <DxGridDataColumn FieldName="MaterialNo" Caption="Material No" ReadOnly="true" MinWidth="60" />
+                        <DxGridDataColumn FieldName="MaterialName" Caption="Material Desc" ReadOnly="true" Visible="false" />
+
+                        <DxGridCommandColumn Width="150px" Visible="false"
+                                             DeleteButtonVisible="false"
+                                             EditButtonVisible="false"
+                                             CancelButtonVisible="false"
+                                             SaveButtonVisible="false"
+                                             NewButtonVisible="false" />
+                    </Columns>
+                </DxGrid>
+
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Context="MaterialSummaryList" ColSpanMd="8" CssClass="fl">
+
+                <DxGrid @ref="MaterialSummaryGrid"
+                        Data="MaterialSummaryGridData"
+                        CssClass="my-partnertasks-grid"
+                        PopupEditFormCssClass="my-popup-style"
+                        KeyFieldName="Id"
+                        Name="MaterialSummaryGrid"
+                        PagerPosition="GridPagerPosition.Bottom"
+                        PageSizeSelectorVisible="true"
+                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+                        PageSizeSelectorAllRowsItemVisible="true"
+                        PageSize="@PageSize"
+                        @bind-PageIndex="@grid2ActivePageIndex"
+                        AutoFitColumnWidths="true"
+                        AutoCollapseDetailRow="@AutoCollapseDetailRow"
+                        AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
+                        ColumnResizeMode="@CurrentColumnResizeMode"
+                        EditMode="GridEditMode.EditRow"
+                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                        FooterDisplayMode="GridFooterDisplayMode.Auto"
+                        ShowGroupPanel="@ShowGroupPanel"
+                        ShowSearchBox="@ShowSearchBox"
+                        SearchText=""
+                        SearchTextParseMode="CurrentSearchTextParseMode"
+                        SelectionMode="GridSelectionMode.Multiple"
+                        @bind-SelectedDataItem="@selectedDataItem"
+                        SelectAllCheckboxMode="CurrentSelectAllCheckboxMode"
+                        SelectedDataItems="@SelectedMaterialsDataItems"
+                        SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged<SODetailMaterial>(selectedItems))"
+                        CustomizeElement="Grid_CustomizeElement"
+                        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                        EditModelSaving="Grid_EditModelSaving"
+                        DataItemDeleting="Grid_DataItemDeleting"
+                        CustomizeEditModel="Grid_CustomizeEditModel"
+                        RowClick="Grid_OnRowClick"
+                        HighlightRowOnHover="true"
+                        TextWrapEnabled="true"
+                        ValidationEnabled="false">
+                    <Columns>
+                        @* <DxGridCommandColumn Context="AddTaskContext" Width="40px">
+                        <HeaderTemplate>
+                        <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                        <div class="grid-cell-align-center">
+                        <DxButton IconCssClass="grid-icon grid-icon-add"
+                        RenderStyle="ButtonRenderStyle.Link" aria-label="Add"
+                        Click="@(() => AddEntryToMaterialTasksGridData((BusinessPartnerTaskExt)AddTaskContext.DataItem))" />
+                        </div>
+                        </CellDisplayTemplate>
+                        </DxGridCommandColumn> *@
+
+                        <DxGridSelectionColumn Width="75px" />
+                        <DxGridDataColumn FieldName="isSelected" Caption="Select" ReadOnly="false" Visible="false" Width="50" />
+                        <DxGridDataColumn FieldName="LineTypeName" Caption="Item Type" ReadOnly="true" Width="100" MinWidth="100" />
+                        <DxGridDataColumn FieldName="MaterialNo" Caption="Item No" ReadOnly="true" Width="100" MinWidth="100" />
+                        <DxGridDataColumn FieldName="MaterialName" Caption="Item Name" ReadOnly="true" MinWidth="100" />
+                        <DxGridDataColumn FieldName="ProgramName" Caption="Program Name" ReadOnly="true" MinWidth="100" />
+                        <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" ReadOnly="true" MinWidth="100" />
+                        <DxGridDataColumn FieldName="TasksCount" Caption="Tasks" DisplayFormat="n0" ReadOnly="false" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" Visible="true" />
+                        @* <DxGridDataColumn FieldName="TaskSequence" Caption="Sequence" ReadOnly="true" Width="60" SortIndex="0" SortOrder="GridColumnSortOrder.Ascending" /> *@
+                    </Columns>
+                </DxGrid>
+
+                @* <div class="d-flex flex-row align-items-center h-100">
+                <DxCheckBox Checked="addtoAllMaterials" CheckedChanged="new Func<bool, Task>(AddtoAllMaterials_CheckedChanged)" Enabled="!editOnInsert">Add Task to All Materials</DxCheckBox>
+                </div> *@
+            </DxFormLayoutItem>
+            @* <DxFormLayoutItem Caption="Template Row Data:" ColSpanMd="12">
+            </DxFormLayoutItem> *@
+        </DxFormLayout>
+        <DxFormLayout CssClass="w-100">
+            <DxFormLayoutItem Context="BusinessParnerTasks" ColSpanMd="5" CssClass="fl">
+
+                <DxGrid @ref="BusinessPartnerGrid"
+                        Data="BusinessPartnerGridData"
+                        CssClass="@gridCss"
+                        KeyFieldName="BusinessPartnerTaskId"
+                        Name="BusinessPartnerGrid"
+                        PagerPosition="GridPagerPosition.Bottom"
+                        PageSizeSelectorVisible="true"
+                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+                        PageSizeSelectorAllRowsItemVisible="true"
+                        PageSize="@PageSize"
+                        @bind-PageIndex="@grid3ActivePageIndex"
+                        AutoFitColumnWidths="true"
+                        AutoCollapseDetailRow="@AutoCollapseDetailRow"
+                        AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
+                        ColumnResizeMode="@CurrentColumnResizeMode"
+                        EditMode="GridEditMode.EditRow"
+                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                        FooterDisplayMode="GridFooterDisplayMode.Auto"
+                        ShowGroupPanel="@ShowGroupPanel"
+                        ShowSearchBox="@ShowSearchBox"
+                        SearchText=""
+                        SearchTextParseMode="CurrentSearchTextParseMode"
+                        SelectionMode="GridSelectionMode.Multiple"
+                        SelectAllCheckboxMode="CurrentSelectAllCheckboxMode"
+                        SelectedDataItems="@SelectedBusinessPartnerTasks"
+                        SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged<BusinessPartnerTask>(selectedItems))"
+                        CustomizeElement="Grid_CustomizeElement"
+                        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                        EditModelSaving="Grid_EditModelSaving"
+                        DataItemDeleting="Grid_DataItemDeleting"
+                        CustomizeEditModel="Grid_CustomizeEditModel"
+                        RowClick="Grid_OnRowClick"
+                        HighlightRowOnHover="true"
+                        TextWrapEnabled="true"
+                        ValidationEnabled="false">
+                    <Columns>
+                        @* <DxGridCommandColumn Context="AddTaskContext" Width="40px">
+                        <HeaderTemplate>
+                        <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                        <div class="grid-cell-align-center">
+                        <DxButton IconCssClass="grid-icon grid-icon-add"
+                        RenderStyle="ButtonRenderStyle.Link" aria-label="Add"
+                        Click="@(() => AddEntryToMaterialTasksGridData((BusinessPartnerTaskExt)AddTaskContext.DataItem))" />
+                        </div>
+                        </CellDisplayTemplate>
+                        </DxGridCommandColumn> *@
+
+                        <DxGridSelectionColumn Width="75px" />
+                        <DxGridDataColumn FieldName="isSelected" Caption="Select" ReadOnly="false" Visible="false" Width="50" />
+
+                        <DxGridDataColumn FieldName="TaskName" Caption="Task Name" ReadOnly="true" Width="100" MinWidth="100" />
+                        <DxGridDataColumn FieldName="TaskDescription" Caption="Task Description" ReadOnly="true" MinWidth="100" />
+                        <DxGridDataColumn FieldName="TaskType" Caption="Task Type" ReadOnly="true" Width="100" MinWidth="100" />
+
+                        <DxGridDataColumn FieldName="Qty" Caption="Qty" ReadOnly="true" Width="50" />
+                        <DxGridDataColumn FieldName="AssignedTo" Caption="AssignedTo" ReadOnly="true" MinWidth="100" />
+                        <DxGridDataColumn FieldName="Required" Caption="Required" ReadOnly="true" Width="50" />
+                    </Columns>
+                </DxGrid>
+
+            </DxFormLayoutItem>
+
+            <DxFormLayoutItem Context="MaterialTasksList" ColSpanMd="7" CssClass="fl">
+
+                <DxGrid @ref="MaterialTasksGrid"
+                        Data="MaterialTasksGridData"
+                        CssClass="my-partnertasks-grid"
+                        PopupEditFormCssClass="my-popup-style"
+                        KeyFieldName="TaskId"
+                        Name="MaterialTasksGrid"
+                        PagerPosition="GridPagerPosition.Bottom"
+                        PageSizeSelectorVisible="true"
+                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+                        PageSizeSelectorAllRowsItemVisible="true"
+                        PageSize="@PageSize"
+                        @bind-PageIndex="@grid4ActivePageIndex"
+                        AutoFitColumnWidths="true"
+                        AutoCollapseDetailRow="@AutoCollapseDetailRow"
+                        AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
+                        ColumnResizeMode="@CurrentColumnResizeMode"
+                        EditMode="GridEditMode.EditRow"
+                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                        FooterDisplayMode="GridFooterDisplayMode.Auto"
+                        ShowGroupPanel="@ShowGroupPanel"
+                        ShowSearchBox="@ShowSearchBox"
+                        SearchText=""
+                        SearchTextParseMode="CurrentSearchTextParseMode"
+                        SelectionMode="GridSelectionMode.Multiple"
+                        SelectAllCheckboxMode="CurrentSelectAllCheckboxMode"
+                        SelectedDataItems="@SelectedMaterialTasks"
+                        SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged<ProductMaterialTask>(selectedItems))"
+                        CustomizeElement="Grid_CustomizeElement"
+                        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                        EditModelSaving="Grid_EditModelSaving"
+                        DataItemDeleting="Grid_DataItemDeleting"
+                        CustomizeEditModel="Grid_CustomizeEditModel"
+                        HighlightRowOnHover="true"
+                        TextWrapEnabled="true"
+                        ValidationEnabled="false">
+                    <Columns>
+                        @* <DxGridCommandColumn Context="AddTaskContext" Width="40px">
+                        <HeaderTemplate>
+                        <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                        <div class="grid-cell-align-center">
+                        <DxButton IconCssClass="grid-icon grid-icon-add"
+                        RenderStyle="ButtonRenderStyle.Link" aria-label="Add"
+                        Click="@(() => AddEntryToMaterialTasksGridData((BusinessPartnerTaskExt)AddTaskContext.DataItem))" />
+                        </div>
+                        </CellDisplayTemplate>
+                        </DxGridCommandColumn> *@
+
+                        <DxGridSelectionColumn Width="75px" />
+                        <DxGridDataColumn FieldName="isSelected" Caption="Select" ReadOnly="false" Visible="false" Width="50" />
+
+                        <DxGridDataColumn FieldName="TaskName" Caption="Task Name" ReadOnly="true" Width="100" MinWidth="120" />
+                        <DxGridDataColumn FieldName="TaskDescription" Caption="Task Description" ReadOnly="true" MinWidth="100" />
+                        <DxGridDataColumn FieldName="OrigTaskType" Caption="Task Type" ReadOnly="true" Width="100" MinWidth="100" />
+
+                        <DxGridDataColumn FieldName="Qty" Caption="Qty" ReadOnly="true" Width="80" />
+                        <DxGridDataColumn FieldName="OrigTaskAssignedTo" Caption="AssignedTo" ReadOnly="true" MinWidth="100" />
+                        <DxGridDataColumn FieldName="OrigTaskRequired" Caption="Required" ReadOnly="true" Width="60" />
+                    </Columns>
+                </DxGrid>
+
+            </DxFormLayoutItem>
+            @* <DxFormLayoutItem Caption="Template Row Data:" ColSpanMd="12">
+            </DxFormLayoutItem> *@
+        </DxFormLayout>
+        }
+    </DetailRowTemplate>
+</DxGrid>
+
+<style>
+    .highlighted-item > td {
+        background-color: rgba(245, 198, 203, 0.5);
+    }
+
+    .dx-datagrid-headers {
+        white-space: normal;
+    }
+
+    .dx-datagrid-nowrap.dx-datagrid-headers .dx-header-row > td > .dx-datagrid-text-content {
+        white-space: normal;
+    }
+
+    .hide-toolbar .dxbl-grid-toolbar-container {
+        display: none;
+    }
+
+    .my-popup-style {
+        min-width: 1200px;
+        min-height: 450px;
+    }
+
+    .my-partnertasks-grid .dxbl-fl-ctrl dxbl-fl-ctrl-nc {
+        margin-top: 0px;
+    }
+
+    .fl > div {
+        margin-top: 0 !important;
+    }
+</style>
+
+@code {
+    // ============================================================ \\
+
+    #region Variables
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    // [Parameter]
+    public SOData SOData { get; set; } // from SOTasksHeaderPage
+
+    IGrid SOGrid { get; set; }
+
+    DxGrid SODetailGrid { get; set; }
+    DxGrid MaterialSummaryGrid { get; set; }
+    DxGrid BusinessPartnerGrid { get; set; }
+    DxGrid MaterialTasksGrid { get; set; }
+
+    IEnumerable<SOData> SOGridData { get; set; }
+    IEnumerable<SODetailMaterial> SODetailGridData { get; set; }
+    IEnumerable<SODetailMaterial> MaterialSummaryGridData { get; set; } // Product & Material
+    IEnumerable<BusinessPartnerTask> BusinessPartnerGridData { get; set; }
+    IEnumerable<ProductMaterialTask> MaterialTasksGridData { get; set; }
+
+    Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
+        { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
+        { "Group Words By Or", GridSearchTextParseMode.GroupWordsByOr },
+        { "Exact Match", GridSearchTextParseMode.ExactMatch }
+    };
+    void ChangeSearchMode(string key)
+    {
+        CurrentSearchTextParseModeDisplayText = key;
+        CurrentSearchTextParseMode = SearchTextParseModes[key];
+    }
+    string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
+    GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
+
+    GridColumnResizeMode CurrentColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer; // GridColumnResizeMode.NextColumn;
+    string CurrentColumnResizeModeDisplayText { get; set; } = "Next Column";
+    Dictionary<string, GridColumnResizeMode> GridColumnResizeModes { get; } = new Dictionary<string,
+    GridColumnResizeMode>{
+        { "Disabled", GridColumnResizeMode.Disabled },                  //A user cannot resize columns.
+        { "Next Column", GridColumnResizeMode.NextColumn },             //When a user resizes a column, the width of the column to the right changes, but the Grid's total width does not change.
+        { "Columns Container", GridColumnResizeMode.ColumnsContainer }  //When a user resizes a column, all other columns retain width settings, but the width of the entire column container changes proportionally.
+    };
+    void ChangeResizeMode(string key)
+    {
+        CurrentColumnResizeModeDisplayText = key;
+        CurrentColumnResizeMode = GridColumnResizeModes[key];
+    }
+    bool usePopupEditForm { get; set; } = true;
+    GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+
+    //IReadOnlyList<object> SelectedDataItems { get; set; }
+    IReadOnlyList<object> SelectedMaterialsDataItems { get; set; }
+    IReadOnlyList<object> SelectedBusinessPartnerTasks { get; set; }
+    IReadOnlyList<object> SelectedMaterialTasks { get; set; }
+    IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
+    GridSelectAllCheckboxMode CurrentSelectAllCheckboxMode { get; set; }
+
+    Dictionary<string, string[]> GroupInfo { get; } = new Dictionary<string, string[]> {
+        { "SOLineNo", new string[] { "SOLineNo" } }
+    };
+    string CurrentGroupInfoKey { get; set; } = "SOLineNo";
+    bool ShowGroupPanel { get; set; } = false;
+    bool ShowSearchBox { get; set; } = false;
+
+    bool AutoCollapseDetailRow { get; set; } = true;
+    bool AutoExpandAllGroupRows { get; set; } = true;
+    bool TextWrapEnabled = true;
+    bool WordWrapEnabled = false;
+
+    int ActivePageIndex { get; set; } = 0;
+    int PageCount { get; set; } = 0;
+    int TotalRecords { get; set; } = 0;
+    int PageSize { get; set; } = 15;
+    //int ActivePageIndex { get; set; } = 0;
+    int grid1ActivePageIndex { get; set; } = 0;
+    int grid2ActivePageIndex { get; set; } = 0;
+    int grid3ActivePageIndex { get; set; } = 0;
+    int grid4ActivePageIndex { get; set; } = 0;
+
+    bool AutoFitColWidths { get; set; } = true;
+    bool editOnInsert { get; set; } = false;
+    bool filteringMainData { get; set; } = false;
+    bool showToolbar { get; set; } = false;
+    string gridCss => !showToolbar ? "hide-toolbar my-partnertasks-grid" : "my-partnertasks-grid";
+    DateTime blankDate { get; set; } = new DateTime(1800, 1, 1);
+    CriteriaOperator gridFilterCriteria { get; set; }
+    object selectedDataItem { get; set; }
+
+    bool isMainGridAutoFitPending { get; set; } = true;
+    bool isSODetailGridAutoFitPending { get; set; } = true;
+    bool isMaterialSummaryGridAutoFitPending { get; set; } = true;
+    bool isBusinessPartnerGridAutoFitPending { get; set; } = true;
+    bool isMaterialTasksGridAutoFitPending { get; set; } = true;
+
+    int soHeaderId { get; set; } = 0;
+    int businessPartnerId_Customer { get; set; } = 0;
+    int materialIdSelected { get; set; } = 0;
+    SODetailMaterial selectedRow { get; set; }
+    BusinessPartnerTask? addTask { get; set; }
+    string headerNote { get; set; } = "";
+
+    bool useAssignedToDropdownList { get; set; } = true;
+    List<string> assignedToListData { get; set; } = new List<string>();        
+    bool displayUseDropdownListToggle { get; set; } = true;
+    bool addtoAllMaterials { get; set; } = false;
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Constructors/Page Functions
+
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        isMainGridAutoFitPending = true;
+        isSODetailGridAutoFitPending = true;
+        isMaterialSummaryGridAutoFitPending = true;
+        isBusinessPartnerGridAutoFitPending = true;
+        isMaterialTasksGridAutoFitPending = true;
+
+        SqlData sqlData = new SqlData();
+        SOGridData = await sqlData.GetSOData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task; // Waits for grid data to load
+                                      // Grid.ExpandDetailRow(0);
+        }
+
+        if (SOGrid!= null && isMainGridAutoFitPending)
+        {
+            isMainGridAutoFitPending = false;
+            await SOGrid.WaitForDataLoadAsync();
+            SOGrid.AutoFitColumnWidths();
+        }
+        if (SODetailGrid != null && isSODetailGridAutoFitPending)
+        {
+            isSODetailGridAutoFitPending  = false;
+            await SODetailGrid.WaitForDataLoadAsync();
+            SODetailGrid.AutoFitColumnWidths();
+        }
+        if (MaterialSummaryGrid != null && isMaterialSummaryGridAutoFitPending)
+        {
+            isMaterialSummaryGridAutoFitPending = false;
+            await MaterialSummaryGrid.WaitForDataLoadAsync();
+            MaterialSummaryGrid.AutoFitColumnWidths();
+        }
+        if (BusinessPartnerGrid != null && isBusinessPartnerGridAutoFitPending)
+        {
+            isBusinessPartnerGridAutoFitPending = false;
+            await BusinessPartnerGrid.WaitForDataLoadAsync();
+            BusinessPartnerGrid.AutoFitColumnWidths();
+        }
+        if (MaterialTasksGrid != null && isMaterialTasksGridAutoFitPending)
+        {
+            isMaterialTasksGridAutoFitPending = false;
+            await MaterialTasksGrid.WaitForDataLoadAsync();
+            MaterialTasksGrid.AutoFitColumnWidths();
+        }
+    }
+
+    public void Dispose()
+    {
+        // Northwind?.Dispose();
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Load/Refresh Functions
+
+    void Grid_FitWidths()
+    {
+        //StateHasChanged();
+        //Grid.AutoFitColumnWidths();
+    }
+
+    void ColumnChooserButton_Click()
+    {
+        //Grid.ShowColumnChooser();
+    }
+
+    async void RefreshData_Click()
+    {
+        SqlData sqlData = new SqlData();
+        //SODetailGridData = await sqlData.GetCustomerSoPoDetailData(SOData.SOHeaderId);
+        SODetailGridData = await sqlData.GetSODetailMaterialDataExt(SOData.SOHeaderId);
+        @* SODetailMaterialTasksData = await sqlData.GetSODetailMaterialTasksData(SOData.SOHeaderId);
+
+        List<BusinessPartnerTask> baseTasksList = await sqlData.GetBusinessPartnerTaskList(businessPartnerId_Customer);
+        List<BusinessPartnerTaskExt> newTasksList = new List<BusinessPartnerTaskExt>();
+        foreach (BusinessPartnerTask task in baseTasksList)
+        {
+            newTasksList.Add(new BusinessPartnerTaskExt(task));
+        }
+        TasksGridData = newTasksList; *@
+
+        //SODetailGrid.Reload();
+        //TasksGrid.Reload();
+    }
+
+    async Task UsePopupEditForm_CheckedChanged(bool value)
+    {
+        //usePopupEditForm = value;
+        //await Grid.CancelEditAsync();
+    }
+
+    async Task UseAssignedToDropdownList_CheckedChanged(bool value)
+    {
+        useAssignedToDropdownList = value;
+    }
+
+    async Task AddtoAllMaterials_CheckedChanged(bool value)
+    {
+        addtoAllMaterials = value;
+    }
+
+    void SyncBusinessPartnerTasks()
+    {
+        @* if (filteringMainData)
+        {
+            foreach (BusinessPartnerTaskExt task in TasksGridData)
+            {
+                task.isUsed = (GridData.Where(x => x.BusinessPartnerId_Customer == businessPartnerId_Customer && x.TaskId == task.TaskId).Count() > 0) ? true : false;
+            }
+        }
+        else
+        {
+            foreach (BusinessPartnerTaskExt task in TasksGridData)
+            {
+                task.isUsed = (GridData.Where(x => x.TaskId == task.TaskId).Count() > 0) ? true : false;
+            }
+        }
+
+        TasksGrid.Reload(); *@
+    }
+
+    async void LoadGridData(int soHeaderId)
+    {
+        SqlData sqlData = new SqlData();
+        //SODetailGridData = await sqlData.GetSODetailMaterialDataExt(SOData.SOHeaderId);
+        ////Grid.Reload();
+                
+        SODetailGridData = await sqlData.GetSODetailMaterialData(soHeaderId, false);
+        MaterialSummaryGridData = await sqlData.GetSODetailProductAndMaterialSummaryData(soHeaderId, false);
+
+        BusinessPartnerGridData = await sqlData.GetBusinessPartnerTaskList(businessPartnerId_Customer);
+        MaterialTasksGridData = await sqlData.GetMaterialTasks(soHeaderId);
+
+        await InvokeAsync(StateHasChanged); // <-- refreshes
+    }
+
+    //async void LoadMaterialTasksGridData(int soHeaderId, int soDetailId, int materialId)
+    async void LoadMaterialTasksGridData(SODetailMaterial materialRow)
+    {
+        @* SqlData sqlData = new SqlData();
+        MaterialTasksGridData = await sqlData.GetSODetailMaterialTasksData(materialRow.SOHeaderId, materialRow.SODetailId, materialRow.MaterialId);
+        headerNote = "Material No: " + materialRow.MaterialNo + " (" + materialRow.TasksCount + ")";
+
+        foreach (BusinessPartnerTaskExt task in TasksGridData)
+        {
+            task.isUsed = (MaterialTasksGridData.Where(x => x.BusinessPartnerId_Customer == businessPartnerId_Customer && x.TaskId == task.TaskId).Count() > 0) ? true : false;
+        } *@
+
+        await InvokeAsync(StateHasChanged); // <-- refreshes
+
+        @* MaterialTasksGrid.Reload();
+        await MaterialTasksGrid.WaitForDataLoadAsync();
+        MaterialTasksGrid.AutoFitColumnWidths(); 
+
+        var criteria = new InOperator("SODetailId", new int[] { materialRow.SODetailId });
+        gridFilterCriteria = criteria;
+        if (MaterialTasksGrid != null && MaterialTasksGridData != null)
+            MaterialTasksGrid.SetFilterCriteria(gridFilterCriteria); *@
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Main Grid Functions
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.Grid.Data != null && e.Grid.Data.GetType().GetGenericArguments().Single() == typeof(SODetailMaterial))
+        {
+            if (e.Grid.KeyFieldName == "Id" && e.ElementType == GridElementType.DataRow)
+            {
+                try
+                {
+                    var cols = e.Grid.GetColumns();
+
+                    if (e.Grid.GetColumns().Where(x => x.Caption == "Item Type").Count() > 0)
+                    {
+                        if (e.Grid.GetRowValue(e.VisibleIndex, "LineTypeName").ToString() == "Product")
+                            e.CssClass = "highlighted-item";
+                        else
+                            e.Style = "opacity: 0.5";
+                    }
+                    else
+                    {
+                        if ((int)e.Grid.GetRowValue(e.VisibleIndex, "SOSubLineNo") == 0)
+                            e.CssClass = "highlighted-item";
+                        else
+                            e.Style = "opacity: 0.5";
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+        }
+        if (e.Grid.Data != null && e.Grid.Data.GetType().GetGenericArguments().Single() == typeof(BusinessPartnerTask))
+        {
+
+        }
+        if (e.Grid.Data != null && e.Grid.Data.GetType().GetGenericArguments().Single() == typeof(ProductMaterialTask))
+        {
+
+        }
+
+        //if (e.Grid.KeyFieldName == "TaskId" && e.ElementType == GridElementType.DataRow && (System.Boolean)e.Grid.GetRowValue(e.VisibleIndex, "isUsed") == true)
+        //{
+        //    e.Style = "opacity: 0.5";
+        //}
+        //if (e.Grid.KeyFieldName == "Id" && e.ElementType == GridElementType.DataRow && (int)e.Grid.GetRowValue(e.VisibleIndex, "TasksCount") > 0)
+        //{
+        //    e.CssClass = "highlighted-item";
+        //}
+
+        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
+        // {
+        //     e.Style = "font-weight: 800";
+        // }
+        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
+        // {
+        //     e.Style = "font-weight: 800";
+        // }
+        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
+        // {
+        //     decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
+        //     if (units > 100)
+        //         e.Style = "color: red";
+        // }
+    }
+    void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
+    {
+        // string[] dateList = new string[] { "SODate", "StartDate", "EndDate", "ShipmentDate", "ShipToETA" };
+        // if (dateList.Contains(e.FieldName))            
+        if (e.Value.GetType() == typeof(DateTime))
+        {
+            if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+                e.DisplayText = "";
+        }
+    }
+
+    void Grid_OnRowClick(GridRowClickEventArgs e)
+    {
+        //Alert = $"Clicked row index: {e.VisibleIndex}. Corresponding date: '{e.Grid.GetRowValue(e.VisibleIndex, "Date")}'";
+        //int subLineNo = (int)e.Grid.GetRowValue(e.VisibleIndex, "SOSubLineNo");
+        //if (subLineNo == 0)
+        //{
+        //}
+
+        if (e.Grid.Data != null && e.Grid.Data.GetType().GetGenericArguments().Single() == typeof(SODetailMaterial))
+        {
+            var cols = e.Grid.GetColumns();
+
+            if (e.Grid.GetColumns().Where(x => x.Caption == "Line No").Count() > 0)
+            {
+                int productId = (int)e.Grid.GetRowValue(e.VisibleIndex, "ProductId");
+                int materialId = (int)e.Grid.GetRowValue(e.VisibleIndex, "MaterialId");
+
+                SODetailMaterial? soItem = MaterialSummaryGridData.Where(x => x.MaterialId == materialId).FirstOrDefault();
+
+                if (soItem != null)
+                {
+                    selectedDataItem = soItem;
+                }
+            }
+            else
+            {
+                int materialId = (int)e.Grid.GetRowValue(e.VisibleIndex, "MaterialId");
+                // filter
+                materialIdSelected = materialId;
+
+                var criteria = new InOperator("MaterialId", new int[] { materialId });
+                gridFilterCriteria = criteria;
+                if (MaterialTasksGrid != null && MaterialTasksGridData != null)
+                    MaterialTasksGrid.SetFilterCriteria(gridFilterCriteria);
+            }
+        }
+
+        if (e.Grid.Data != null && e.Grid.Data.GetType().GetGenericArguments().Single() == typeof(BusinessPartnerTask))
+        {
+
+        }
+
+        if (e.Grid.Data != null && e.Grid.Data.GetType().GetGenericArguments().Single() == typeof(ProductMaterialTask))
+        {
+
+        }
+    }
+    void OnSelectedDataItemsChanged<T>(IReadOnlyList<object> selectedDataItems)
+    {
+        Type typeParameterType = typeof(T);
+
+        //SelectedDataItems = selectedDataItems;
+
+        //onTicketSelectionChanged.InvokeAsync(selectedDataItems);
+
+        if (typeParameterType == typeof(SODetailMaterial))
+        {
+            foreach (SODetailMaterial item in selectedDataItems.Cast<SODetailMaterial>())
+            {
+                //item.isSelected = 
+            }
+        }
+        if (typeParameterType == typeof(BusinessPartnerTask))
+        {
+
+        }
+        if (typeParameterType == typeof(ProductMaterialTask))
+        {
+
+        }
+
+        @* foreach (ShippingData ship in selectedDataItems.Cast<ShippingData>())
+        {
+            if (ship.ShipmentQty == 0)
+                ship.ShipmentQty = ship.OrderQty;
+        } *@
+    }
+
+    async Task Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            if (e.EditModel.GetType() == typeof(SODetailMaterial))
+            {
+                var newObject = (SODetailMaterial)e.EditModel;
+
+                //newObject.SODetailTaskId = (GridData.Count() == 0) ? 1 : GridData.Where(x => x.BusinessPartnerTaskId > 0).Select(x => x.BusinessPartnerTaskId).Max() + 1;
+
+                if (addTask == null)
+                {
+                    @* newObject.SODetailTaskId = 0; // ((MAX)SODetailTaskId) + 1
+                    newObject.SODetailMaterialId = selectedRow.SODetailMaterialId;
+                    newObject.SODetailId = selectedRow.SODetailId;
+                    newObject.SOLineNo = selectedRow.SOLineNo;
+                    newObject.SOSubLineNo = selectedRow.SOSubLineNo;
+                    newObject.SoSubLineTypeId = selectedRow.SoSubLineTypeId;
+                    newObject.SoSubLineType = selectedRow.SoSubLineType;
+                    newObject.ProductId = selectedRow.ProductId;
+                    newObject.MaterialId = selectedRow.MaterialId;
+                    newObject.Qty = selectedRow.Qty;
+
+                    newObject.TaskId = 0;
+                    newObject.Task = "";
+                    newObject.TaskStatusId = 0;
+                    newObject.TaskNote = "";
+                    newObject.LegacySystemId = 0; *@
+                }
+                else
+                {
+                    @* newObject.SODetailTaskId = 0; // ((MAX)SODetailTaskId) + 1
+                    newObject.SODetailMaterialId = selectedRow.SODetailMaterialId;
+                    newObject.SODetailId = selectedRow.SODetailId;
+                    newObject.SOLineNo = selectedRow.SOLineNo;
+                    newObject.SOSubLineNo = selectedRow.SOSubLineNo;
+                    newObject.SoSubLineTypeId = selectedRow.SoSubLineTypeId;
+                    newObject.SoSubLineType = selectedRow.SoSubLineType;
+                    newObject.ProductId = selectedRow.ProductId;
+                    newObject.MaterialId = selectedRow.MaterialId;
+                    newObject.Qty = selectedRow.Qty;
+
+                    newObject.TaskId = addTask.TaskId;
+                    newObject.Task = addTask.TaskName;
+                    newObject.TaskStatusId = 0;
+                    newObject.TaskNote = addTask.TaskDescription;
+                    newObject.LegacySystemId = 0;
+
+                    addTask = null;
+
+                    //// Did NOT work
+                    //Thread.Sleep(1500);
+                    //Grid_CancelEdit_Click(); *@
+                }
+            }
+
+            if (e.EditModel.GetType() == typeof(BusinessPartnerTask))
+            {
+                var newObject = (BusinessPartnerTask)e.EditModel;
+
+            }
+            if (e.EditModel.GetType() == typeof(ProductMaterialTask))
+            {
+                var newObject = (ProductMaterialTask)e.EditModel;
+
+            }
+        }
+    }
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        e.Cancel = true;
+
+        if (e.EditModel.GetType() == typeof(SODetailMaterial))
+        {
+            var savingObject = (SODetailMaterial)e.EditModel;
+
+            if (e.IsNew)
+            {
+                //await InsertBusinessPartnerTaskDataAsync(savingObject);
+            }
+            else
+            {
+                //if (savingObject.SODetailTaskId == 0)
+                //    await InsertBusinessPartnerTaskDataAsync(savingObject);
+                //else
+                //    await UpdateBusinessPartnerTaskDataAsync(savingObject);
+
+                MaterialSummaryGridData.First(x => x.MaterialId == savingObject.MaterialId).isSelected = savingObject.isSelected;
+            }
+
+            await MaterialSummaryGrid.CancelEditAsync();
+        }
+        if (e.EditModel.GetType() == typeof(BusinessPartnerTask))
+        {
+            var savingObject = (BusinessPartnerTask)e.EditModel;
+
+            if (e.IsNew)
+            {
+                //await InsertBusinessPartnerTaskDataAsync(savingObject);
+            }
+            else
+            {
+                //if (savingObject.SODetailTaskId == 0)
+                //    await InsertBusinessPartnerTaskDataAsync(savingObject);
+                //else
+                //    await UpdateBusinessPartnerTaskDataAsync(savingObject);
+
+                BusinessPartnerGridData.First(x => x.BusinessPartnerTaskId == savingObject.BusinessPartnerTaskId).isSelected = savingObject.isSelected;
+            }
+
+            await BusinessPartnerGrid.CancelEditAsync();
+        }
+        if (e.EditModel.GetType() == typeof(ProductMaterialTask))
+        {
+            var savingObject = (ProductMaterialTask)e.EditModel;
+
+            if (e.IsNew)
+            {
+                //await InsertBusinessPartnerTaskDataAsync(savingObject);
+            }
+            else
+            {
+                //if (savingObject.SODetailTaskId == 0)
+                //    await InsertBusinessPartnerTaskDataAsync(savingObject);
+                //else
+                //    await UpdateBusinessPartnerTaskDataAsync(savingObject);
+
+                MaterialTasksGridData.First(x => x.Id == savingObject.Id).isSelected = savingObject.isSelected;
+            }
+
+            await MaterialTasksGrid.CancelEditAsync();
+        }
+    }
+    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        if (e.DataItem.GetType() == typeof(SODetailMaterial))
+        {
+            var deletingObject = (SODetailMaterial)e.DataItem;
+
+            //await DeleteBusinessPartnerTaskDataAsync(deletingObject);
+
+            await MaterialSummaryGrid.CancelEditAsync();
+        }
+        if (e.DataItem.GetType() == typeof(SODetailMaterial))
+        {
+            var deletingObject = (SODetailMaterial)e.DataItem;
+
+            //await DeleteBusinessPartnerTaskDataAsync(deletingObject);
+
+            await BusinessPartnerGrid.CancelEditAsync();
+        }
+        if (e.DataItem.GetType() == typeof(ProductMaterialTask))
+        {
+            var deletingObject = (ProductMaterialTask)e.DataItem;
+
+            //await DeleteBusinessPartnerTaskDataAsync(deletingObject);
+
+            await MaterialTasksGrid.CancelEditAsync();
+        }
+    }
+    async Task Grid_EditCanceling(GridEditCancelingEventArgs e)
+    {
+        //SyncBusinessPartnerTasks();
+    }
+
+    async Task InsertBusinessPartnerTaskDataAsync(SODetailMaterial item)
+    {
+        string query = @"INSERT INTO [PIMS].[dbo].[SODetailTask] ([SODetailTaskId]
+      ,[SODetailMaterialId]
+      ,[SODetailId]
+      ,[SOLineNo]
+      ,[SOSubLineNo]
+      ,[SoSubLineTypeId]
+      ,[SoSubLineType]
+      ,[ProductId]
+      ,[MaterialId]
+      ,[Qty]
+      ,[TaskId]
+      ,[Task]
+      ,[TaskStatusId]
+      ,[TaskNote]
+      ,[LegacySystemId])
+        SELECT (SELECT MAX([SODetailTaskId]) + 1 FROM [PIMS].[dbo].[SODetailTask]),{0},{1},{2},{3},{4},'{5}',{6},{7},{8},{9},'{10}',{11},'{12}',{13} ";
+        string fullQuery = string.Format(query
+        , item.SODetailMaterialId   // 0
+        , item.SODetailId           // 1
+        , item.SOLineNo             // 2
+        , item.SOSubLineNo          // 3
+        , item.SoSubLineTypeId      // 4
+        , item.SoSubLineType        // 5 -
+        , item.ProductId            // 6
+        , item.MaterialId           // 7
+        , item.Qty                  // 8
+        , item.TaskId               // 9
+        , item.Task                 //10 -
+        , item.TaskStatusId         //11
+        , item.TaskNote             //12 -
+        , item.LegacySystemId       //13
+        );
+
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        LoadGridData(selectedRow.SOHeaderId);
+        //LoadMaterialTasksGridData(selectedRow.SOHeaderId, selectedRow.SODetailId, selectedRow.MaterialId);
+        LoadMaterialTasksGridData(selectedRow);
+    }
+    async Task UpdateBusinessPartnerTaskDataAsync(SODetailMaterial item)
+    {
+        string query = @"UPDATE [PIMS].[dbo].[SODetailTask] SET
+       [SODetailMaterialId] = {0}
+      ,[SODetailId] = {1}
+      ,[SOLineNo] = {2}
+      ,[SOSubLineNo] = {3}
+      ,[SoSubLineTypeId] = {4}
+      ,[SoSubLineType] = '{5}'
+      ,[ProductId] = {6}
+      ,[MaterialId] = {7}
+      ,[Qty] = {8}
+      ,[TaskId] = {9}
+      ,[Task] = '{10}'
+      ,[TaskStatusId] = {11}
+      ,[TaskNote] = '{12}'
+      ,[LegacySystemId] = {13}
+      WHERE [SODetailTaskId] = {14}";
+        string fullQuery = string.Format(query
+       , item.SODetailMaterialId   // 0
+       , item.SODetailId           // 1
+       , item.SOLineNo             // 2
+       , item.SOSubLineNo          // 3
+       , item.SoSubLineTypeId      // 4
+       , item.SoSubLineType        // 5 -
+       , item.ProductId            // 6
+       , item.MaterialId           // 7
+       , item.Qty                  // 8
+       , item.TaskId               // 9
+       , item.Task                 //10 -
+       , item.TaskStatusId         //11
+       , item.TaskNote             //12 -
+       , item.LegacySystemId       //13
+       , item.SODetailTaskId       //14
+       );
+
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        //LoadMaterialTasksGridData(selectedRow.SOHeaderId, selectedRow.SODetailId, selectedRow.MaterialId);
+        LoadMaterialTasksGridData(selectedRow);
+    }
+    async Task DeleteBusinessPartnerTaskDataAsync(SODetailMaterial item)
+    {
+        //string query = @"UPDATE [PIMS].[dbo].[SODetailTask] SET [DeletedOn] = GETDATE() WHERE [SODetailTaskId] = {0}";
+        string query = @"DELETE FROM [PIMS].[dbo].[SODetailTask] WHERE [SODetailTaskId] = {0}";
+        string fullQuery = string.Format(query, item.SODetailTaskId);
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        LoadGridData(selectedRow.SOHeaderId);
+        //LoadMaterialTasksGridData(selectedRow.SOHeaderId, selectedRow.SODetailId, selectedRow.MaterialId);
+        LoadMaterialTasksGridData(selectedRow);
+    }
+
+    public void AddEntryToMaterialTasksGridData(BusinessPartnerTask task)
+    {
+        if (businessPartnerId_Customer > 0)
+        {
+            if (editOnInsert)
+            {
+                if (!task.isUsed)
+                {
+                    addTask = task;
+                    task.isUsed = true;
+                    MaterialTasksGrid.StartEditNewRowAsync();
+                }
+            }
+            else
+            {
+                // Note: WIll NOT set model to "new"
+
+                if (!addtoAllMaterials)
+                {
+                    @* if (!task.isUsed)
+                    {
+                        var newObject = new SODetailMaterial();
+                        newObject.SODetailTaskId = 0; // ((MAX)SODetailTaskId) + 1
+                        newObject.SODetailMaterialId = selectedRow.SODetailMaterialId;
+                        newObject.SODetailId = selectedRow.SODetailId;
+                        newObject.SOLineNo = selectedRow.SOLineNo;
+                        newObject.SOSubLineNo = selectedRow.SOSubLineNo;
+                        newObject.SoSubLineTypeId = selectedRow.SoSubLineTypeId;
+                        newObject.SoSubLineType = selectedRow.SoSubLineType;
+                        newObject.ProductId = selectedRow.ProductId;
+                        newObject.MaterialId = selectedRow.MaterialId;
+                        newObject.Qty = selectedRow.Qty;
+
+                        newObject.TaskId = task.TaskId;
+                        newObject.Task = task.TaskName;
+                        newObject.TaskStatusId = 0;
+                        newObject.TaskNote = task.TaskDescription;
+                        newObject.LegacySystemId = 0;
+
+                        MaterialTasksGridData = MaterialTasksGridData.Concat(new[] { newObject });
+
+                        InsertBusinessPartnerTaskDataAsync(newObject);
+                    } *@
+                }
+                else
+                {
+                    //AddAllToBusinessPartnerGridData(task);
+                }
+            }
+        }
+        else
+        {
+
+        }
+    }
+    async void AddAllToBusinessPartnerGridData(BusinessPartnerTask task)
+    {
+        @* string query = "";
+        string fullQuery = "";
+
+        foreach (var item in GridData)
+        {
+            query = @"
+IF (
+SELECT COUNT(*) FROM [PIMS].[dbo].[SODetailTask]
+WHERE [SODetailId] = {1}
+	AND [MaterialId] = {7}
+	AND ISNULL([TaskId], 0) > {9}
+    AND ISNULL([SODetailTaskId], 0) > 0 ) = 0
+    INSERT INTO [PIMS].[dbo].[SODetailTask] ([SODetailTaskId],[SODetailMaterialId],[SODetailId],[SOLineNo],[SOSubLineNo],[SoSubLineTypeId],[SoSubLineType],[ProductId],[MaterialId],[Qty],[TaskId],[Task],[TaskStatusId],[TaskNote],[LegacySystemId])
+        SELECT (SELECT MAX([SODetailTaskId]) + 1 FROM [PIMS].[dbo].[SODetailTask]),{0},{1},{2},{3},{4},'{5}',{6},{7},{8},{9},'{10}',{11},'{12}',{13} ";
+
+            fullQuery += string.Format(query
+            , item.SODetailMaterialId   // 0
+            , item.SODetailId           // 1
+            , item.SOLineNo             // 2
+            , item.SOSubLineNo          // 3
+            , item.SoSubLineTypeId      // 4
+            , item.SoSubLineType        // 5 -
+            , item.ProductId            // 6
+            , item.MaterialId           // 7
+            , item.Qty                  // 8
+            , task.TaskId               // 9
+            , task.TaskName             //10 -
+            , 0                         //11
+            , task.TaskDescription      //12 -
+            , 0                         //13
+            );
+        }
+
+        using (var uow = new UnitOfWork())
+        {
+            //await uow.ExecuteNonQueryAsync(fullQuery);
+        } *@
+
+        //SqlData sqlData = new SqlData();
+        //GridData = await sqlData.GetSODetailMaterialDataExt(SOData.SOHeaderId);
+        //SODetailMaterialTasksData = await sqlData.GetSODetailMaterialTasksData(SOData.SOHeaderId);
+        ////LoadGridData(selectedRow.SOHeaderId);
+        //LoadMaterialTasksGridData(selectedRow); 
+    }
+
+    #endregion
+
+    // ============================================================ \\
+}

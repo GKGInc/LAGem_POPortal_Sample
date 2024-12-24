@@ -34,6 +34,10 @@ namespace LAGem_POPortal.Models
         public string? OrigTaskAssignedTo { get; set; } //Task
         public bool? OrigTaskRequired { get; set; }     //Task
 
+        public int ItemId { get; set; }                // ProductId/MaterialId
+        public string ItemNo { get; set; }             // ProductNo/MaterialNo
+        public string ItemName { get; set; }           // ProductName/MaterialName
+        public string LineTypeName { get; set; }       // "Product"/"Material"
 
         public int? TasksCount { get; set; }
         public bool? isSelected { get; set; }    

@@ -50,7 +50,15 @@ namespace LAGem_POPortal.Models
         public int SOShipYear { get; set; }
         public int SOShipMonth { get; set; }
         public int SOShipWeek { get; set; }
+        public DateTime? MondayOfTheWeek { get; set; }
 
-        
+        public int SoSubLineTypeId { get; set; }
+        public string SoSubLineType { get; set; }
+
+        public int EdiHdrId { get; set; }
+        public int EdiTrnId { get; set; }
+        public string EDIPONumber { get; set; }
+        public string EDIRefPONumber { get; set; }
+
     }
 }

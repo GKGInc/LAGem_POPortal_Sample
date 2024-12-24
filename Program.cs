@@ -94,6 +94,7 @@ builder.Services.AddSingleton<CustomAuthService>();
 // -- =========================================================================
 
 // initialize XPO DAL
+
 var store = XpoDefault.GetConnectionProvider(ConnectionHelper.ConnectionString, AutoCreateOption.SchemaAlreadyExists);
 //var store = XpoDefault.GetConnectionProvider(sqlConnection, AutoCreateOption.SchemaAlreadyExists);
 

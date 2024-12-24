@@ -1,0 +1,1075 @@
+﻿@page "/ProductTestsPage"
+@using DevExpress.Data.Filtering
+@using DevExpress.Xpo
+@using LAGem_POPortal.Authentication
+@using DevExpress.Blazor;
+@using LAGem_POPortal.Data
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@* @inject UserAccountService userAccountService *@
+
+@using LAGem_POPortal.Models
+@using Microsoft.EntityFrameworkCore
+
+<AuthorizeView>
+    <Authorized Context="Authorized">
+        @* <div hidden="!@HiddenGrid">
+            <a href="/login">@HeaderMessage</a>
+        </div> *@
+
+<DxGrid @ref="MainGrid"
+        Data="MainGridData"
+        CssClass="@gridCss"
+        Name="MainGrid"
+        KeyFieldName="Id"
+        PagerPosition="GridPagerPosition.Bottom"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+        PageSizeSelectorAllRowsItemVisible="true"
+        PageSize="@PageSize"
+        @bind-PageIndex="@ActivePageIndex"
+        AutoFitColumnWidths="true"
+        AutoCollapseDetailRow="@AutoCollapseDetailRow"
+        AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
+        ColumnResizeMode="@CurrentColumnResizeMode"
+        EditMode="GridEditMode.EditRow"
+        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+        FooterDisplayMode="GridFooterDisplayMode.Auto"
+        ShowGroupPanel="@ShowGroupPanel"
+        ShowSearchBox="@ShowSearchBox"
+        SearchText=""
+        SearchTextParseMode="CurrentSearchTextParseMode"
+        CustomizeElement="Grid_CustomizeElement"
+        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+        EditModelSaving="Grid_EditModelSaving"
+        DataItemDeleting="Grid_DataItemDeleting"
+        CustomizeEditModel="Grid_CustomizeEditModel"
+        RowClick="Grid_OnRowClick"
+        HighlightRowOnHover="true"
+        TextWrapEnabled="true"
+        ValidationEnabled="false">
+    <Columns>
+        @* <DxGridCommandColumn Context="MainGridContext" Width="40px" Visible="false">
+        <HeaderTemplate>
+        <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
+        </HeaderTemplate>
+        <CellDisplayTemplate>
+        @if (AddTestContext.GetRowValue("TestStatus").Equals("Un-Tested") || AddTestContext.GetRowValue("TestStatus").Equals(""))
+        {
+        <div class="grid-cell-align-center">
+        <DxButton IconCssClass="grid-icon grid-icon-add"
+        RenderStyle="ButtonRenderStyle.Link" aria-label="Add"
+        Click="@(() => AddEntryToTasksGridData((SODetailMaterial)AddTestContext.DataItem))" />
+        </div>
+        }
+        </CellDisplayTemplate>
+        </DxGridCommandColumn> *@
+
+        @* <DxGridDataColumn FieldName="SOLineNo" Caption="#" DisplayFormat="n0" ReadOnly="true" Visible="true" Width="20" />
+        <DxGridDataColumn FieldName="SOSubLineNo" Caption="SubLine No" DisplayFormat="n0" ReadOnly="true" Visible="false" /> *@
+        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Visible="true" MinWidth="90" />
+        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" Visible="true" />
+        @* <DxGridDataColumn FieldName="MaterialId" Caption="Material Id" DisplayFormat="n0" ReadOnly="true" Visible="false" />
+        <DxGridDataColumn FieldName="MaterialNo" Caption="Material No" ReadOnly="true" MinWidth="60" Visible="false" />
+        <DxGridDataColumn FieldName="MaterialName" Caption="Material Desc" ReadOnly="true" Visible="false" /> *@
+        
+        <DxGridDataColumn FieldName="PONumber" Caption="PO Number" ReadOnly="true" Visible="true" MinWidth="90" />
+                <DxGridDataColumn FieldName="Supplier" Caption="Supplier" ReadOnly="true" Visible="true" MinWidth="90" />
+
+        <DxGridDataColumn FieldName="Requested" Caption="Test Sent" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
+        <DxGridDataColumn FieldName="RequestedBy" Caption="Test Passed By" ReadOnly="true" Width="80" MinWidth="80" Visible="false" />
+        <DxGridDataColumn FieldName="Received" Caption="Test Received" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
+
+        <DxGridDataColumn FieldName="ProcessedDate" Caption="Processed Date" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
+        <DxGridDataColumn FieldName="ProcessedBy" Caption="Processed By" ReadOnly="true" Width="80" MinWidth="80" Visible="false" />
+        <DxGridDataColumn FieldName="TestStatus" Caption="Test Status" ReadOnly="true" Width="80" MinWidth="80" Visible="true" />
+
+        <DxGridCommandColumn Width="150px" Visible="false"
+                             DeleteButtonVisible="false"
+                             EditButtonVisible="false"
+                             CancelButtonVisible="false"
+                             SaveButtonVisible="false"
+                             NewButtonVisible="false" />
+    </Columns>
+    <DetailRowTemplate Context="ProductDataFormContext">
+        @{
+            selectedRow = (ProductTest)ProductDataFormContext.DataItem;
+            //soHeaderId = MainData.SOHeaderId;
+            //businessPartnerId_Customer = MainData.BusinessPartnerId_Customer;
+
+            if (productId != selectedRow.ProductId)
+            {
+                productId = selectedRow.ProductId;
+                LoadGridData(selectedRow.ProductId, "SubGrid");
+            }
+            else
+            {                
+                // LoadGridData(selectedRow.ProductId, "SubGrid");
+            }
+            <div class="mb-2">
+                @headerNote
+            </div>
+
+            <DxFormLayout CssClass="w-100">
+                <DxFormLayoutItem Context="ProductTestDataSection" ColSpanMd="5" CssClass="fl">
+
+                    <DxFormLayout CssClass="w-100">
+                        <DxFormLayoutItem Context="ProductTestData" ColSpanMd="12">
+
+                            <DxGrid @ref="SubGrid"
+                                    Data="SubGridData"
+                                    CssClass="@gridCss"
+                                    Name="SubGrid"
+                                    KeyFieldName="Id"
+                                    PagerPosition="GridPagerPosition.Bottom"
+                                    PageSizeSelectorVisible="true"
+                                    PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
+                                    PageSizeSelectorAllRowsItemVisible="true"
+                                    PageSize="@PageSize"
+                                    @bind-PageIndex="@ActivePageIndex"
+                                    AutoFitColumnWidths="true"
+                                    AutoCollapseDetailRow="@AutoCollapseDetailRow"
+                                    AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
+                                    ColumnResizeMode="@CurrentColumnResizeMode"
+                                    EditMode="GridEditMode.EditRow"
+                                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                                    FooterDisplayMode="GridFooterDisplayMode.Auto"
+                                    ShowGroupPanel="@SubGridShowGroupPanel"
+                                            ShowSearchBox="@SubGridShowSearchBox"
+                                    SearchText=""
+                                    SearchTextParseMode="CurrentSearchTextParseMode"
+                                    CustomizeElement="Grid_CustomizeElement"
+                                    CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                                    EditModelSaving="Grid_EditModelSaving"
+                                    DataItemDeleting="Grid_DataItemDeleting"
+                                    CustomizeEditModel="Grid_CustomizeEditModel"
+                                    RowClick="Grid_SubGridOnRowClick"
+                                    HighlightRowOnHover="true"
+                                    TextWrapEnabled="true"
+                                    ValidationEnabled="false">
+                                <Columns>
+
+                                    <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Visible="true" MinWidth="90" />
+                                    <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" Visible="true" />
+                                    
+                                    <DxGridDataColumn FieldName="PONumber" Caption="PO Number" ReadOnly="true" Visible="true" MinWidth="90" />
+                                    <DxGridDataColumn FieldName="Supplier" Caption="Supplier" ReadOnly="true" Visible="false" MinWidth="90" />
+
+                                    <DxGridDataColumn FieldName="Requested" Caption="Test Sent" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
+                                    <DxGridDataColumn FieldName="RequestedBy" Caption="Test Passed By" ReadOnly="true" Width="80" MinWidth="80" Visible="false" />
+                                    <DxGridDataColumn FieldName="Received" Caption="Test Received" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
+
+                                    <DxGridDataColumn FieldName="ProcessedDate" Caption="Processed Date" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
+                                    <DxGridDataColumn FieldName="ProcessedBy" Caption="Processed By" ReadOnly="true" Width="80" MinWidth="80" Visible="false" />
+                                    <DxGridDataColumn FieldName="TestStatus" Caption="Test Status" ReadOnly="true" Width="80" MinWidth="80" Visible="true" />
+
+                                    <DxGridCommandColumn Width="150px" Visible="false"
+                                                         DeleteButtonVisible="false"
+                                                         EditButtonVisible="false"
+                                                         CancelButtonVisible="false"
+                                                         SaveButtonVisible="false"
+                                                         NewButtonVisible="false" />
+                                </Columns>
+                            </DxGrid>
+
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem Context="TestsList" ColSpanMd="7" CssClass="fl">
+
+                    <DxGrid @ref="TestGrid"
+                            Data="TestGridData" CssClass="my-partnertasks-grid"
+                            PopupEditFormCssClass="my-popup-style"
+                            KeyFieldName="Id"
+                            PagerPosition="GridPagerPosition.Bottom"
+                            PageSizeSelectorVisible="false"
+                            PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25, 30 })"
+                            PageSizeSelectorAllRowsItemVisible="true"
+                            PageSize="@PageSize"
+                            @bind-PageIndex="@ActivePageIndex"
+                            AutoFitColumnWidths="true"
+                            AutoCollapseDetailRow="true"
+                            ColumnResizeMode="@CurrentColumnResizeMode"
+                            EditMode="@CurrentEditMode"
+                            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                            FooterDisplayMode="GridFooterDisplayMode.Auto"
+                            TextWrapEnabled="@TextWrapEnabled"
+                            ValidationEnabled="false"
+                            WordWrapEnabled="@WordWrapEnabled"
+                            HighlightRowOnHover="true"
+                            ShowAllRows="true"
+                            ShowFilterRow="false"
+                            ShowGroupPanel="@SubGridShowGroupPanel"
+                            ShowSearchBox="@SubGridShowSearchBox"
+                            SearchText=""
+                            SearchTextParseMode="CurrentSearchTextParseMode"
+                            SelectionMode="GridSelectionMode.Single"
+                            SelectedDataItem="@SelectedDataItem"
+                            SelectedDataItemChanged="Grid_OnSelectedDataItemChanged"
+                            CustomizeElement="Grid_CustomizeElement"
+                            CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                            CustomizeEditModel="Grid_CustomizeEditModel"
+                            CustomizeDataRowEditor="Grid_OnCustomizeDataRowEditor"
+                            EditModelSaving="Grid_EditModelSaving"
+                            DataItemDeleting="Grid_DataItemDeleting">
+                        <Columns>
+                            <DxGridCommandColumn Width="150px" Visible="false"
+                                                 DeleteButtonVisible="false"
+                                                 EditButtonVisible="true"
+                                                 CancelButtonVisible="true"
+                                                 SaveButtonVisible="false"
+                                                 NewButtonVisible="false" />
+
+                            <DxGridCommandColumn Context="AddTestContext" Width="40px">
+                                <HeaderTemplate>
+                                    <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
+                                </HeaderTemplate>
+                                <CellDisplayTemplate>
+                                    @if (AddTestContext.GetRowValue("TestStatus").Equals("Un-Tested") || AddTestContext.GetRowValue("TestStatus").Equals(""))
+                                    {
+                                        <div class="grid-cell-align-center">
+                                            <DxButton IconCssClass="grid-icon grid-icon-add"
+                                                      RenderStyle="ButtonRenderStyle.Link" aria-label="Add"
+                                                      Click="@(() => AddEntryToTestsGridData((ProductTest)AddTestContext.DataItem))" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="grid-cell-align-center">
+                                            <DxButton RenderStyle="ButtonRenderStyle.Link" aria-label="Add" Text="Edit"
+                                                      Click="@(() => EditEntryFromTestsGridData((ProductTest)AddTestContext.DataItem, AddTestContext.VisibleIndex))">Edit</DxButton>
+                                        </div>
+                                    }
+                                </CellDisplayTemplate>
+                            </DxGridCommandColumn>
+
+                            <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Width="100" MinWidth="100" />
+                            <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" MinWidth="150" Visible="false" />
+
+                            <DxGridDataColumn FieldName="RequestedDate" Caption="Requested" DisplayFormat="d" ReadOnly="true" Width="100" MinWidth="80" />
+                            <DxGridDataColumn FieldName="TestStatus" Caption="Test Status" ReadOnly="true" MinWidth="80" />
+
+                            <DxGridDataColumn FieldName="Qty" Caption="Qty" DisplayFormat="n0" ReadOnly="false" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" Visible="false" />
+                            <DxGridDataColumn FieldName="RequestedBy" Caption="Requested By" ReadOnly="true" Width="100" MinWidth="100" Visible="false" />
+
+                            <DxGridDataColumn FieldName="ReceivedDate" Caption="Received" DisplayFormat="d" ReadOnly="false" Width="100" MinWidth="80" Visible="false" />
+                            <DxGridDataColumn FieldName="PassedDate" Caption="Passed" DisplayFormat="d" ReadOnly="false" Width="100" MinWidth="80" Visible="false" />
+                            <DxGridDataColumn FieldName="PassedBy" Caption="Passed By" ReadOnly="true" Width="100" MinWidth="100" Visible="false" />
+                            <DxGridDataColumn FieldName="FailedDate" Caption="Failed" DisplayFormat="d" ReadOnly="false" Width="100" MinWidth="80" Visible="false" />
+                            <DxGridDataColumn FieldName="FailedBy" Caption="Failed By" ReadOnly="true" Width="100" MinWidth="100" Visible="false" />
+
+                            <DxGridDataColumn FieldName="Comments" Caption="Comments" ReadOnly="false" MinWidth="100" />
+                            <DxGridDataColumn FieldName="Attachment" Caption="Attachment" ReadOnly="true" Width="100" MinWidth="100" Visible="false" />
+                        </Columns>
+
+                        <EditFormTemplate Context="EditFormContext">
+                            @{
+                                var task = (ProductTest)EditFormContext.EditModel;
+                                editRow = task;
+                            }
+                            <DxFormLayout CssClass="w-100">
+                                <DxFormLayoutItem Caption="Product No:" ColSpanMd="3">
+                                    @EditFormContext.GetEditor("ProductNo")
+                                </DxFormLayoutItem>
+
+                                <DxFormLayoutItem Caption="Product Name:" ColSpanMd="9">
+                                    @EditFormContext.GetEditor("ProductName")
+                                </DxFormLayoutItem>
+
+                                <DxFormLayoutItem Caption="Test Qty:" ColSpanMd="4">
+                                    @EditFormContext.GetEditor("Qty")
+                                </DxFormLayoutItem>
+
+                                <DxFormLayoutItem Caption="Requested:" ColSpanMd="4">
+                                    @EditFormContext.GetEditor("RequestedDate")
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Requested By:" ColSpanMd="4">
+                                    @EditFormContext.GetEditor("RequestedBy")
+                                </DxFormLayoutItem>
+
+                                <DxFormLayoutItem Caption="Received:" ColSpanMd="4">
+                                    @* @EditFormContext.GetEditor("ReceivedDate") *@
+                                    <DxDateEdit Date="@task.ReceivedDate.Value" ReadOnly=@IsGridDateColumnItemReadOnly(task,"ReceivedDate")
+                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                NullText="Select a date..."
+                                                NullValue="@blankDate"
+                                                DateChanged="@((DateTime newValue) => {
+                                task.ReceivedDate = newValue;
+                                //task.ReceivedBy = currentUser;
+                            })"></DxDateEdit>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Passed Date:" ColSpanMd="4">
+                                    @* @EditFormContext.GetEditor("PassedDate") *@
+                                    <DxDateEdit Date="@task.PassedDate.Value" ReadOnly=@IsGridDateColumnItemReadOnly(task,"PassedDate")
+                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                NullText="Select a date..."
+                                                NullValue="@blankDate"
+                                                DateChanged="@((DateTime newValue) => {
+                                task.PassedDate = newValue;
+                                task.PassedBy = currentUser;
+                            })"></DxDateEdit>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Passed By:" ColSpanMd="4">
+                                    @EditFormContext.GetEditor("PassedBy")
+                                </DxFormLayoutItem>
+
+                                <DxFormLayoutItem ColSpanMd="4">
+                                </DxFormLayoutItem>
+
+                                <DxFormLayoutItem Caption="Failed Date:" ColSpanMd="4">
+                                    @* @EditFormContext.GetEditor("FailedDate") *@
+                                    <DxDateEdit Date="@task.FailedDate.Value" ReadOnly=@IsGridDateColumnItemReadOnly(task,"FailedDate")
+                                                ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"
+                                                NullText="Select a date..."
+                                                NullValue="@blankDate"
+                                                DateChanged="@((DateTime newValue) => {
+                                task.FailedDate = newValue;
+                                task.FailedBy = currentUser;
+                            })"></DxDateEdit>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Failed By:" ColSpanMd="4">
+                                    @EditFormContext.GetEditor("FailedBy")
+                                </DxFormLayoutItem>
+
+                                @* <DxFormLayoutItem Caption="Task Description:" ColSpanMd="12" Visible="false">
+                            @EditFormContext.GetEditor("TaskNote")
+                            </DxFormLayoutItem> *@
+                                <DxFormLayoutItem Caption="Test Description:" ColSpanMd="12">
+                                    <DxMemo @bind-Text="task.Comments"
+                                            ResizeMode="MemoResizeMode.VerticalAndHorizontal">
+                                    </DxMemo>
+                                </DxFormLayoutItem>
+
+                                <DxFormLayoutItem Caption="Attachment:" ColSpanMd="12">
+                                    @EditFormContext.GetEditor("Attachment")
+                                </DxFormLayoutItem>
+
+                            </DxFormLayout>
+                        </EditFormTemplate>
+
+                    </DxGrid>
+
+                </DxFormLayoutItem>
+
+            </DxFormLayout>
+        }
+    </DetailRowTemplate>
+</DxGrid>
+
+    </Authorized>
+    <NotAuthorized Context="NotAuthorized">
+        @*  @{ navManager.NavigateTo("/Login");} *@
+        <h3>Please <a href="/login">Login</a> to access the Portal</h3>
+        @* <LoginPage /> *@
+        @* <LoginRedirect /> *@
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .highlighted-item > td {
+        background-color: rgba(245, 198, 203, 0.5);
+    }
+
+    .dx-datagrid-headers {
+        white-space: normal;
+    }
+
+    .dx-datagrid-nowrap.dx-datagrid-headers .dx-header-row > td > .dx-datagrid-text-content {
+        white-space: normal;
+    }
+
+    .hide-toolbar .dxbl-grid-toolbar-container {
+        display: none;
+    }
+
+    .my-popup-style {
+        min-width: 1200px;
+        min-height: 450px;
+    }
+
+    .my-partnertasks-grid .dxbl-fl-ctrl dxbl-fl-ctrl-nc {
+        margin-top: 0px;
+    }
+
+    .fl > div {
+        margin-top: 0 !important;
+    }
+</style>
+
+@code {
+    // ============================================================ \\
+
+    #region Variables
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+    string currentUser { get; set; } = "";
+
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    // [Parameter]
+    //public ProductTest MainData { get; set; } // from SOTasksHeaderPage
+
+    DxGrid MainGrid { get; set; }
+    DxGrid SubGrid { get; set; }
+    DxGrid TestGrid { get; set; }
+
+    IEnumerable<ProductTest> MainGridData { get; set; }
+    IEnumerable<ProductTest> SubGridData { get; set; }
+    IEnumerable<ProductTest> TestGridData { get; set; }
+
+    // ------------------------------------------------------------ \\
+
+    Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
+        { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
+        { "Group Words By Or", GridSearchTextParseMode.GroupWordsByOr },
+        { "Exact Match", GridSearchTextParseMode.ExactMatch }
+    };
+    void ChangeSearchMode(string key)
+    {
+        CurrentSearchTextParseModeDisplayText = key;
+        CurrentSearchTextParseMode = SearchTextParseModes[key];
+    }
+    string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
+    GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
+
+    GridColumnResizeMode CurrentColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer; // GridColumnResizeMode.NextColumn;
+    string CurrentColumnResizeModeDisplayText { get; set; } = "Next Column";
+    Dictionary<string, GridColumnResizeMode> GridColumnResizeModes { get; } = new Dictionary<string,
+    GridColumnResizeMode>{
+        { "Disabled", GridColumnResizeMode.Disabled },                  //A user cannot resize columns.
+        { "Next Column", GridColumnResizeMode.NextColumn },             //When a user resizes a column, the width of the column to the right changes, but the Grid's total width does not change.
+        { "Columns Container", GridColumnResizeMode.ColumnsContainer }  //When a user resizes a column, all other columns retain width settings, but the width of the entire column container changes proportionally.
+    };
+    void ChangeResizeMode(string key)
+    {
+        CurrentColumnResizeModeDisplayText = key;
+        CurrentColumnResizeMode = GridColumnResizeModes[key];
+    }
+    bool usePopupEditForm { get; set; } = true;
+    GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+
+    IReadOnlyList<object> SelectedDataItems { get; set; }
+    IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
+    GridSelectAllCheckboxMode CurrentSelectAllCheckboxMode { get; set; }
+
+    Dictionary<string, string[]> GroupInfo { get; } = new Dictionary<string, string[]> { { "ProductTestId", new string[] { "ProductTestId" } } };
+    string CurrentGroupInfoKey { get; set; } = "ProductTestId";
+    bool ShowGroupPanel { get; set; } = false;
+    bool ShowSearchBox { get; set; } = true;
+    bool SubGridShowGroupPanel { get; set; } = false;
+    bool SubGridShowSearchBox { get; set; } = false;
+    
+    bool AutoCollapseDetailRow { get; set; } = true;
+    bool AutoExpandAllGroupRows { get; set; } = true;
+    bool TextWrapEnabled = true;
+    bool WordWrapEnabled = false;
+
+    int PageCount { get; set; } = 0;
+    int TotalRecords { get; set; } = 0;
+    int PageSize { get; set; } = 20;
+    int ActivePageIndex { get; set; } = 0;
+    
+    // ------------------------------------------------------------ \\
+
+    bool AutoFitColWidths { get; set; } = true;
+    bool isMainGridAutoFitPending { get; set; } = true;
+    bool isListGridAutoFitPending { get; set; } = true;
+    bool isWorkGridAutoFitPending { get; set; } = true;
+    bool editOnInsert { get; set; } = false;
+    bool filteringMainData { get; set; } = false;
+
+    bool showToolbar { get; set; } = false;
+    string gridCss => !showToolbar ? "hide-toolbar my-partnertasks-grid" : "my-partnertasks-grid";
+    DateTime blankDate { get; set; } = new DateTime(1900, 1, 1);
+    CriteriaOperator gridFilterCriteria { get; set; }    
+    object SelectedDataItem { get; set; }    
+    
+    // ------------------------------------------------------------ \\
+
+    int productId { get; set; } = 0;
+    int businessPartnerId_Customer { get; set; } = 0;
+    //int materialIdSelected { get; set; } = 0;
+    ProductTest selectedRow { get; set; }
+    ProductTest editRow { get; set; }
+    ProductTest? addTest { get; set; }
+    string headerNote { get; set; } = "";
+
+    bool useAssignedToDropdownList { get; set; } = true;
+    List<string> assignedToListData { get; set; } = new List<string>();        
+    bool displayUseDropdownListToggle { get; set; } = true;
+    bool addtoAllMaterials { get; set; } = false;
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Constructors/Page Functions
+
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        var authstate = await authStateProvider.GetAuthenticationStateAsync();
+        var userClaimsPrincipal = authstate.User; // ClaimsPrincipal
+        var userClaimsPrincipalName = userClaimsPrincipal.Identity.Name;
+        currentUser = userClaimsPrincipal.Identity.Name;
+
+        isMainGridAutoFitPending = true;
+        isListGridAutoFitPending = true;
+        isWorkGridAutoFitPending = true;
+
+        RefreshData_Click();
+
+        //assignedToListData = new List<string>() { "Me", "Myself", "I" };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await DataLoadedTcs.Task; // Waits for grid data to load
+                                      // Grid.ExpandDetailRow(0);
+        }
+        if (MainGrid != null && isMainGridAutoFitPending)
+        {
+            isMainGridAutoFitPending = false;
+            await MainGrid.WaitForDataLoadAsync();
+            MainGrid.AutoFitColumnWidths();
+        }
+        if (SubGrid != null && isListGridAutoFitPending)
+        {
+            isListGridAutoFitPending = false;
+            await SubGrid.WaitForDataLoadAsync();
+            SubGrid.AutoFitColumnWidths();
+        }
+        if (TestGrid != null && isWorkGridAutoFitPending)
+        {
+            isWorkGridAutoFitPending = false;
+            await TestGrid.WaitForDataLoadAsync();
+            TestGrid.AutoFitColumnWidths();
+        }
+    }
+
+    public void Dispose()
+    {
+        // Northwind?.Dispose();
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Load/Refresh Functions
+
+    void Grid_FitWidths()
+    {
+        //StateHasChanged();
+        MainGrid.AutoFitColumnWidths();
+    }
+
+    void ColumnChooserButton_Click()
+    {
+        MainGrid.ShowColumnChooser();
+    }
+
+    async void RefreshData_Click()
+    {
+        await LoadGridData();
+    }
+
+    // ============================================================ \\
+
+    async Task UsePopupEditForm_CheckedChanged(bool value)
+    {
+        usePopupEditForm = value;
+        await TestGrid.CancelEditAsync();
+    }
+
+    async Task UseAssignedToDropdownList_CheckedChanged(bool value)
+    {
+        useAssignedToDropdownList = value;
+    }
+
+    async Task AddtoAllMaterials_CheckedChanged(bool value)
+    {
+        addtoAllMaterials = value;
+    }
+
+    // ============================================================ \\
+
+    async Task LoadGridData()
+    {
+        SqlData sqlData = new SqlData();
+        MainGridData = await sqlData.GetAllProductTests();
+        SubGridData = await sqlData.GetProductTests(-1);
+        TestGridData = await sqlData.GetProductTests(-1);
+
+        var criteriaProductId = new InOperator("ProductId", new int[] { 0 });
+        CriteriaOperator gridFilterCriteria = criteriaProductId;
+        if (SubGrid != null && SubGridData != null)
+            SubGrid.SetFilterCriteria(gridFilterCriteria);
+
+        var criteriaPODetailId = new InOperator("ProductTestId", new int[] { 0 });
+        gridFilterCriteria = criteriaPODetailId;
+        if (TestGrid != null && TestGridData != null)
+            TestGrid.SetFilterCriteria(gridFilterCriteria);
+
+        await InvokeAsync(StateHasChanged); // <-- refreshes
+    }
+    async Task LoadGridData(int id, string gridName)
+    {
+        //SqlData sqlData = new SqlData();
+        //GridData = await sqlData.GetSODetailMaterialAndTestData(soHeaderId, false);
+
+        if (gridName == "SubGrid")
+        {
+            //var criteriaProductId = new InOperator("ProductId", new int[] { id });
+            //CriteriaOperator productGridFilterCriteria = criteriaProductId;
+            //if (SubGrid != null && SubGridData != null)
+            //    SubGrid.SetFilterCriteria(productGridFilterCriteria);
+            //    
+            //var criteriaProductTestId = new InOperator("ProductTestId", new int[] { 0 });
+            //CriteriaOperator testGridFilterCriteria =criteriaProductTestId;
+            //if (TestGrid != null && TestGridData != null)
+            //    TestGrid.SetFilterCriteria(testGridFilterCriteria);
+            //
+            //await InvokeAsync(StateHasChanged); // <-- refreshes
+
+            SqlData sqlData = new SqlData();
+            SubGridData = await sqlData.GetProductTests(id);
+            TestGridData = await sqlData.GetProductTests(id);
+
+            if (SubGridData.Count() == 1)
+            {
+                int productTestId = SubGridData.ToList()[0].ProductTestId;
+                var criteriaProductTestId = new InOperator("ProductTestId", new int[] { id });
+                gridFilterCriteria = criteriaProductTestId;
+                if (TestGrid != null && TestGridData != null)
+                    TestGrid.SetFilterCriteria(gridFilterCriteria);
+
+                await InvokeAsync(StateHasChanged); // <-- refreshes
+
+                await LoadGridData(productTestId, "TestGrid");
+            }
+            else
+            {
+                var criteriaProductTestId = new InOperator("ProductTestId", new int[] { 0 });
+                gridFilterCriteria = criteriaProductTestId;
+                if (TestGrid != null && TestGridData != null)
+                    TestGrid.SetFilterCriteria(gridFilterCriteria);
+
+                await InvokeAsync(StateHasChanged); // <-- refreshes
+            }
+        }
+        if (gridName == "TestGrid")
+        {
+            var criteriaProductTestId = new InOperator("ProductTestId", new int[] { id });
+            gridFilterCriteria = criteriaProductTestId;
+            if (TestGrid != null && TestGridData != null)
+                TestGrid.SetFilterCriteria(gridFilterCriteria);
+
+            //await InvokeAsync(StateHasChanged); // <-- refreshes
+        }
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Main Grid Functions
+
+    void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.DataRow)
+        {
+            string status = (System.String)e.Grid.GetRowValue(e.VisibleIndex, "TestStatus");
+
+            if (status == "Passed")
+            {
+                e.Style = "color: green";
+            }
+            if (status == "Failed")
+            {
+                e.Style = "color: red";
+            }
+            if (status == "Pending")
+            {
+                e.Style = "background: yellow";
+            }
+        }
+
+        //if (e.Grid.KeyFieldName == "TaskId" && e.ElementType == GridElementType.DataRow && (System.Boolean)e.Grid.GetRowValue(e.VisibleIndex, "isUsed") == true)
+        //{
+        //    e.Style = "opacity: 0.5";
+        //}
+
+        @* if (e.Grid.Data != null && e.Grid.Data.GetType().GetGenericArguments().Single() == typeof(SODetailMaterial))
+        {
+            if (e.Grid.KeyFieldName == "Id" && e.ElementType == GridElementType.DataRow)
+            {
+                if ((int)e.Grid.GetRowValue(e.VisibleIndex, "SOSubLineNo") == 0)
+                    e.CssClass = "highlighted-item";
+                else
+                    e.Style = "opacity: 0.5";
+            }
+        } *@
+        //if (e.Grid.Data != null && e.Grid.Data.GetType().GetGenericArguments().Single() == typeof(ProductTest))
+        //{
+        //}
+    }
+    void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
+    {
+        // string[] dateList = new string[] { "SODate", "StartDate", "EndDate", "ShipmentDate", "ShipToETA" };
+        // if (dateList.Contains(e.FieldName))            
+        if (e.Value.GetType() == typeof(DateTime))
+        {
+            if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
+                e.DisplayText = "";
+        }
+    }
+
+    void Grid_OnRowClick(GridRowClickEventArgs e)
+    {
+        ////Alert = $"Clicked row index: {e.VisibleIndex}. Corresponding date: '{e.Grid.GetRowValue(e.VisibleIndex, "Date")}'";
+        //int subLineNo = (int)e.Grid.GetRowValue(e.VisibleIndex, "SOSubLineNo");
+        //
+        //if (subLineNo == 0)
+        //{
+        //
+        //}
+    }
+    void Grid_SubGridOnRowClick(GridRowClickEventArgs e)
+    {
+        //Alert = $"Clicked row index: {e.VisibleIndex}. Corresponding date: '{e.Grid.GetRowValue(e.VisibleIndex, "Date")}'";
+        int productTestId = (int)e.Grid.GetRowValue(e.VisibleIndex, "ProductTestId");
+
+        if (productTestId == 0)
+        {
+
+        }
+        else
+        {
+            LoadGridData(productTestId, "TestGrid");
+        }
+    }
+    void Grid_OnSelectedDataItemChanged(object newSelection)
+    {
+        @* SelectionChangesInfo = "You selected '" + (newSelection as Product).ProductName +
+            "' and deselected '" + (SelectedDataItem as Product).ProductName + "'";
+        SelectedDataItem = newSelection; *@
+    }
+    void Grid_OnCustomizeDataRowEditor(GridCustomizeDataRowEditorEventArgs e)
+    {
+        //https://docs.devexpress.com/Blazor/DevExpress.Blazor.DxGrid.CustomizeDataRowEditor?utm_source=SupportCenter&utm_medium=website&utm_campaign=docs-feedback&utm_content=T1206737
+
+        if (e.FieldName == "PassedDate")
+        {
+            var dateSettings = e.EditSettings as IDateEditSettings;
+
+            var otherDateEditSettings = e.Grid.GetColumnEditSettings<IEditSettings>("FailedDate");
+        }
+        if (e.FieldName == "FailedDate")
+        {
+            var dateSettings = e.EditSettings as IDateEditSettings;
+
+            var otherDateEditSettings = e.Grid.GetColumnEditSettings<IEditSettings>("PassedDate");
+
+            @* if (e.IsNewRow)
+            {
+                // Limit the available hire date for new employees two weeks ahead.
+                dateSettings.MinDate = @DateTime.Today;
+                dateSettings.MaxDate = @DateTime.Today.AddDays(14);
+            }
+            else
+            {
+                // Disable the hire date editing.
+                dateSettings.Enabled = false;
+                dateSettings.ShowDropDownButton = false;
+            } *@
+        }
+    }
+    async void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            if (e.EditModel.GetType() == typeof(ProductTest))
+            {
+                var newObject = (ProductTest)e.EditModel;
+
+                if (addTest == null)
+                {
+                    newObject.ProductTestId = 0; // ((MAX)ProductTestId) + 1
+                    newObject.ProductId = addTest.ProductId;
+                    newObject.Qty = addTest.Qty;
+                    newObject.RequestedDate = addTest.RequestedDate;
+                    newObject.RequestedBy = addTest.RequestedBy;
+
+                    newObject.ReceivedDate = addTest.ReceivedDate;
+                    newObject.PassedDate = addTest.PassedDate;
+                    newObject.PassedBy = addTest.PassedBy;
+                    newObject.FailedDate = addTest.FailedDate;
+                    newObject.FailedBy = addTest.FailedBy;
+
+                    newObject.Comments = addTest.Comments;
+                    newObject.Attachment = addTest.Attachment;
+                }
+                else
+                {
+                    newObject.ProductTestId = 0; // ((MAX)ProductTestId) + 1
+                    newObject.ProductId = selectedRow.ProductId;
+                    newObject.Qty = addTest.Qty;
+                    newObject.RequestedDate = addTest.RequestedDate;
+                    newObject.RequestedBy = currentUser;
+
+                    newObject.ReceivedDate = blankDate;
+                    newObject.PassedDate = blankDate;
+                    newObject.PassedBy = "";
+                    newObject.FailedDate = blankDate;
+                    newObject.FailedBy = "";
+
+                    newObject.Comments = "";
+                    newObject.Attachment = "";
+
+                    addTest = null;
+
+                    //// Did NOT work
+                    //Thread.Sleep(1500);
+                    //Grid_CancelEdit_Click();
+                }
+            }
+        }
+    }
+
+    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    {
+        e.Cancel = true;
+
+        if (e.EditModel.GetType() == typeof(ProductTest))
+        {
+            var savingObject = (ProductTest)e.EditModel;
+
+            if (e.IsNew)
+                await InsertProductTestDataAsync(savingObject);
+            else
+            {
+                if (savingObject.ProductTestId == 0)
+                    await InsertProductTestDataAsync(savingObject);
+                else
+                    await UpdateProductTestDataAsync(savingObject);
+            }
+
+            await TestGrid.CancelEditAsync();
+        }
+    }
+    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        if (e.DataItem.GetType() == typeof(ProductTest))
+        {
+            var deletingObject = (ProductTest)e.DataItem;
+
+            await DeleteProductTestDataAsync(deletingObject);
+
+            await TestGrid.CancelEditAsync();
+        }
+    }
+    async Task Grid_EditCanceling(GridEditCancelingEventArgs e)
+    {
+        //SyncBusinessPartnerTasks();
+    }
+
+    public async void AddEntryToTestsGridData(ProductTest item)
+    {
+        bool isNew = item.ProductTestId == 0;
+        int prodId = item.ProductId;
+
+        if (editOnInsert)
+        {
+            if (isNew)
+            {
+                var newObject = new ProductTest();
+                newObject.ProductTestId = 0; // ((MAX)ProductTestId) + 1
+                newObject.ProductId = prodId;
+                newObject.Qty = 1;
+                newObject.RequestedDate = DateTime.Now;
+                newObject.RequestedBy = currentUser;
+
+                newObject.ReceivedDate = blankDate;
+                newObject.PassedDate = blankDate;
+                newObject.PassedBy = "";
+                newObject.FailedDate = blankDate;
+                newObject.FailedBy = "";
+
+                newObject.Comments = "";
+                newObject.Attachment = "";
+
+                addTest = newObject;
+
+                TestGrid.StartEditNewRowAsync();
+            }
+        }
+        else
+        {
+            // Note: WIll NOT set model to "new"
+            if (isNew)
+            {
+                var newObject = new ProductTest();
+                newObject.ProductTestId = 0; // ((MAX)ProductTestId) + 1
+                newObject.ProductId = prodId;
+                newObject.Qty = 1;
+                newObject.RequestedDate = DateTime.Now;
+                newObject.RequestedBy = currentUser;
+
+                newObject.ReceivedDate = blankDate;
+                newObject.PassedDate = blankDate;
+                newObject.PassedBy = "";
+                newObject.FailedDate = blankDate;
+                newObject.FailedBy = "";
+
+                newObject.Comments = "";
+                newObject.Attachment = "";
+
+                await InvokeAsync(StateHasChanged);
+
+                InsertProductTestDataAsync(newObject);
+            }
+        }
+    }
+
+    public async void EditEntryFromTestsGridData(ProductTest item, int selectedIndex)
+    {
+        await TestGrid.StartEditRowAsync(selectedIndex);
+    }
+    async Task InsertProductTestDataAsync(ProductTest item)
+    {
+        string query = @"INSERT INTO [PIMS].[dbo].[ProductTest] (
+      [ProductId]
+      ,[Qty]
+      ,[RequestedDate]
+      ,[RequestedBy]
+      ,[ReceivedDate]
+      ,[PassedDate]
+      ,[PassedBy]
+      ,[FailedDate]
+      ,[FailedBy]
+      ,[Comments]
+      ,[Attachment])
+        SELECT {0},{1},'{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}'";
+        string fullQuery = string.Format(query
+        , item.ProductId    // 0
+        , item.Qty          // 1
+        , item.RequestedDate // 2
+        , item.RequestedBy  // 3
+        , item.ReceivedDate // 4
+        , item.PassedDate   // 5
+        , item.PassedBy     // 6
+        , item.FailedDate   // 7
+        , item.FailedBy     // 8
+        , item.Comments     // 9
+        , item.Attachment   // 10
+        );
+
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        LoadGridData();
+    }
+    async Task UpdateProductTestDataAsync(ProductTest item)
+    {
+        string query = @"UPDATE [PIMS].[dbo].[ProductTest] SET
+      [ProductId] = {1}
+      ,[Qty] = {2}
+      ,[RequestedDate] = '{3}'
+      ,[RequestedBy] = '{4}'
+      ,[ReceivedDate] = '{5}'
+      ,[PassedDate] = '{6}'
+      ,[PassedBy] = '{7}'
+      ,[FailedDate] = '{8}'
+      ,[FailedBy] = '{9}'
+      ,[Comments] = '{10}'
+      ,[Attachment] = '{11}'
+      WHERE [ProductTestId] = {0}";
+
+        if (item.PassedDate > blankDate && string.IsNullOrWhiteSpace(item.PassedBy))
+        {
+            item.RequestedBy = currentUser;
+        }
+        if (item.FailedDate > blankDate && string.IsNullOrWhiteSpace(item.FailedBy))
+        {
+            item.FailedBy = currentUser;
+        }
+
+        string fullQuery = string.Format(query
+       , item.ProductTestId // 0
+        , item.ProductId    // 1
+        , item.Qty          // 2
+        , item.RequestedDate // 3
+        , item.RequestedBy  // 4
+        , item.ReceivedDate // 5
+        , item.PassedDate   // 6
+        , item.PassedBy     // 7
+        , item.FailedDate   // 8
+        , item.FailedBy     // 9
+        , item.Comments     // 10
+        , item.Attachment   // 11
+       );
+
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        LoadGridData();
+    }
+    async Task DeleteProductTestDataAsync(ProductTest item)
+    {
+        string query = @"DELETE FROM [PIMS].[dbo].[ProductTest] WHERE [ProductTestId] = {0}";
+        string fullQuery = string.Format(query, item.ProductTestId);
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        LoadGridData();
+    }
+
+    private bool IsGridDateColumnItemReadOnly(ProductTest testItem, string fieldName)
+    {
+        bool result = false;
+        bool disableIfPassedOrFailedDate = true;
+
+        if (fieldName == "RequestedDate")
+        {
+            result = true;
+        }
+        if (fieldName == "PassedDate")
+        {
+            if (testItem.FailedDate > blankDate)
+                result = true;
+
+            if (disableIfPassedOrFailedDate)
+            if (testItem.PassedDate > blankDate)
+                result = true;
+        }
+        if (fieldName == "FailedDate")
+        {
+            if (testItem.PassedDate > blankDate)
+                result = true;
+
+            if (disableIfPassedOrFailedDate)
+            if (testItem.FailedDate > blankDate)
+                result = true;
+        }
+
+        return result;
+    }
+
+    #endregion
+
+    // ============================================================ \\
+}

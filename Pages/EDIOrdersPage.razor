@@ -52,9 +52,10 @@
                         TextWrapEnabled="true"
                         ValidationEnabled="false">
                     <Columns>
-                        <DxGridDataColumn FieldName="ShipYear" Caption="Ship Year" DisplayFormat="0" ReadOnly="true" />
-                        <DxGridDataColumn FieldName="ShipMonth" Caption="Ship Month" DisplayFormat="n0" ReadOnly="true" Visible="false" />
-                        <DxGridDataColumn FieldName="ShipWeek" Caption="Ship Week" DisplayFormat="n0" ReadOnly="true" />
+                        <DxGridDataColumn FieldName="ShipYear" Caption="Ship Year" DisplayFormat="0" ReadOnly="true" SortOrder="GridColumnSortOrder.Descending"  />
+                        <DxGridDataColumn FieldName="ShipMonth" Caption="Ship Month" DisplayFormat="n0" ReadOnly="true" Visible="false" SortOrder="GridColumnSortOrder.Descending" />
+                        <DxGridDataColumn FieldName="ShipWeek" Caption="Ship Week" DisplayFormat="n0" ReadOnly="true" Visible="false" SortOrder="GridColumnSortOrder.Descending" />
+                        <DxGridDataColumn FieldName="MondayOfTheWeek" Caption="Monday Of The Week" ReadOnly="true" SortOrder="GridColumnSortOrder.Descending" />
                         <DxGridDataColumn FieldName="TradingPartnerCode" Caption="Customer Code" ReadOnly="true" Visible="false" />
                         <DxGridDataColumn FieldName="TradingPartnerName" Caption="Customer Name" ReadOnly="true" />
                         <DxGridDataColumn FieldName="PONumber" Caption="PO Number" ReadOnly="true" />
@@ -123,9 +124,10 @@
                                     ValidationEnabled="false">
                                 <Columns>
 
-                                    <DxGridDataColumn FieldName="ShipYear" Caption="Ship Year" DisplayFormat="0" ReadOnly="true" Visible="false" />
-                                    <DxGridDataColumn FieldName="ShipMonth" Caption="Ship Month" DisplayFormat="n0" ReadOnly="true" Visible="false" />
-                                    <DxGridDataColumn FieldName="ShipWeek" Caption="Ship Week" DisplayFormat="n0" ReadOnly="true" Visible="false" />
+                                    <DxGridDataColumn FieldName="ShipYear" Caption="Ship Year" DisplayFormat="0" ReadOnly="true" Visible="false" SortOrder="GridColumnSortOrder.Descending" />
+                                    <DxGridDataColumn FieldName="ShipMonth" Caption="Ship Month" DisplayFormat="n0" ReadOnly="true" Visible="false" SortOrder="GridColumnSortOrder.Descending" />
+                                    <DxGridDataColumn FieldName="ShipWeek" Caption="Ship Week" DisplayFormat="n0" ReadOnly="true" Visible="false" SortOrder="GridColumnSortOrder.Descending" />
+                                    <DxGridDataColumn FieldName="MondayOfTheWeek" Caption="Monday Of The Week" ReadOnly="true" Visible="false" SortOrder="GridColumnSortOrder.Descending" />
                                     <DxGridDataColumn FieldName="TradingPartnerCode" Caption="Trading Partner Code" ReadOnly="true" Visible="false" />
                                     <DxGridDataColumn FieldName="TradingPartnerName" Caption="Trading Partner Name" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="PONumber" Caption="PO Number" ReadOnly="true" />
@@ -141,12 +143,6 @@
                                     <DxGridDataColumn FieldName="ShipDate" Caption="Ship Date" DisplayFormat="d" />
                                     <DxGridDataColumn FieldName="CancelDate" Caption="Cancel Date" DisplayFormat="d" />
 
-                                    <DxGridCommandColumn Width="100px" Visible="false"
-                                                         DeleteButtonVisible="false"
-                                                         EditButtonVisible="true"
-                                                         CancelButtonVisible="true"
-                                                         SaveButtonVisible="true"
-                                                         NewButtonVisible="false" />
                                 </Columns>
                                 
                             </DxGrid>
@@ -303,7 +299,6 @@
         SqlData sqlData = new SqlData();
         GridData = await sqlData.GetEdiOrderSummaryViewData();
         GridDetailData = await sqlData.GetEdiOrderDetailViewData(selectedPO);
-
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -316,8 +311,11 @@
                 Grid.BeginUpdate();
                 Grid.ClearSort();
                 Grid.GroupBy("ShipYear");
-                Grid.GroupBy("ShipWeek");
+                //Grid.GroupBy("ShipWeek");
+                Grid.GroupBy("MondayOfTheWeek");
                 Grid.SortBy("ShipYear", GridColumnSortOrder.Descending);
+                //Grid.SortBy("ShipWeek", GridColumnSortOrder.Descending);
+                Grid.SortBy("MondayOfTheWeek", GridColumnSortOrder.Descending);
                 //SOGrid.ExpandDetailRow(0);
                 Grid.EndUpdate();
             }

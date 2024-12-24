@@ -52,7 +52,7 @@
             </DxComboBox> *@
 
             <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem Context="BusinessParnerSelector" ColSpanMd="6" CssClass="fl">
+                <DxFormLayoutItem Context="BusinessParnerSelector" ColSpanMd="7" CssClass="fl">
 
                     <DxFormLayout CssClass="w-100">
                         <DxFormLayoutItem Caption="Business Partners:" ColSpanMd="10">
@@ -114,6 +114,13 @@
                                     HighlightRowOnHover="true"
                                     ValidationEnabled="false">
                                 <Columns>
+                                    
+                                    <DxGridCommandColumn MinWidth="140" Width="200" Visible="true"
+                                                         SaveButtonVisible="true"
+                                                         DeleteButtonVisible="true"
+                                                         EditButtonVisible="true"
+                                                         CancelButtonVisible="true"
+                                                         NewButtonVisible="false"/>
 
                                     <DxGridDataColumn FieldName="TaskName" Caption="Task Name" ReadOnly="false" Width="100" MinWidth="160" FixedPosition="GridColumnFixedPosition.Left" />
                                     <DxGridDataColumn FieldName="TaskDescription" Caption="Task Description" ReadOnly="false" MinWidth="100" />
@@ -124,12 +131,6 @@
                                     <DxGridDataColumn FieldName="Qty" Caption="Qty" ReadOnly="false" MinWidth="100" />
                                     <DxGridDataColumn FieldName="AssignedTo" Caption="AssignedTo" ReadOnly="false" MinWidth="100" />
 
-                                    <DxGridCommandColumn MinWidth="140" Width="200" Visible="true"
-                                                         SaveButtonVisible="true"
-                                                         DeleteButtonVisible="true"
-                                                         EditButtonVisible="true"
-                                                         CancelButtonVisible="true"
-                                                         NewButtonVisible="false"/>
                                 </Columns>
                                 <EditFormTemplate Context="EditFormContext">
                                     @{
@@ -216,7 +217,7 @@
 
                 </DxFormLayoutItem>
 
-                <DxFormLayoutItem Context="TasksList" ColSpanMd="6" CssClass="fl">
+                <DxFormLayoutItem Context="TasksList" ColSpanMd="5" CssClass="fl">
 
                     <DxGrid @ref="TasksGrid"
                             Data="TasksGridData"
@@ -822,7 +823,7 @@
     {
         //string[] dateList = { "SODate", "StartDate", "EndDate", "PODate", "ShipmentDate", "ShipToETA", "FactoryCancel" };
         //if (dateList.Contains(e.FieldName)) 
-        if (e.Value.GetType() == typeof(DateTime))
+        if (e.Value != null && e.Value.GetType() == typeof(DateTime))
         {
             // e.DisplayText = CustomerList.Where(p => p.CustomerId == ((Customer)e.Value).CustomerId).FirstOrDefault().CompanyName;
             if (DateTime.Parse(e.Value.ToString()) <= new DateTime(1900, 1, 1))
@@ -922,7 +923,16 @@
     async Task InsertBusinessPartnerTaskDataAsync(BusinessPartnerTask item)
     {
         string query = @"INSERT INTO [PIMS].[dbo].[BusinessPartnerTask] ([BusinessPartnerTaskId],[BusinessPartnerId],[TaskId],[TaskName],[TaskDescription],[TaskType],[Required],[Qty],[AssignedTo],[TaskSequence],[LegacySystemId])
-        SELECT {0},{1},'{2}','{3}','{4}','{5}',{6},{7},'{8}',{9},{10} ";
+        SELECT {0},{1},{2},'{3}','{4}','{5}',{6},{7},'{8}',{9},{10} ";
+
+        if (item.TaskName == null) item.TaskName = "";
+        if (item.TaskDescription == null) item.TaskDescription = "";
+        if (item.TaskType == null) item.TaskType = "";
+        if (item.Qty == null) item.Qty = 0;
+        if (item.AssignedTo == null) item.AssignedTo = "";
+        if (item.TaskSequence == null) item.TaskSequence = 0;
+        if (item.LegacySystemId == null) item.LegacySystemId = 0;
+        
         string fullQuery = string.Format(query, item.BusinessPartnerTaskId, item.BusinessPartnerId, item.TaskId, item.TaskName, item.TaskDescription, item.TaskType, ((item.Required.Value) ? 1 : 0), item.Qty, item.AssignedTo, item.TaskSequence, item.LegacySystemId);
 
         using (var uow = new UnitOfWork())
@@ -942,10 +952,19 @@
       ,[TaskType] = '{5}'
       ,[Required] = {6}
       ,[Qty] = {7}
-      ,[AssignedTo] = '{8}'
+      ,[AssignedTo] = '{8}''
       ,[TaskSequence] = {9}
       ,[LegacySystemId] = {10}
       WHERE [BusinessPartnerTaskId] = {0}";
+
+        if (item.TaskName == null) item.TaskName = "";
+        if (item.TaskDescription == null) item.TaskDescription = "";
+        if (item.TaskType == null) item.TaskType = "";
+        if (item.Qty == null) item.Qty = 0;
+        if (item.AssignedTo == null) item.AssignedTo = "";
+        if (item.TaskSequence == null) item.TaskSequence = 0;
+        if (item.LegacySystemId == null) item.LegacySystemId = 0;
+
         string fullQuery = string.Format(query, item.BusinessPartnerTaskId, item.BusinessPartnerId, item.TaskId, item.TaskName, item.TaskDescription, item.TaskType, ((item.Required.Value) ? 1 : 0), item.Qty, item.AssignedTo, item.TaskSequence, item.LegacySystemId);
 
         using (var uow = new UnitOfWork())
@@ -989,6 +1008,12 @@
                 newObject.TaskDescription = task.TaskDescription;
                 newObject.TaskType = task.TaskType;
                 newObject.CreatedOn = blankDate;
+                newObject.AssignedTo = "";
+                newObject.Qty = 1;
+                newObject.Required = false;
+                newObject.TaskSequence = 0;
+                newObject.isSelected = false;
+                newObject.isUsed = false;
                 newObject.LegacySystemId = 0; //addTask.LegacySystemId;
 
                 //GridData.Append(newObject);

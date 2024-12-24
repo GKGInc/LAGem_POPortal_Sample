@@ -58,9 +58,10 @@
                                          EditButtonVisible="true"
                                          CancelButtonVisible="true"
                                          SaveButtonVisible="true"
-                                         NewButtonVisible="true" FixedPosition="GridColumnFixedPosition.Right" />
+                                         NewButtonVisible="true" FixedPosition="GridColumnFixedPosition.Left" />
 
                     <DxGridDataColumn FieldName="VendorName" Caption="Vendor" ReadOnly="true" Width="100" MinWidth="120" FixedPosition="GridColumnFixedPosition.Left" />
+
                     <DxGridDataColumn FieldName="ShipmentDate" Caption="Shipment Date" ReadOnly="false" DisplayFormat="d" Width="100" MinWidth="80" />                    
                     <DxGridDataColumn FieldName="InvoiceNo" Caption="Invoice No" ReadOnly="false" Width="100" MinWidth="100" />
                     <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking Number" ReadOnly="false" Width="100" MinWidth="100" />
@@ -167,7 +168,7 @@
                         <DxFormLayoutItem Caption="PO No:" ColSpanMd="1">
                             <DxGrid @ref="POListGrid"
                                     Data="POListGridData"
-                                    PageSize="5"
+                                    PageSize="10"
                                     AutoExpandAllGroupRows="true"
                                     KeyFieldName="Id"
                                     ValidationEnabled="false"
@@ -180,10 +181,18 @@
                                     @bind-SelectedDataItems="SelectedDataPOListGridItems"
                                     RowClick="POListGrid_OnRowClick"
                                     RowDoubleClick="POListGrid_OnRowDoubleClick"
-                                    CustomizeElement="POListGrid_CustomizeElement"
-                                    style="min-width: 150px; width: 150px;">
+                                    CustomizeElement="POListGrid_CustomizeElement" 
+                                    DataItemDeleting="POListGrid_DataItemDeleting"
+                                    style="min-width: 150px; width: 250px;">
                                 <Columns>
-                                    <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" MinWidth="140" />                                
+                                    <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" MinWidth="140" />
+                                    <DxGridCommandColumn Width="100px" Visible="true"
+                                       DeleteButtonVisible="true"
+                                       EditButtonVisible="false"
+                                       CancelButtonVisible="false"
+                                       SaveButtonVisible="false"
+                                       NewButtonVisible="false"
+                                       FixedPosition="GridColumnFixedPosition.Right" /> 
                                 </Columns>
                             </DxGrid>
                         </DxFormLayoutItem>                        
@@ -357,15 +366,15 @@
     // ============================================================ \\
 
     #region Variables
+    
+    // ------------------------------------------------------------ \\
 
     [CascadingParameter]
     private Task<AuthenticationState> authenticationState { get; set; }
+    string currentUser { get; set; } = "";
 
     [CascadingParameter] 
     protected Task<AuthenticationState> AuthStat { get; set; }
-
-    bool AutoCollapseDetailRow { get; set; }
-    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     IGrid Grid { get; set; }
     //IGrid ItemGrid { get; set; }
@@ -384,6 +393,11 @@
     IEnumerable<ShippingData> POShipmentListGridData { get; set; }
     IEnumerable<ShippingData> TestGridData { get; set; }
     List<Lookup> openPOList { get; set; }
+    
+    // ------------------------------------------------------------ \\
+    
+    bool AutoCollapseDetailRow { get; set; }
+    TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     bool TextWrapEnabled = true;
     bool WordWrapEnabled = false;
@@ -420,13 +434,15 @@
         CurrentColumnResizeMode = GridColumnResizeModes[key];
     }
 
-    bool usePopupEditForm { get; set; } = false;
+    bool usePopupEditForm { get; set; } = true;
     GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
 
-    IReadOnlyList<object> SelectedDataItems { get; set; }
+    IReadOnlyList<object> SelectedDataItems { get; set; } // Items Selected in Edit Form
     IReadOnlyList<object> SelectedDataPOListGridItems { get; set; }
     IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
     GridSelectAllCheckboxMode CurrentSelectAllCheckboxMode { get; set; }
+    
+    // ------------------------------------------------------------ \\
 
     string headerMessage { get; set; } = "Loading Data...";
     bool hiddenGrid { get; set; } = true;
@@ -438,6 +454,8 @@
     int POHeaderIdSelected { get; set; }
 
     CriteriaOperator shippingGridFilterCriteria { get; set; }
+    
+    // ------------------------------------------------------------ \\
 
     #endregion
 
@@ -473,6 +491,7 @@
         var authstate = await authStateProvider.GetAuthenticationStateAsync();
         var userClaimsPrincipal = authstate.User; // ClaimsPrincipal
         var userClaimsPrincipalName = userClaimsPrincipal.Identity.Name;
+        currentUser = userClaimsPrincipal.Identity.Name;
 
         if (userClaimsPrincipalName != null)
         {
@@ -858,6 +877,10 @@
 
     async Task InsertShippingDataAsync(ShippingData item)
     {
+        // Don't save if empty detail list
+        if (POShipmentListGridData.Count() == 0)
+            return;
+
         if (item.TrackingNumber == null) item.TrackingNumber = "";
         if (item.InvoiceNo == null) item.InvoiceNo = "";
 
@@ -888,62 +911,74 @@
             //ship.ShipmentDetailId = shipmentDetailId;
         }
 
+        // Get list of Rows Selected. See SelectedDataItems list
+        List<string> productlist = new List<string>();
+        if (SelectedDataItems.Count > 0)
+            productlist = SelectedDataItems.Select(x => (x as ShippingData).ProductNo).Distinct().ToList();
+        List<int> soDetailIds = new List<int>();
+        if (SelectedDataItems.Count > 0)
+            soDetailIds = SelectedDataItems.Select(x => (x as ShippingData).SODetailId).Distinct().ToList();
+
         // Save POShipmentListGrid data
         foreach (ShippingData ship in POShipmentListGridData)
         {
-            if (ship.ShipmentDetailId == 0)
+            if (soDetailIds.Contains(ship.SODetailId))
             {
-                //int shipmentHeaderId = item.ShipmentHeaderId;
-                int poDetailId = ship.PODetailId;
-                int shipmentQty = ship.ShipmentQty;
 
-                // NEW insert
-                string detailInsertQuery = @"INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
+                if (ship.ShipmentDetailId == 0)
+                {
+                    //int shipmentHeaderId = item.ShipmentHeaderId;
+                    int poDetailId = ship.PODetailId;
+                    int shipmentQty = ship.ShipmentQty;
+
+                    // NEW insert
+                    string detailInsertQuery = @"INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
                 SELECT {0},{1},{2}, GETDATE()
                 SELECT @@IDENTITY AS 'pk'";
-                string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty);
+                    string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty);
 
-                int shipmentDetailId = 0;
-                using (var uow = new UnitOfWork())
-                {
-                    DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(detailInsertFullQuery);
-
-                    if (selectedData.ResultSet.Length > 0)
-                    {
-                        DevExpress.Xpo.DB.SelectStatementResult result = selectedData.ResultSet[0];
-
-                        if (result.Rows.Count() > 0)
-                        {
-                            string rValue = result.Rows[0].Values[0].ToString();
-                            int.TryParse(rValue, out shipmentDetailId);
-                        }
-                    }
-                }
-                if (shipmentDetailId > 0)
-                {
-                    //POShipmentListGridData.Where(c => c.Id == ship.Id).FirstOrDefault().ShipmentDetailId = shipmentDetailId;
-                    ship.ShipmentDetailId = shipmentDetailId;
-                }
-                ship.LastShipmentQty = ship.ShipmentQty;
-                //UpdateOpenPOShipmentData(ship);
-            }
-            else
-            {
-                if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
-                {
-                    // UPDATE
-                    string detailUpdateQuery = @"UPDATE [PIMS].[dbo].[ShipmentDetails] 
-SET [ShipmentQty] = {1}
---, [LastModifiedOn] = GETDATE() 
-WHERE [PODetailId] = {0}";
-                    string detailUpdateFullQuery = string.Format(detailUpdateQuery, item.PODetailId, item.OrderQty);
-
+                    int shipmentDetailId = 0;
                     using (var uow = new UnitOfWork())
                     {
-                        await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
+                        DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(detailInsertFullQuery);
+
+                        if (selectedData.ResultSet.Length > 0)
+                        {
+                            DevExpress.Xpo.DB.SelectStatementResult result = selectedData.ResultSet[0];
+
+                            if (result.Rows.Count() > 0)
+                            {
+                                string rValue = result.Rows[0].Values[0].ToString();
+                                int.TryParse(rValue, out shipmentDetailId);
+                            }
+                        }
+                    }
+                    if (shipmentDetailId > 0)
+                    {
+                        //POShipmentListGridData.Where(c => c.Id == ship.Id).FirstOrDefault().ShipmentDetailId = shipmentDetailId;
+                        ship.ShipmentDetailId = shipmentDetailId;
                     }
                     ship.LastShipmentQty = ship.ShipmentQty;
                     //UpdateOpenPOShipmentData(ship);
+                }
+                else
+                {
+                    if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
+                    {
+                        // UPDATE
+                        string detailUpdateQuery = @"UPDATE [PIMS].[dbo].[ShipmentDetails] 
+SET [ShipmentQty] = {1}
+--, [LastModifiedOn] = GETDATE() 
+WHERE [PODetailId] = {0}";
+                        string detailUpdateFullQuery = string.Format(detailUpdateQuery, item.PODetailId, item.OrderQty);
+
+                        using (var uow = new UnitOfWork())
+                        {
+                            await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
+                        }
+                        ship.LastShipmentQty = ship.ShipmentQty;
+                        //UpdateOpenPOShipmentData(ship);
+                    }
                 }
             }
         }
@@ -954,6 +989,10 @@ WHERE [PODetailId] = {0}";
     }
     async Task UpdateShippingDataAsync(ShippingData item)
     {
+        // Don't save if empty detail list
+        if (POShipmentListGridData.Count() == 0)
+            return;
+
         string query = @"UPDATE [PIMS].[dbo].[ShipmentHeader] SET
        [ShipmentDate] = '{1}'
       ,[TrackingNumber] = '{2}'
@@ -961,70 +1000,81 @@ WHERE [PODetailId] = {0}";
       ,[InvoiceNo] = '{4}'
       --,[LastModifiedOn] = GETDATE()
       WHERE [ShipmentHeaderId] = {0}";
-        string fullQuery = string.Format(query,item.ShipmentHeaderId, item.ShipmentDate, item.TrackingNumber, item.ShipToETA, item.InvoiceNo);
+        string fullQuery = string.Format(query, item.ShipmentHeaderId, item.ShipmentDate, item.TrackingNumber, item.ShipToETA, item.InvoiceNo);
 
         using (var uow = new UnitOfWork())
         {
             await uow.ExecuteNonQueryAsync(fullQuery);
         }
 
+        // Get list of Rows Selected. See SelectedDataItems list
+        List<string> productlist = new List<string>();
+        if (SelectedDataItems.Count > 0)
+            productlist = SelectedDataItems.Select(x => (x as ShippingData).ProductNo).Distinct().ToList();
+        List<int> soDetailIds = new List<int>();
+        if (SelectedDataItems.Count > 0)
+            soDetailIds = SelectedDataItems.Select(x => (x as ShippingData).SODetailId).Distinct().ToList();
+
         // Save POShipmentListGrid data
         foreach (ShippingData ship in POShipmentListGridData)
         {
-            if (ship.ShipmentDetailId == 0 && ship.ShipmentQty != ship.LastShipmentQty)
+            if (soDetailIds.Contains(ship.SODetailId))
             {
-                int shipmentHeaderId = item.ShipmentHeaderId;
-                int poDetailId = ship.PODetailId;
-                int shipmentQty = ship.ShipmentQty;
+                if (ship.ShipmentDetailId == 0 && ship.ShipmentQty != ship.LastShipmentQty)
+                {
+                    int shipmentHeaderId = item.ShipmentHeaderId;
+                    int poDetailId = ship.PODetailId;
+                    int shipmentQty = ship.ShipmentQty;
 
-                // NEW insert
-                string detailInsertQuery = @"INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
+                    // NEW insert
+                    string detailInsertQuery = @"INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
                 SELECT {0},{1},{2}, GETDATE()
                 SELECT @@IDENTITY AS 'pk'";
-                string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty);
+                    string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty);
 
-                int shipmentDetailId = 0;
-                using (var uow = new UnitOfWork())
-                {
-                    DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(detailInsertFullQuery);
-
-                    if (selectedData.ResultSet.Length > 0)
-                    {
-                        DevExpress.Xpo.DB.SelectStatementResult result = selectedData.ResultSet[0];
-
-                        if (result.Rows.Count() > 0)
-                        {
-                            string rValue = result.Rows[0].Values[0].ToString();
-                            int.TryParse(rValue, out shipmentDetailId);
-                        }
-                    }
-                }
-                if (shipmentDetailId > 0)
-                {
-                    //POShipmentListGridData.Where(c => c.Id == ship.Id).FirstOrDefault().ShipmentDetailId = shipmentDetailId;
-                    ship.ShipmentDetailId = shipmentDetailId;
-                }
-                ship.LastShipmentQty = ship.ShipmentQty;
-                //UpdateOpenPOShipmentData(ship);
-            }
-            else
-            {
-                //if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
-                if (ship.ShipmentQty != ship.LastShipmentQty)
-                {
-                    // UPDATE
-                    string detailUpdateQuery = @"UPDATE [PIMS].[dbo].[ShipmentDetails] 
-SET [ShipmentQty] = {1}
---, [LastModifiedOn] = GETDATE() 
-WHERE [PODetailId] = {0}";
-                    string detailUpdateFullQuery = string.Format(detailUpdateQuery, ship.PODetailId, ship.ShipmentQty);
-
+                    int shipmentDetailId = 0;
                     using (var uow = new UnitOfWork())
                     {
-                        await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
+                        DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(detailInsertFullQuery);
+
+                        if (selectedData.ResultSet.Length > 0)
+                        {
+                            DevExpress.Xpo.DB.SelectStatementResult result = selectedData.ResultSet[0];
+
+                            if (result.Rows.Count() > 0)
+                            {
+                                string rValue = result.Rows[0].Values[0].ToString();
+                                int.TryParse(rValue, out shipmentDetailId);
+                            }
+                        }
+                    }
+                    if (shipmentDetailId > 0)
+                    {
+                        //POShipmentListGridData.Where(c => c.Id == ship.Id).FirstOrDefault().ShipmentDetailId = shipmentDetailId;
+                        ship.ShipmentDetailId = shipmentDetailId;
                     }
                     ship.LastShipmentQty = ship.ShipmentQty;
                     //UpdateOpenPOShipmentData(ship);
+                }
+                else
+                {
+                    //if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
+                    if (ship.ShipmentQty != ship.LastShipmentQty)
+                    {
+                        // UPDATE
+                        string detailUpdateQuery = @"UPDATE [PIMS].[dbo].[ShipmentDetails] 
+SET [ShipmentQty] = {1}
+--, [LastModifiedOn] = GETDATE() 
+WHERE [PODetailId] = {0}";
+                        string detailUpdateFullQuery = string.Format(detailUpdateQuery, ship.PODetailId, ship.ShipmentQty);
+
+                        using (var uow = new UnitOfWork())
+                        {
+                            await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
+                        }
+                        ship.LastShipmentQty = ship.ShipmentQty;
+                        //UpdateOpenPOShipmentData(ship);
+                    }
                 }
             }
         }
@@ -1120,6 +1170,21 @@ WHERE [PODetailId] = {0}";
         {
             e.Style = "font-weight: 800";
             e.Style = "color: red";
+        }
+    }
+
+    async Task POListGrid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    {
+        if (e.DataItem.GetType() == typeof(ShippingData))
+        {
+            var deletingObject = (ShippingData)e.DataItem;
+
+            //// Delete from POListGridData
+            //POListGridData.Remove(POListGridData.First(c => c.POHeaderId == deletingObject.POHeaderId));
+            POListGridData = POListGridData.Where(c => c.POHeaderId != deletingObject.POHeaderId).ToList();
+
+            // Delete from POShipmentListGridData
+            POShipmentListGridData = POShipmentListGridData.Where(c => c.POHeaderId != deletingObject.POHeaderId).ToList();
         }
     }
 
