@@ -212,5 +212,6 @@ C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sampl
 C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\scopedcss\Pages\ProductTestsPage_simple.razor.rz.scp.css
 C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\scopedcss\Pages\SOProductsAndMaterialsTasks.razor.rz.scp.css
 C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\scopedcss\Pages\Unused\ProductTasksPage_ProductMaterialTask.razor.rz.scp.css
-C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\scopedcss\Pages\Orders\OrdersDetailPage.razor.rz.scp.css
-C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\scopedcss\Pages\Orders\OrdersMainPage.razor.rz.scp.css
+C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\scopedcss\Pages\Orders1.0\OrdersDetailPage.razor.rz.scp.css
+C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\scopedcss\Pages\Orders1.0\OrdersMainPage.razor.rz.scp.css
+C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\scopedcss\Pages\Orders2.0\OrdersPage.razor.rz.scp.css

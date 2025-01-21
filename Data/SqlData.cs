@@ -510,8 +510,193 @@ ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] ASC, ediView.[ShipWeek] AS
             return await GetSqlData<EdiOrderDetailData>(fullQuery);
         }
 
+        //"Orders"
+        public async Task<List<SoEdiData>> GetSoEdiData() //
+        {
+            string query = @"
+SELECT ROW_NUMBER() OVER (ORDER BY main.[SOShipYear] DESC
+    ,main.[SOShipMonth] DESC
+    ,main.[SOShipWeek] DESC
+	,main.[CustomerName] ASC
+	,main.[SONumber] DESC) AS [Id]
+
+	,[IsLinked]
+	,ISNULL([Edihdrid], 0) AS [Edihdrid]
+	,[CustomerName]
+	,[CustomerPO]
+	,ISNULL([RefPonum], '') AS [RefPonum]
+	,[SONumber]
+
+	,CASE WHEN [IsLinked] = 0 THEN [SOShipYear]  ELSE [EDIShipYear] END AS [ShipYear]
+    ,CASE WHEN [IsLinked] = 0 THEN [SOShipMonth] ELSE [EDIShipMonth] END AS [ShipMonth]
+    ,CASE WHEN [IsLinked] = 0 THEN [SOShipWeek]  ELSE [EDIShipWeek] END AS [ShipWeek]
+	,CASE WHEN [IsLinked] = 0 
+		THEN CAST(DATEADD(wk, DATEDIFF(wk,0,[SO_StartDate]), 0) AS DATE)
+		ELSE CAST(DATEADD(wk, DATEDIFF(wk,0,ISNULL([EDI_StartDate], '1900-01-01')), 0) AS DATE) END AS [MondayOfTheWeek]
+		
+	,CASE WHEN [IsLinked] = 0 
+		THEN ISNULL([SO_StartDate], '1900-01-01')
+		ELSE ISNULL([EDI_StartDate], '1900-01-01') END AS [StartDate]
+	,CASE WHEN [IsLinked] = 0 
+		THEN ISNULL([SO_EndDate], '1900-01-01')
+		ELSE ISNULL([EDI_EndDate], '1900-01-01') END AS [EndDate]
+	,CASE WHEN [IsLinked] = 0 
+		THEN ISNULL([SOQty], 0)
+		ELSE ISNULL([Ord_Qty], 0) END AS [OrderQty]
+
+    ,[SOHeaderId]
+	--,ISNULL([SOQty], 0)			AS [SOQty]
+	--,ISNULL([SORetail], 0.0)	AS [SORetail]
+	--,ISNULL([ShipmentQty], 0)	AS [SOShipmentQty]
+	--,ISNULL([NoOfItems], 0)		AS [EDINumberOfItems]
+	--,ISNULL([Ord_Qty], 0)		AS [EDIOrderQty]
+	--,ISNULL([ExtPrice], 0.0)	AS [EDIExtPrice]
+	--,ISNULL([Tradpartid], 0)	AS [EDITradingPartnerId]
+	--,ISNULL([Podte], '1900-01-01')	AS [EDIPODate]
+	--,ISNULL([Comments], '')		AS [EDIComments]
+	,CASE WHEN [IsLinked] = 1 AND ([EDI_StartDate] IS NULL OR [EDI_EndDate] IS NULL) THEN 1 ELSE 0 END AS [EDIDateIssue]
+FROM (
+SELECT DISTINCT 
+	ISNULL(main.[CustomerName], '')	 AS [CustomerName]
+    ,ISNULL(ediH.Ponum,main.[CustomerPO]) AS [CustomerPO]
+	,CASE WHEN ediH.Ponum IS NULL THEN 0 ELSE 1 END AS [IsLinked]
+    ,ediH.[Ponum]
+	,ediH.[RefPonum]
+    ,main.[SONumber]
+    ,main.[StartDate]	AS [SO_StartDate]
+    ,main.[EndDate]		AS [SO_EndDate]
+    ,main.[SOHeaderId]
+    ,main.[SOShipYear]
+    ,main.[SOShipMonth]
+    ,main.[SOShipWeek]
+	,CAST(DATEADD(wk, DATEDIFF(wk,0,main.[StartDate]), 0) AS DATE) AS [MondayOfTheWeek]
+    ,main.[SOQty]
+    ,main.[SORetail]
+    ,ISNULL(main.[ShipmentQty], 0) AS [ShipmentQty]
+	,ediH.[Edihdrid]
+	,ediO.[Tradpartid]
+    ,ediO.[Podte]
+    ,ediO.[Comments]
+    ,CASE WHEN ediO.[StartDate]= '1900-01-01' THEN NULL ELSE ediO.[StartDate] END AS [EDI_StartDate]
+    ,CASE WHEN ediO.[CancelDate] = '1900-01-01' THEN NULL ELSE ediO.[CancelDate] END AS [EDI_EndDate]
+    ,ediO.[ShipYear]  AS [EDIShipYear]
+    ,ediO.[ShipMonth] AS [EDIShipMonth]
+    ,ediO.[ShipWeek]  AS [EDIShipWeek]
+    ,ediO.[NoOfItems]
+    ,ediO.[Ord_Qty]
+    ,ediO.[ExtPrice]
+FROM [PIMS].[dbo].[CustomerSoSummaryVw] main -- SELECT * FROM [PIMS].[dbo].[CustomerSoSummaryVw] 
+	LEFT JOIN [PIMS].[dbo].[SODetail] sod
+		ON sod.[SOHeaderId] = main.[SOHeaderId]
+	LEFT JOIN [PIMS].[edi].[EdiHdr]	ediH
+		ON main.SOHeaderId = ediH.SoHeaderId
+	LEFT JOIN [PIMS].[edi].[EdiTrn]	ediD
+		ON ediD.[Edihdrid] = ediH.[Edihdrid] 
+			AND ediD.[SoDetailId] = sod.[SoDetailId]
+	LEFT JOIN [PIMS].[edi].[EdiOrderSummaryVw] ediO
+		ON ediO.[Ponum] = ediH.[Ponum] AND ediO.[SoHeaderId] = main.[SoHeaderId] 
+) main
+ORDER BY [SOShipYear] DESC
+    ,[SOShipMonth] DESC
+    ,[SOShipWeek] DESC
+	,[CustomerName] ASC
+	,[SONumber] DESC
+	,[EDI_EndDate] DESC";
+
+            return await GetSqlData<SoEdiData>(query);
+        }
+        //"Orders"
+        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId) //
+        {
+            string query = @"
+SELECT edi.[Edihdrid]
+    ,edi.[Editrnid]
+	,edi.[Ponum]    AS [CustomerPO]
+    ,edi.[Item]		AS [ItemNo]
+    ,edi.[Ord_qty]	AS [OrderQty]
+    ,edi.[Price]
+	,edi.[TP_Name]	AS [CustomerName]
+    ,ISNULL(edi.[StartDate], '1900-01-01')	AS [StartDate]
+    ,ISNULL(edi.[CancelDate], '1900-01-01')	AS [EndDate]
+    ,ISNULL(edi.[SoDetailId], 0)	AS [SoDetailId]
+    ,ISNULL(edi.[ProductId], 0)		AS [ProductId]
+	,ISNULL(soh.[SONumber], '')		AS [SONumber]
+	,ISNULL(sod.[ForSoDetailId], 0) AS [ForSoDetailId]
+	,ISNULL(sod.[OrderQty], 0)		AS [SOOrderQty]
+	,ISNULL(sod.[Cost], 0.0)		AS [Cost]
+	,ISNULL(prod.[SKU], '')			AS [SKU]
+	,ISNULL(prod.[ProductName], '') AS [Description]
+	--,prod.[ProductFullDescription] AS [Description]
+FROM [PIMS].[edi].[EdiOrderDetailvw] edi
+	LEFT JOIN [PIMS].[dbo].[SODetail] sod
+		ON edi.[SoDetailId] = sod.[SODetailId]
+			AND edi.[ProductId] = sod.[ProductId]
+	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
+		ON soh.[SOHeaderId] = sod.[SOHeaderId]
+	--LEFT JOIN [PIMS].[dbo].[PODetail] pod
+	--	ON sod.[SODetailId] = pod.[SODetailId]
+	LEFT JOIN [PIMS].[dbo].[Product] prod
+		ON prod.[ProductId] = sod.[ProductId]
+WHERE edi.[Edihdrid] = {0}";
+
+            string fullQuery = string.Format(query, ediId);
+
+            return await GetSqlData<SoEdiData>(fullQuery);
+        }
+
         //"I2 Orders", "Orders"
-        public async Task<List<CustomerSoPoData>> GetCustomerSoData(bool populatePOListString = true) // CustomerSoPoData
+        public async Task<List<CustomerSoPoData>> GetCustomerSoData() // CustomerSoPoData
+        {
+            string query = @"
+            SELECT ROW_NUMBER() OVER (ORDER BY main.[SOShipYear] DESC
+                ,main.[SOShipMonth] DESC
+                ,main.[SOShipWeek] DESC
+            	,main.[CustomerName] ASC
+            	,main.[SONumber] DESC) AS [Id]
+                ,ISNULL(main.[CustomerName], '')	 AS [CustomerName]
+                ,ISNULL(edi.Ponum,main.[CustomerPO]) AS [CustomerPO]
+                ,main.[SONumber]
+                ,main.[StartDate]
+                ,main.[EndDate]
+                ,main.[SOHeaderId]
+                ,main.[SOShipYear]
+                ,main.[SOShipMonth]
+                ,main.[SOShipWeek]
+            	,CAST(DATEADD(wk, DATEDIFF(wk,0,[StartDate]), 0) AS DATE) AS [MondayOfTheWeek]
+                ,main.[SOQty]
+                ,main.[SORetail]
+                ,ISNULL(main.[ShipmentQty], 0) AS [ShipmentQty]
+            	,ISNULL(det.POList, '') AS [PONumber]
+            FROM [PIMS].[dbo].[CustomerSoSummaryVw] main
+            	LEFT JOIN [PIMS].[edi].[EdiHdr]	edi
+            		ON main.SOHeaderId = edi.SoHeaderId
+            LEFT JOIN (SELECT top_query.[SOShipYear] AS [ListSOShipYear],top_query.[SOShipWeek] AS [ListSOShipWeek], top_query.[SONumber],
+            				(SELECT STUFF([list],1,1,'') AS stuff_list
+            					FROM (SELECT ',' + CAST(vw.[VendorPO] AS VARCHAR(255)) AS [text()]
+            							FROM [PIMS].[dbo].[CustomerSoPoDetailVw] vw 
+            							LEFT JOIN [PIMS].[dbo].[SODetailMaterial] som
+            								ON vw.[SODetailMaterialId] = som.[SODetailMaterialId]
+            							WHERE vw.[SOShipYear] = top_query.[SOShipYear] 
+            								AND vw.[SOShipWeek] = top_query.[SOShipWeek] 
+            								AND som.[SoSubLineType] <> 'Packaging'
+            								AND vw.[SONumber] = top_query.[SONumber] 
+            							FOR XML PATH('')
+            							) sub_query([list])
+            					) AS POList
+            			FROM [PIMS].[dbo].[CustomerSoPoSummaryVw] top_query
+            			GROUP BY top_query.[SOShipYear], top_query.[SOShipWeek], top_query.[SONumber]) det
+            	ON main.[SOShipYear] = det.[ListSOShipYear] 
+            		AND main.[SOShipWeek] = det.[ListSOShipWeek]
+            		AND main.[SONumber] = det.[SONumber]
+            ORDER BY main.[SOShipYear] DESC
+                ,main.[SOShipMonth] DESC
+                ,main.[SOShipWeek] DESC
+            	,main.[CustomerName] ASC
+            	,main.[SONumber] DESC";
+                       
+            return await GetSqlData<CustomerSoPoData>(query);
+        }
+        public async Task<List<CustomerSoPoData>> GetCustomerSoData_old(bool populatePOListString = true) // CustomerSoPoData
         {
             string query = @"
 SELECT ROW_NUMBER() OVER (ORDER BY so.[SOShipYear] DESC

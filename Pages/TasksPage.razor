@@ -512,7 +512,7 @@
                 e.Style = "color: red";
         } *@
     }
-    
+
     void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
     {
         //string[] dateList = { "SODate", "StartDate", "EndDate", "PODate", "ShipmentDate", "ShipToETA", "FactoryCancel" };
@@ -533,10 +533,14 @@
             {
                 var newObject = (Tasks)e.EditModel;
 
-                newObject.TaskId = GridData.Where(x => x.TaskId > 0).Select(x => x.TaskId).Max() + 1;
+                newObject.TaskId = (GridData.Count() == 0) ? 1 : GridData.Where(x => x.TaskId > 0).Select(x => x.TaskId).Max() + 1;
                 newObject.TaskName = "";
                 newObject.TaskDescription = "";
                 newObject.TaskType = "";
+                newObject.Qty = 0;
+                newObject.Required = false;
+                newObject.TaskSequence = 1;
+                newObject.CreatedOn = DateTime.Now;
                 newObject.LegacySystemId = 0;
             }
         }

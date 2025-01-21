@@ -1,4 +1,4 @@
-[b-v5dq4lpyir] .grid-cell-align-center {
+[b-x0d458gc2m] .grid-cell-align-center {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -6,7 +6,7 @@
     margin-bottom: -4px;
 }
 
-[b-v5dq4lpyir] .grid-icon {
+[b-x0d458gc2m] .grid-icon {
     display: inline-block;
     width: 1rem;
     height: 1rem;
@@ -20,25 +20,25 @@
     vertical-align: middle;
 }
 
-[b-v5dq4lpyir] .grid-icon-new {
+[b-x0d458gc2m] .grid-icon-new {
     -webkit-mask-image: url(../images/icons/new.svg);
     mask-image: url(../images/icons/new.svg);
 }
 
-[b-v5dq4lpyir] .grid-icon-add {
+[b-x0d458gc2m] .grid-icon-add {
     -webkit-mask-image: url(../images/icons/add.svg);
     mask-image: url(../images/icons/add.svg);
 }
 
-:: deep .grid-icon-delete[b-v5dq4lpyir] {
+:: deep .grid-icon-delete[b-x0d458gc2m] {
     -webkit-mask-image: url("../images/icons/delete.svg");
     mask-image: url("../images/icons/delete.svg");
 }
 
-[b-v5dq4lpyir] .grid-toolbar-new,
-[b-v5dq4lpyir] .grid-toolbar-delete,
-[b-v5dq4lpyir] .grid-toolbar-save,
-[b-v5dq4lpyir] .grid-toolbar-cancel {
+[b-x0d458gc2m] .grid-toolbar-new,
+[b-x0d458gc2m] .grid-toolbar-delete,
+[b-x0d458gc2m] .grid-toolbar-save,
+[b-x0d458gc2m] .grid-toolbar-cancel {
     background-size: contain;
     mask-repeat: no-repeat;
     -webkit-mask-repeat: no-repeat;
@@ -49,25 +49,25 @@
     opacity: 0.7;
 }
 
-[b-v5dq4lpyir] .grid-toolbar-new {
+[b-x0d458gc2m] .grid-toolbar-new {
     -webkit-mask-image: url("images/icons/new.svg");
     mask-image: url("images/icons/new.svg");
 }
 
-[b-v5dq4lpyir] .grid-toolbar-save {
+[b-x0d458gc2m] .grid-toolbar-save {
     -webkit-mask-image: url("images/icons/save.svg");
     mask-image: url("images/icons/save.svg");
 }
 
-[b-v5dq4lpyir] .grid-toolbar-cancel {
+[b-x0d458gc2m] .grid-toolbar-cancel {
     -webkit-mask-image: url("images/icons/undo.svg");
     mask-image: url("images/icons/undo.svg");
 }
 
-[b-v5dq4lpyir] .grid-modified-cell {
+[b-x0d458gc2m] .grid-modified-cell {
     background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
 }
 
-[b-v5dq4lpyir] .grid-disabled-button {
+[b-x0d458gc2m] .grid-disabled-button {
     pointer-events: none;
 }

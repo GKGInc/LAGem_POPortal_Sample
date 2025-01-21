@@ -6,6 +6,6 @@ namespace LAGem_POPortal.Data
 {
     public partial class GlobalData
     {
-        public string firstLoadScreen { get; set; } = "OrdersMainPage"; //"EDIOrdersPage";//"CustomerSoPage";// 
+        public string firstLoadScreen { get; set; } = "Orders"; //"EDIOrdersPage";//"CustomerSoPage";// 
     }
 }

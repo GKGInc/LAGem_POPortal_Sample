@@ -200,10 +200,12 @@
 
                         <DxFormLayoutItem Caption=" " ColSpanMd="10">
                             <DxGrid @ref="POShipmentListGrid"
-                                    Data="POShipmentListGridData"
-                                    PageSize="5"
+                                    Data="POShipmentListGridData"   
                                     AutoExpandAllGroupRows="true"
                                     KeyFieldName="Id"
+                                    PageSizeSelectorVisible="false"
+                                    ShowAllRows="true"
+                                    VirtualScrollingEnabled="true"
                                     ValidationEnabled="false"
                                     EditMode="GridEditMode.EditCell"
                                     FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Default"
@@ -220,8 +222,10 @@
                                     EditStart="ItemGrid_OnEditStart"
                                     CustomizeEditModel="ItemGrid_CustomizeEditModel"
                                     CustomizeElement="ItemGrid_CustomizeElement"
-                                    EditModelSaving="ItemGrid_EditModelSaving"
-                                    >
+                                    EditModelSaving="ItemGrid_EditModelSaving" 
+                                    VerticalScrollBarMode="@ScrollBarMode.Auto"
+                                    VerticalScrollableHeight=@editPOShipmentListGridHeight
+                                    style="height:200px;">
                                 @* @bind-SelectedDataItems="SelectedDataItems"
                                 SelectedDataItems="@SelectedDataItems"
                                 SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged(selectedItems))"
@@ -366,7 +370,7 @@
     // ============================================================ \\
 
     #region Variables
-    
+
     // ------------------------------------------------------------ \\
 
     [CascadingParameter]
@@ -382,7 +386,7 @@
     // IGrid POListGrid { get; set; }
     IGrid POShipmentListGrid { get; set; }
     IGrid TestGrid { get; set; }
-    
+
     IEnumerable<ShippingData> GridData { get; set; }
     IEnumerable<POOpenVendor> POOpenVendorData { get; set; }
     // IEnumerable<POOpenDetail> POOpenDetailData { get; set; }
@@ -393,7 +397,7 @@
     IEnumerable<ShippingData> POShipmentListGridData { get; set; }
     IEnumerable<ShippingData> TestGridData { get; set; }
     List<Lookup> openPOList { get; set; }
-    
+
     // ------------------------------------------------------------ \\
     
     bool AutoCollapseDetailRow { get; set; }
@@ -452,6 +456,7 @@
     bool selectCheckboxToEdit { get; set; } = false;
     string FocusedColumn { get; set; } = "OrderQty";
     int POHeaderIdSelected { get; set; }
+    public int editPOShipmentListGridHeight { get; set; } = 200;
 
     CriteriaOperator shippingGridFilterCriteria { get; set; }
     
