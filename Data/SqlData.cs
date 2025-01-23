@@ -456,6 +456,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] 
       ,ediView.[NoOfItems]	AS [ItemsCount]
       ,ediView.[Ord_qty]	AS [SOQty]
       ,ediView.[ExtPrice]	AS [ExtPrice]
+	  ,ediView.[Edihdrid]   AS [EdiHdrId]
   FROM [PIMS].[edi].[EdiOrderSummaryVw] ediView
 	LEFT JOIN [dbo].[BusinessPartner] bizPartner
 		ON bizPartner.EDITradPartId = ediView.[Tradpartid]
@@ -521,7 +522,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY main.[SOShipYear] DESC
 	,main.[SONumber] DESC) AS [Id]
 
 	,[IsLinked]
-	,ISNULL([Edihdrid], 0) AS [Edihdrid]
+	,ISNULL([Edihdrid], 0)  AS [EdiHdrId]
 	,[CustomerName]
 	,[CustomerPO]
 	,ISNULL([RefPonum], '') AS [RefPonum]
@@ -543,8 +544,12 @@ SELECT ROW_NUMBER() OVER (ORDER BY main.[SOShipYear] DESC
 	,CASE WHEN [IsLinked] = 0 
 		THEN ISNULL([SOQty], 0)
 		ELSE ISNULL([Ord_Qty], 0) END AS [OrderQty]
+	,CASE WHEN [IsLinked] = 0 
+		THEN ISNULL([SORetail], 0)
+		ELSE ISNULL([ExtPrice], 0) END AS [Price]
 
     ,[SOHeaderId]
+
 	--,ISNULL([SOQty], 0)			AS [SOQty]
 	--,ISNULL([SORetail], 0.0)	AS [SORetail]
 	--,ISNULL([ShipmentQty], 0)	AS [SOShipmentQty]
@@ -553,8 +558,13 @@ SELECT ROW_NUMBER() OVER (ORDER BY main.[SOShipYear] DESC
 	--,ISNULL([ExtPrice], 0.0)	AS [EDIExtPrice]
 	--,ISNULL([Tradpartid], 0)	AS [EDITradingPartnerId]
 	--,ISNULL([Podte], '1900-01-01')	AS [EDIPODate]
-	--,ISNULL([Comments], '')		AS [EDIComments]
+
+    ,ISNULL([Description], '')	AS [Description]
+    ,ISNULL([QBSO], '')			AS [QBSO]
+	,ISNULL([Comments], '')		AS [Comments]
+	,[PONumber]
 	,CASE WHEN [IsLinked] = 1 AND ([EDI_StartDate] IS NULL OR [EDI_EndDate] IS NULL) THEN 1 ELSE 0 END AS [EDIDateIssue]
+
 FROM (
 SELECT DISTINCT 
 	ISNULL(main.[CustomerName], '')	 AS [CustomerName]
@@ -576,7 +586,9 @@ SELECT DISTINCT
 	,ediH.[Edihdrid]
 	,ediO.[Tradpartid]
     ,ediO.[Podte]
-    ,ediO.[Comments]
+    ,ediH.[Description]
+    ,ediH.[Comments]
+    ,ediH.[QBSO]
     ,CASE WHEN ediO.[StartDate]= '1900-01-01' THEN NULL ELSE ediO.[StartDate] END AS [EDI_StartDate]
     ,CASE WHEN ediO.[CancelDate] = '1900-01-01' THEN NULL ELSE ediO.[CancelDate] END AS [EDI_EndDate]
     ,ediO.[ShipYear]  AS [EDIShipYear]
@@ -585,6 +597,7 @@ SELECT DISTINCT
     ,ediO.[NoOfItems]
     ,ediO.[Ord_Qty]
     ,ediO.[ExtPrice]
+	,ISNULL(det.POList, '') AS [PONumber]
 FROM [PIMS].[dbo].[CustomerSoSummaryVw] main -- SELECT * FROM [PIMS].[dbo].[CustomerSoSummaryVw] 
 	LEFT JOIN [PIMS].[dbo].[SODetail] sod
 		ON sod.[SOHeaderId] = main.[SOHeaderId]
@@ -595,6 +608,24 @@ FROM [PIMS].[dbo].[CustomerSoSummaryVw] main -- SELECT * FROM [PIMS].[dbo].[Cust
 			AND ediD.[SoDetailId] = sod.[SoDetailId]
 	LEFT JOIN [PIMS].[edi].[EdiOrderSummaryVw] ediO
 		ON ediO.[Ponum] = ediH.[Ponum] AND ediO.[SoHeaderId] = main.[SoHeaderId] 
+	LEFT JOIN (SELECT top_query.[SOShipYear] AS [ListSOShipYear],top_query.[SOShipWeek] AS [ListSOShipWeek], top_query.[SONumber],
+            		(SELECT STUFF([list],1,1,'') AS stuff_list
+            			FROM (SELECT ',' + CAST(vw.[VendorPO] AS VARCHAR(255)) AS [text()]
+            					FROM [PIMS].[dbo].[CustomerSoPoDetailVw] vw 
+            					LEFT JOIN [PIMS].[dbo].[SODetailMaterial] som
+            						ON vw.[SODetailMaterialId] = som.[SODetailMaterialId]
+            					WHERE vw.[SOShipYear] = top_query.[SOShipYear] 
+            						AND vw.[SOShipWeek] = top_query.[SOShipWeek] 
+            						AND som.[SoSubLineType] <> 'Packaging'
+            						AND vw.[SONumber] = top_query.[SONumber] 
+            					FOR XML PATH('')
+            					) sub_query([list])
+            			) AS POList
+            	FROM [PIMS].[dbo].[CustomerSoPoSummaryVw] top_query
+            	GROUP BY top_query.[SOShipYear], top_query.[SOShipWeek], top_query.[SONumber]) det
+        ON main.[SOShipYear] = det.[ListSOShipYear] 
+            AND main.[SOShipWeek] = det.[ListSOShipWeek]
+            AND main.[SONumber] = det.[SONumber]
 ) main
 ORDER BY [SOShipYear] DESC
     ,[SOShipMonth] DESC
@@ -609,8 +640,8 @@ ORDER BY [SOShipYear] DESC
         public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId) //
         {
             string query = @"
-SELECT edi.[Edihdrid]
-    ,edi.[Editrnid]
+SELECT edi.[Edihdrid]   AS [EdiHdrId]
+    ,edi.[Editrnid] AS [EdiTrnId]
 	,edi.[Ponum]    AS [CustomerPO]
     ,edi.[Item]		AS [ItemNo]
     ,edi.[Ord_qty]	AS [OrderQty]
@@ -626,6 +657,9 @@ SELECT edi.[Edihdrid]
 	,ISNULL(sod.[Cost], 0.0)		AS [Cost]
 	,ISNULL(prod.[SKU], '')			AS [SKU]
 	,ISNULL(prod.[ProductName], '') AS [Description]
+
+	,edi.[Ord_qty] * edi.[Price]    AS [ExtPrice]
+
 	--,prod.[ProductFullDescription] AS [Description]
 FROM [PIMS].[edi].[EdiOrderDetailvw] edi
 	LEFT JOIN [PIMS].[dbo].[SODetail] sod

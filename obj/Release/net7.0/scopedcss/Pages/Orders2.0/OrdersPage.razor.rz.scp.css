@@ -30,9 +30,14 @@
     mask-image: url(../images/icons/add.svg);
 }
 
-:: deep .grid-icon-delete[b-9jjlwl7cu3] {
+[b-9jjlwl7cu3] .grid-icon-delete {
     -webkit-mask-image: url("../images/icons/delete.svg");
     mask-image: url("../images/icons/delete.svg");
+}
+
+[b-9jjlwl7cu3] .grid-icon-undo {
+    -webkit-mask-image: url("../images/icons/undo.svg");
+    mask-image: url("../images/icons/undo.svg");
 }
 
 [b-9jjlwl7cu3] .grid-toolbar-new,

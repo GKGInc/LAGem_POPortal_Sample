@@ -30,7 +30,7 @@
     mask-image: url(../images/icons/add.svg);
 }
 
-:: deep .grid-icon-delete {
+::deep .grid-icon-delete {
     -webkit-mask-image: url("../images/icons/delete.svg");
     mask-image: url("../images/icons/delete.svg");
 }

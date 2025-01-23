@@ -33,18 +33,31 @@ namespace LAGem_POPortal.Models
 
         public int OrderQty { get; set; }   // Header/Detail
         public int SOHeaderId { get; set; }
-        public int Edihdrid { get; set; }   // Header/Detail
+        public int EdiHdrId { get; set; }   // Header/Detail
+
+
 
         // Detail Data
-        public int Editrnid { get; set; }   
+        public int EdiTrnId { get; set; }   
         public int SoDetailId { get; set; }
         public int ProductId { get; set; }
         public decimal Cost { get; set; }
         public decimal Price { get; set; }
+        public decimal ExtPrice { get; set; }
+        
         public string ItemNo { get; set; }
         public string SKU { get; set; }
         public string Description { get; set; }
 
+        public string PONumber { get; set; }
+        public string QBSO { get; set; }
+        public string Comments { get; set; }
+
+        // Link columns
+        public bool IsItemLinked { get; set; }
+        public string LinkedStatus { get; set; }
+        public int LinkedToId { get; set; }
+        public string LinkedToName { get; set; }
 
     }
 }
