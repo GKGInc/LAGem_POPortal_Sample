@@ -514,7 +514,11 @@ ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] ASC, ediView.[ShipWeek] AS
         //"Orders"
         public async Task<List<SoEdiData>> GetSoEdiData() //
         {
-            string query = @"
+            bool useSP = true;
+
+            if (!useSP)
+            {
+                string query = @"
 SELECT ROW_NUMBER() OVER (ORDER BY main.[SOShipYear] DESC
     ,main.[SOShipMonth] DESC
     ,main.[SOShipWeek] DESC
@@ -634,10 +638,17 @@ ORDER BY [SOShipYear] DESC
 	,[SONumber] DESC
 	,[EDI_EndDate] DESC";
 
-            return await GetSqlData<SoEdiData>(query);
+                return await GetSqlData<SoEdiData>(query);
+            }
+            else
+            {
+                string storedProcedure = "[PIMS].[dbo].[SP_GetSoEdiData]";
+
+                return await GetSqlData<SoEdiData>(storedProcedure);
+            }
         }
         //"Orders"
-        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId) //
+        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId, bool includePackaging = false) //
         {
             string query = @"
 SELECT edi.[Edihdrid]   AS [EdiHdrId]
@@ -671,7 +682,15 @@ FROM [PIMS].[edi].[EdiOrderDetailvw] edi
 	--	ON sod.[SODetailId] = pod.[SODetailId]
 	LEFT JOIN [PIMS].[dbo].[Product] prod
 		ON prod.[ProductId] = sod.[ProductId]
+
+	LEFT JOIN [PIMS].[dbo].[SODetailMaterial] sodm
+		ON sodm.SODetailId = sod.[SODetailId]
+	LEFT JOIN [PIMS].[dbo].[SODetailMaterial] som
+		ON sodm.[SODetailMaterialId] = som.[SODetailMaterialId]
 WHERE edi.[Edihdrid] = {0}";
+
+            if (includePackaging)
+                query += @" AND som.[SoSubLineType] <> 'Packaging'";
 
             string fullQuery = string.Format(query, ediId);
 

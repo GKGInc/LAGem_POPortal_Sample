@@ -1544,7 +1544,7 @@ WHERE [Edihdrid] = {0}";
         linkingItemText = "";
 
         SqlData sqlData = new SqlData();
-        LinkSOOrderDetailGridData = await sqlData.GetCustomerSoPoDetailData(row.SOHeaderId);
+        LinkSOOrderDetailGridData = await sqlData.GetCustomerSoPoDetailData(row.SOHeaderId, false);
 
         await ToggleSearchPopupVisibilityAsync();
     }   
@@ -1940,6 +1940,7 @@ UPDATE [PIMS].[edi].[EdiTrn] SET [SoDetailId] = {3}, [ProductId] = {4} WHERE [Ed
         }
     }
 
+    // not used
     async void SaveCustomerPOLink(CustomerSoPoData soRow, EdiOrderDetailData ediRow)
     {
         //DisplayPopupMessage("Linking");
