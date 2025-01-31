@@ -56,6 +56,7 @@
                     AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
                     ColumnResizeMode="GridColumnResizeMode.NextColumn"
                     EditMode="@CurrentEditMode"
+                    PopupEditFormHeaderText="@mainGridEditFormHeaderText"
                     PopupEditFormCssClass="my-popup-style"
                     FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
                     FooterDisplayMode="GridFooterDisplayMode.Auto"
@@ -85,60 +86,187 @@
                             <div class="grid-cell-align-center">
                                 <DxButton IconCssClass="grid-icon grid-icon-add"
                                           RenderStyle="ButtonRenderStyle.Link" aria-label="Add"
-                                          Click="@(() => LinkCustomerPOClick((SoEdiData)CustomerPOContext.DataItem))" />
+                                          Click="@(() => {
+                                                var order = (SoEdiData)CustomerPOContext.DataItem;
+
+                                                if (order.SOHeaderId >= 1000000){ //if (order.EdiHdrId >= 1000000000){
+                                                    isBlankOrder = true;
+                                                    mainGridEditFormHeaderText = "Auto Forecast Order";
+                                                    LinkCustomerPOClick((SoEdiData)CustomerPOContext.DataItem, "BlankOrder");
+                                                }
+                                                else
+                                                {
+                                                    isBlankOrder = false;
+                                                    mainGridEditFormHeaderText = "Link Order";
+                                                    LinkCustomerPOClick((SoEdiData)CustomerPOContext.DataItem, "SOOrder");
+                                                }
+                                            })" />
                             </div>
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
 
                     <DxGridDataColumn FieldName="CustomerPO" Caption="Customer PO" ReadOnly="true" />
-                    <DxGridDataColumn FieldName="Description" Caption="Description" ReadOnly="false" />
-                    <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="true" />
-                    <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" DisplayFormat="d" ReadOnly="true"/>
-                    <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" DisplayFormat="d" ReadOnly="true"/>
+                    <DxGridDataColumn FieldName="Description" Caption="Description" ReadOnly="!isBlankOrder" />
+                    <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="!isBlankOrder" />
+                    <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" DisplayFormat="d" ReadOnly="!isBlankOrder"/>
+                    <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" DisplayFormat="d" ReadOnly="!isBlankOrder"/>
 
-                    <DxGridDataColumn FieldName="OrderQty" Caption="Order Qty" DisplayFormat="n0" ReadOnly="true" />
+                    <DxGridDataColumn FieldName="OrderQty" Caption="Order Qty" DisplayFormat="n0" ReadOnly="!isBlankOrder" />
                     @* <DxGridDataColumn FieldName="SORetail" Caption="Price" DisplayFormat="n3" ReadOnly="true" />
                     <DxGridDataColumn FieldName="ShipmentQty" Caption="Shipment Qty" DisplayFormat="n0" ReadOnly="true" />
                     <DxGridDataColumn FieldName="PONumber" Caption="PO Numbers" ReadOnly="true" /> *@
                     @* <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking Numbers" ReadOnly="true" /> *@
 
-                    <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n3" ReadOnly="true" />
+                    <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n3" ReadOnly="!isBlankOrder" />
                     <DxGridDataColumn FieldName="QBSO" Caption="QB SO" ReadOnly="false" />
                     <DxGridDataColumn FieldName="Comments" Caption="Comments" ReadOnly="false" />
-                    <DxGridDataColumn FieldName="PONumber" Caption="PO Numbers" ReadOnly="true" />
+                    <DxGridDataColumn FieldName="PONumber" Caption="PO Numbers" ReadOnly="!isBlankOrder" />
+                    <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
 
-                    <DxGridCommandColumn Width="100px" Visible="true"
+                    @* <DxGridCommandColumn Width="100px" Visible="true"
                         DeleteButtonVisible="false"
                         EditButtonVisible="true"
                         CancelButtonVisible="true"
                         SaveButtonVisible="true"
                         NewButtonVisible="true"
-                        FixedPosition="GridColumnFixedPosition.Right" />
+                        FixedPosition="GridColumnFixedPosition.Right" /> *@
+                    <DxGridCommandColumn Context="OrdersHeaderGridContext" Width="50px">
+                        <HeaderTemplate>
+                            <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Auto"
+                                      Click="@(() => {
+                                                isBlankOrder = true;
+                                                mainGridEditFormHeaderText = "Auto Forecast Order";
+                                                OrdersHeaderGrid.StartEditNewRowAsync();
+                                             })" />
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            @if (((System.Boolean)OrdersHeaderGridContext.GetRowValue("IsItemLinked")) == true || ((int)OrdersHeaderGridContext.GetRowValue("EdiHdrId") > 0))
+                            {
+                                <div class="grid-cell-align-center">
+                                    <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Edit"
+                                        Click="@(() => {
+                                                isBlankOrder = false;
+                                                OrdersHeaderGrid.StartEditRowAsync(OrdersHeaderGridContext.VisibleIndex);
+                                                mainGridEditFormHeaderText = "EDI Order Edit";
+                                            })">Edit</DxButton>
+                                </div>                              
+                            }
+                            else 
+                            {  
+                                @* <div class="grid-cell-align-center">
+                                    <DxButton RenderStyle="ButtonRenderStyle.None" Text="Not Linked" />
+                                </div> *@
+
+                                if ((int)OrdersHeaderGridContext.GetRowValue("SOHeaderId") > 1000000){
+                                           <div class="grid-cell-align-center">
+                                    <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Edit"
+                                              Click="@(() => {
+                                                isBlankOrder = false;
+                                                OrdersHeaderGrid.StartEditRowAsync(OrdersHeaderGridContext.VisibleIndex);
+                                                mainGridEditFormHeaderText = "Auto Forecast Order Edit";
+                                            })">Edit</DxButton>
+                                </div>
+                                }
+                                else{
+                                    <div class="grid-cell-align-center">
+                                        <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Edit"
+                                                  Click="@(() => {
+                                                isBlankOrder = false;
+                                                OrdersHeaderGrid.StartEditRowAsync(OrdersHeaderGridContext.VisibleIndex);
+                                                mainGridEditFormHeaderText = "SO Order Edit";
+                                            })">Edit</DxButton>
+                                    </div>
+                                }                         
+                            }
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
                 </Columns>
                  <EditFormTemplate Context="EditFormContext">
-                     @{
-                        var order = (SoEdiData)EditFormContext.EditModel; 
+                    @{
+                        var order = (SoEdiData)EditFormContext.EditModel;
                      }
                     <DxFormLayout CssClass="w-100">
-                        <DxFormLayoutItem Caption="Customer PO:" ColSpanMd="6">
-                            @EditFormContext.GetEditor("CustomerPO")
-                        </DxFormLayoutItem>
-                        <DxFormLayoutItem Caption="SO Number:" ColSpanMd="6">
-                            @EditFormContext.GetEditor("SONumber")
-                        </DxFormLayoutItem>
-                        <DxFormLayoutItem Caption="Description:" ColSpanMd="12">
-                            @EditFormContext.GetEditor("Description")
-                        </DxFormLayoutItem>
-                        <DxFormLayoutItem Caption="QB SO:" ColSpanMd="6">
-                            @EditFormContext.GetEditor("QBSO")
-                        </DxFormLayoutItem>
-                        <DxFormLayoutItem Caption="" ColSpanMd="6">
-                        </DxFormLayoutItem>
-                        <DxFormLayoutItem Caption="Comments:" ColSpanMd="12">
-                            <DxMemo @bind-Text="order.Comments"
-                                    ResizeMode="MemoResizeMode.VerticalAndHorizontal">
-                            </DxMemo>
-                        </DxFormLayoutItem>
+                        @if (isBlankOrder)
+                        {
+                            @* <DxFormLayoutItem Caption="Customer PO:" ColSpanMd="5">
+                                @EditFormContext.GetEditor("CustomerPO")
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanMd="3">
+                               <DxButton IconCssClass="grid-icon grid-icon-add"
+                                          RenderStyle="ButtonRenderStyle.Primary" aria-label="Search"
+                                          Text="Search EDI PO"
+                                          Click="@(() => LinkCustomerPOClick(order,"BlankOrder"))" />
+                            </DxFormLayoutItem>
+                             <DxFormLayoutItem Caption="SO Number:" ColSpanMd="4">
+                                @EditFormContext.GetEditor("SONumber")
+                            </DxFormLayoutItem> *@
+
+                            <DxFormLayoutItem Caption="Customer:" ColSpanMd="10">
+                                <DxComboBox Data="@partnerList"
+                                            NullText="Select Business Parner..."
+                                            FilteringMode="DataGridFilteringMode.Contains"
+                                            TextFieldName="LookupText"
+                                            ValueFieldName="LookupValue"
+                                            ValueChanged="(int newCellValue) => {
+                                        businessPartnerIdSelected = newCellValue;
+                                        Lookup selectedLookup = partnerList.Where(c => c.LookupValue == newCellValue).FirstOrDefault();
+                                        order.CustomerId = newCellValue;
+                                        order.CustomerName = selectedLookup.LookupText;
+                                    }">
+                                </DxComboBox>
+                            </DxFormLayoutItem>
+
+                            <DxFormLayoutItem Caption="Description:" ColSpanMd="12">
+                                @EditFormContext.GetEditor("Description")
+                            </DxFormLayoutItem>
+
+                            <DxFormLayoutItem Caption="Ship Date:" ColSpanMd="6">
+                                @EditFormContext.GetEditor("StartDate")
+                            </DxFormLayoutItem>                       
+                            <DxFormLayoutItem Caption="Cancel Date:" ColSpanMd="6">
+                                @EditFormContext.GetEditor("EndDate")
+                            </DxFormLayoutItem>
+
+                            <DxFormLayoutItem Caption="Order Qty:" ColSpanMd="6">
+                                @EditFormContext.GetEditor("OrderQty")
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="Price:" ColSpanMd="6">
+                                @EditFormContext.GetEditor("Price")
+                            </DxFormLayoutItem>
+
+                            <DxFormLayoutItem Caption="QB SO:" ColSpanMd="6">
+                                @EditFormContext.GetEditor("QBSO")
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="" ColSpanMd="6">
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="Comments:" ColSpanMd="12">
+                                <DxMemo @bind-Text="order.Comments"
+                                        ResizeMode="MemoResizeMode.VerticalAndHorizontal">
+                                </DxMemo>
+                            </DxFormLayoutItem>
+                        }
+                        else
+                        {
+                            <DxFormLayoutItem Caption="Customer PO:" ColSpanMd="6">
+                                @EditFormContext.GetEditor("CustomerPO")
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="SO Number:" ColSpanMd="6">
+                                @EditFormContext.GetEditor("SONumber")
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="Description:" ColSpanMd="12">
+                                @EditFormContext.GetEditor("Description")
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="QB SO:" ColSpanMd="6">
+                                @EditFormContext.GetEditor("QBSO")
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="" ColSpanMd="6">
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="Comments:" ColSpanMd="12">
+                                <DxMemo @bind-Text="order.Comments"
+                                        ResizeMode="MemoResizeMode.VerticalAndHorizontal">
+                                </DxMemo>
+                            </DxFormLayoutItem>
+                        }
                     </DxFormLayout>
                  </EditFormTemplate>
                 <DetailRowTemplate Context="OrdersDetailGridDataContext">
@@ -992,6 +1120,8 @@
 
     string callbackProcessName { get; set; } = null;
 
+    string mainGridEditFormHeaderText{ get; set; } = "EDI Edit";
+
     // ------------------------------------------------------------ \\
 
     DxWindow windowRefPOSearch;
@@ -1011,6 +1141,10 @@
     CriteriaOperator criteriaOrderOperator  { get; set; }
     CriteriaOperator criteriaPackagingOperator { get; set; }
 
+    IEnumerable<BusinessPartner> BusinessPartnerListData { get; set; }
+    List<Lookup> partnerList { get; set; }
+    int businessPartnerIdSelected { get; set; } = 0;
+
     string headerNote { get; set; } = "";
     SoEdiData selectedRow { get; set; } // main row selected
     SoEdiData linkingRow { get; set; } // detail row
@@ -1020,8 +1154,10 @@
     SoEdiData linkingSoEdiDataItem { get; set; }
     CustomerSoPoData linkingCustomerSoPoDataItem { get; set; }
 
+    bool isBlankOrder { get; set; } = false;
+
     string selectedSono { get; set; } = "";
-    string selectedEdiPO { get; set; } = "";
+    string selectedEdiPO { get; set; } = "";    
 
     DxTextBox searchBoxRef;
     string searchText { get; set; } = "";
@@ -1069,6 +1205,9 @@
 
         SqlData sqlData = new SqlData();
         OrdersHeaderGridData = await sqlData.GetSoEdiData();
+
+        BusinessPartnerListData = await sqlData.GetCustomerBusinessPartnerList();
+        partnerList = GetPartnerData();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -1106,7 +1245,7 @@
     }
 
     #endregion
-    
+
     // ============================================================ \\
 
     #region Popup Functions
@@ -1228,7 +1367,7 @@
             if (e.EditModel.GetType() == typeof(SoEdiData))
             {
                 var newObject = (SoEdiData)e.EditModel;
-
+                newObject.Description = "Auto Forecast";
             }
         }
     }
@@ -1316,7 +1455,7 @@
 
     async void EDIItemGrid_OnRowClick(GridRowClickEventArgs e)
     {
-        if (LinkEdiOrderDetailGrid != null)
+        if (LinkEdiOrderDetailGrid != null && e.Column.GetType() != typeof(DevExpress.Blazor.DxGridCommandColumn))
         {
             if (LinkEdiOrderDetailGrid.GetDataItem(e.VisibleIndex) is SoEdiData)
             {
@@ -1354,26 +1493,88 @@
         await e.Grid.StartEditRowAsync(e.VisibleIndex); *@
     }
 
-    async Task InsertOrderDataAsync(SoEdiData item)
+    async Task InsertOrderDataAsync(SoEdiData item) // Save Auto Forecast Order
     {
-    }
-
-    async Task UpdateOrderDataAsync(SoEdiData item)
-    {
-        string query = @"
-UPDATE [PIMS].[edi].[EdiHdr] SET
-    [Description] = '{1}'
-    ,[QBSO] = '{2}'
-    ,[Comments] = '{3}'
-WHERE [Edihdrid] = {0}";
-        string fullQuery = string.Format(query, item.EdiHdrId, item.Description, item.QBSO, item.Comments);
+        string query = @"INSERT INTO [PIMS].[dbo].[SOHeader]
+        ([SOHeaderId]
+      ,[SONumber]
+      ,[SODate]
+      ,[BusinessPartnerId]
+      ,[StartDate]
+      ,[EndDate]
+      ,[TotalCost]
+      ,[TotalPrice]
+      ,[PONumber]
+      ,[PostedToERP]
+      ,[PostedDate]
+      ,[SOStatusId]
+      ,[SOStatusDate]
+      ,[LegacySystemId]
+      ,[Description]
+      ,[QBSO]
+      ,[Comments]
+      ,[CreatedOn])
+      SELECT 1000000 + (SELECT COUNT(*) FROM [PIMS].[dbo].[SOHeader] WHERE [SOHeaderId] >= 1000000) + 1 AS [NewSOHeaderId]
+      ,''           AS [SONumber]
+      ,GETDATE()    AS [SODate]
+      ,{0}          AS [BusinessPartnerId]
+      ,'{1}'        AS [StartDate]
+      ,'{2}'        AS [EndDate]
+      ,{3}          AS [TotalCost]
+      ,{4}          AS [TotalPrice]
+      ,''           AS [PONumber]
+      ,0            AS [PostedToERP]
+      ,'1900-01-01 00:00:00.000' AS [PostedDate]
+      ,0            AS [SOStatusId]
+      ,'1900-01-01 00:00:00.000' AS [SOStatusDate]
+      ,0 AS [LegacySystemId]
+      ,'{5}'        AS [Description]
+      ,'{6}'        AS [QBSO]
+      ,'{7}'        AS [Comments]
+      ,GETDATE() AS [CreatedOn]
+        ";
+        string fullQuery = string.Format(query, item.CustomerId, item.StartDate, item.EndDate, item.OrderQty, item.Price, item.Description, item.QBSO, item.Comments);
 
         using (var uow = new UnitOfWork())
         {
             await uow.ExecuteNonQueryAsync(fullQuery);
         }
 
-        SqlData sqlData = new SqlData();        
+        SqlData sqlData = new SqlData();
+        OrdersHeaderGridData = await sqlData.GetSoEdiData(); 
+    }
+
+    async Task UpdateOrderDataAsync(SoEdiData item)
+    {
+        // Note: if and unlinked order,save to [PIMS].[dbo].[SOHeader]
+        string query = "";
+        string fullQuery = "";
+        if (item.IsLinked == 1)
+        {
+            query = @"
+UPDATE [PIMS].[edi].[EdiHdr] SET
+    [Description] = '{1}'
+    ,[QBSO] = '{2}'
+    ,[Comments] = '{3}'
+WHERE [Edihdrid] = {0}";
+            fullQuery = string.Format(query, item.EdiHdrId, item.Description, item.QBSO, item.Comments);
+        }
+        else
+        {
+            query = @"
+UPDATE [PIMS].[dbo].[SOHeader] SET
+    [Description] = '{1}'
+    ,[QBSO] = '{2}'
+    ,[Comments] = '{3}'
+WHERE [SOHeaderId] = {0}";
+            fullQuery = string.Format(query, item.SOHeaderId, item.Description, item.QBSO, item.Comments);
+        }
+        using (var uow = new UnitOfWork())
+        {
+            await uow.ExecuteNonQueryAsync(fullQuery);
+        }
+
+        SqlData sqlData = new SqlData();
         OrdersHeaderGridData = await sqlData.GetSoEdiData();
     }
 
@@ -1498,18 +1699,34 @@ WHERE [Edihdrid] = {0}";
             await windowRefLinking.ShowAtAsync(popupTarget);
     }
 
-    async void LinkCustomerPOClick(SoEdiData row)
+    async void LinkCustomerPOClick(SoEdiData row, string orderType = "SOOrder")
     {
-        linkingRow = row;
-        selectedSono = row.SONumber;
-        searchTitleText = "Linking " + row.SONumber + " to...";
-        linkingItemText = "";
+        if (orderType == "SOOrder")
+        {
+            linkingRow = row;
+            selectedSono = row.SONumber;
+            searchTitleText = "Linking " + row.SONumber + " to...";
+            linkingItemText = "";
 
-        SqlData sqlData = new SqlData();
-        LinkSOOrderDetailGridData = await sqlData.GetCustomerSoPoDetailData(row.SOHeaderId, false);
+            SqlData sqlData = new SqlData();
+            LinkSOOrderDetailGridData = await sqlData.GetCustomerSoPoDetailData(row.SOHeaderId, false);
 
-        await ToggleSearchPopupVisibilityAsync();
-    }   
+            EdiOrderHeaderGridData = Enumerable.Empty<EdiOrderDetailData>();
+            await ToggleSearchPopupVisibilityAsync();
+        }
+        if (orderType == "BlankOrder")
+        {
+            linkingRow = row;
+            selectedSono = "BlankOrder";
+            searchTitleText = "Linking Blank Order to...";
+            linkingItemText = "";
+
+            EdiOrderHeaderGridData = Enumerable.Empty<EdiOrderDetailData>();
+            LinkSOOrderDetailGridData = Enumerable.Empty<CustomerSoPoData>();
+
+            await ToggleSearchPopupVisibilityAsync();
+        }
+    }
     async void OnSearchButtonClick(string poNo)
     {
         if (useSearchButton)
@@ -1534,7 +1751,7 @@ WHERE [Edihdrid] = {0}";
     {
         selectedEdiRow = row;
         selectedEdiPO = row.PONumber;
-        searchTitleText = "Linking " + selectedEdiRow.PONumber + " to " + linkingRow.SONumber;
+        searchTitleText = "Linking " + selectedEdiRow.PONumber + " to " + selectedSono; //linkingRow.SONumber;
 
         SqlData sqlData = new SqlData(); 
         LinkEdiOrderDetailGridData = await sqlData.GetSoEdiDetailData(row.EdiHdrId);
@@ -1606,14 +1823,21 @@ WHERE [Edihdrid] = {0}";
 
                 linkingSoEdiDataItem = (data as SoEdiData);
 
-                if (linkingCustomerSoPoDataItem == null)
+                if (!isBlankOrder)
                 {
-                    linkingItemText = "Select SO Item";
+                    if (linkingCustomerSoPoDataItem == null)
+                    {
+                        linkingItemText = "Select SO Item";
+                    }
+                    else
+                    {
+                        linkingItemText = "Linking SO Item " + linkingCustomerSoPoDataItem.ProductNo + " to EDI Item " + linkingSoEdiDataItem.ItemNo;
+                        await LinkPOItem(linkingSoEdiDataItem, linkingCustomerSoPoDataItem, process);
+                    }
                 }
                 else
                 {
-                    linkingItemText = "Linking SO Item " + linkingCustomerSoPoDataItem.ProductNo + " to EDI Item " + linkingSoEdiDataItem.ItemNo;
-                    await LinkPOItem(linkingSoEdiDataItem, linkingCustomerSoPoDataItem, process);
+                    await AddLinkPOItem(linkingSoEdiDataItem, linkingCustomerSoPoDataItem, "add");
                 }
             }
             if (process == "unlink")
@@ -1621,9 +1845,16 @@ WHERE [Edihdrid] = {0}";
                 if (!(data as SoEdiData).IsItemLinked)
                     return;
 
-                await LinkPOItem((data as SoEdiData), null, process);
-                linkingSoEdiDataItem = null;
-                linkingItemText = "";
+                if (!isBlankOrder)
+                {
+                    await LinkPOItem((data as SoEdiData), null, process);
+                    linkingSoEdiDataItem = null;
+                    linkingItemText = "";
+                }
+                else
+                {
+                    await AddLinkPOItem((data as SoEdiData), null, "remove");
+                }
             }
         }
         if (data.GetType() == typeof(CustomerSoPoData))
@@ -1650,9 +1881,15 @@ WHERE [Edihdrid] = {0}";
                 if (!(data as CustomerSoPoData).IsItemLinked)
                     return;
 
-                await LinkPOItem(null, (data as CustomerSoPoData), process);
-                linkingCustomerSoPoDataItem = null;
-                linkingItemText = "";
+                if (!isBlankOrder)
+                {
+                    await LinkPOItem(null, (data as CustomerSoPoData), process);
+                    linkingCustomerSoPoDataItem = null;
+                    linkingItemText = "";
+                }
+                else{
+                    await AddLinkPOItem(null, (data as CustomerSoPoData), "remove");
+                }
             }
         }
     }
@@ -1771,6 +2008,133 @@ WHERE [Edihdrid] = {0}";
         }
     }
 
+    async Task AddLinkPOItem(SoEdiData ediData, CustomerSoPoData soPoData, string process)
+    {
+        if (process == "add")
+        {
+            CustomerSoPoData poData = new CustomerSoPoData();
+            poData.SODetailId = (LinkSOOrderDetailGridData.Count() == 0) ? 1 : LinkSOOrderDetailGridData.Where(x => x.SODetailId > 0).Select(x => x.SODetailId).Max() + 1;
+            poData.ProductNo = ediData.ItemNo;
+            poData.SOQty = 0;
+            poData.VendorPO = "";
+            poData.VendorName = "";
+            poData.LinkedToId = ediData.EdiTrnId;
+            poData.LinkedToName = ediData.ItemNo;
+            poData.IsItemLinked = true;
+            poData.LinkedStatus = "Linked to " + ediData.ItemNo;
+
+            //LinkSOOrderDetailGridData.Append<CustomerSoPoData>(poData);
+            //LinkSOOrderDetailGridData.Concat(new[] { poData });
+            List<CustomerSoPoData> newList = LinkSOOrderDetailGridData.ToList();
+            newList.Add(poData);
+            LinkSOOrderDetailGridData = newList;
+
+            foreach (SoEdiData item in LinkEdiOrderDetailGridData)
+            {
+                if (item.EdiTrnId == ediData.EdiTrnId)
+                {
+                    // Link
+                    item.LinkedToId = poData.SODetailId;
+                    item.LinkedToName = poData.ProductNo;
+                    item.IsItemLinked = true;
+                    item.LinkedStatus = "Linked to " + poData.ProductNo;
+                    break;
+                }
+            }
+
+            linkingSoEdiDataItem = null;
+            linkingItemText = "";
+        }
+        if (process == "remove")
+        {
+            if (ediData != null)
+            {
+                int linkedToId = 0;
+
+                foreach (SoEdiData item in LinkEdiOrderDetailGridData)
+                {
+                    if (item.EdiTrnId == ediData.EdiTrnId)
+                    {
+                        linkedToId = item.LinkedToId;
+
+                        // Un-Link
+                        item.LinkedToId = 0;
+                        item.LinkedToName = "";
+                        item.IsItemLinked = false;
+                        item.LinkedStatus = "";
+                        break;
+                    }
+                }
+                if (linkedToId > 0)
+                {
+                    // find and remove LinkSOOrderDetailGridData item
+                    int index = 0;
+                    foreach (CustomerSoPoData item in LinkSOOrderDetailGridData)
+                    {
+                        if (item.SODetailId == linkedToId)
+                        {
+                            // remove                            
+                            //LinkSOOrderDetailGridData = LinkSOOrderDetailGridData.Skip(index);
+
+                            List<CustomerSoPoData> newList = LinkSOOrderDetailGridData.ToList();
+                            newList.Remove(item);
+                            LinkSOOrderDetailGridData = newList;
+                            break;
+                        }
+                        index++;
+                    }                    
+                }
+            }
+            else
+            {
+                if (soPoData != null)
+                {
+                    int linkedToId = 0;                
+                    int index = 0;
+                    foreach (CustomerSoPoData item in LinkSOOrderDetailGridData)
+                    {
+                        if (item.SODetailId == soPoData.SODetailId)
+                        {
+                            linkedToId = item.LinkedToId;
+
+                            // remove                            
+                            //if (LinkSOOrderDetailGridData.Count() == 1)
+                            //    LinkSOOrderDetailGridData = Enumerable.Empty<CustomerSoPoData>();
+                            //else
+                            //    LinkSOOrderDetailGridData = LinkSOOrderDetailGridData.Skip(index);
+
+                            List<CustomerSoPoData> newList = LinkSOOrderDetailGridData.ToList();
+                            newList.Remove(item);
+                            LinkSOOrderDetailGridData = newList;
+
+                            break;
+                        }
+                        index++;
+                    }
+
+                    if (linkedToId > 0)
+                    {
+                        foreach (SoEdiData item in LinkEdiOrderDetailGridData)
+                        {
+                            if (item.EdiTrnId == linkedToId)
+                            {
+                                // Un-Link
+                                item.LinkedToId = 0;
+                                item.LinkedToName = "";
+                                item.IsItemLinked = false;
+                                item.LinkedStatus = "";
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            linkingSoEdiDataItem = null;
+            linkingItemText = "";
+        }
+    }
+
     async Task OnLinkinkPopupOkClick()
     {
         string message = "Are you sure you want to " + Environment.NewLine + "link i2 SO " + selectedSono + " with EDI PO Number " + selectedEdiPO + "?";
@@ -1779,50 +2143,54 @@ WHERE [Edihdrid] = {0}";
 
     async Task SaveCustomerPOLinking()
     {
-        int edihdrid = selectedEdiRow.EdiHdrId;
-        string query = "";
-        string fullQuery = "";
+        // Note: if 'Auto Forecast' order, transfer [Description] and [Comments] to [PIMS].[edi].[EdiHdr]
 
-        query = @"
+        //if (!isBlankOrder)
+        //{
+            int edihdrid = selectedEdiRow.EdiHdrId;
+            string query = "";
+            string fullQuery = "";
+
+            query = @"
 UPDATE [PIMS].[edi].[EdiHdr] SET [SoHeaderId] = {2} WHERE [Edihdrid] = {0}
 UPDATE [PIMS].[edi].[EdiTrn] SET [SoDetailId] = {3}, [ProductId] = {4} WHERE [Editrnid] = {1} AND [Edihdrid] = {0}";
-        foreach (CustomerSoPoData item in LinkSOOrderDetailGridData)
-        {
-            if (item.IsItemLinked) //item.LinkedToId = ediData.EdiTrnId;
+            foreach (CustomerSoPoData item in LinkSOOrderDetailGridData)
             {
-                fullQuery += string.Format(query, edihdrid, item.LinkedToId, item.SOHeaderId, item.SODetailId, item.ProductId);
+                if (item.IsItemLinked) //item.LinkedToId = ediData.EdiTrnId;
+                {
+                    fullQuery += string.Format(query, edihdrid, item.LinkedToId, item.SOHeaderId, item.SODetailId, item.ProductId);
+                }
             }
-        } 
 
-        //DisplayPopupMessage("Linking");
-       
-        try
-        {
-            using (var uow = new UnitOfWork())
+            //DisplayPopupMessage("Linking");
+
+            try
             {
-                await uow.ExecuteNonQueryAsync(fullQuery);
+                using (var uow = new UnitOfWork())
+                {
+                    await uow.ExecuteNonQueryAsync(fullQuery);
+                }
             }
-        }
-        catch(Exception ex)
-        {
-            DisplayPopupMessage("Error Saving:" + ex.Message);
-        }
+            catch (Exception ex)
+            {
+                DisplayPopupMessage("Error Saving:" + ex.Message);
+            }
 
-        //TogglePopupVisibilityAsync()
-        await windowRefLinking.CloseAsync();
+            //TogglePopupVisibilityAsync()
+            await windowRefLinking.CloseAsync();
 
-        SqlData sqlData = new SqlData();        
-        OrdersHeaderGridData = await sqlData.GetSoEdiData();
+            SqlData sqlData = new SqlData();
+            OrdersHeaderGridData = await sqlData.GetSoEdiData();
 
-        @* 
-        SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(soRow.SOHeaderId, true);
-        EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>();
-        EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
-
-        EdiOrderHeaderGridData = await sqlData.SearchEdiOrderSummaryViewData(ediRow.PONumber);
-        EdiOrderDetailGridData = await sqlData.GetEdiOrderDetailViewData(ediRow.PONumber); *@
-
-        await InvokeAsync(StateHasChanged); // <-- refreshes 
+            await InvokeAsync(StateHasChanged); // <-- refreshes 
+        //}
+        //else
+        //{
+        //    //linkingRow(SoEdiData) row clicked on [main row]
+        //    //selectedEdiRow(EdiOrderDetailData) search EDI
+        //    //LinkEdiOrderDetailGridData(IEnumerable < CustomerSoPoData > LinkSOOrderDetailGridData) EDI detail data
+        //
+        //}
     }
 
     async Task OnUnLinkPOItemClick(SoEdiData ediData)
@@ -1887,6 +2255,23 @@ END";
 
     #region Non-Grid Functions
 
+    public List<Lookup> GetPartnerData()
+    {
+        List<Lookup> list = new List<Lookup>();
+
+        //var sublist = OpenPOShipmentData.Where(x => x.VendorId == vendorId).Select(x => x.PONumber).Distinct().ToList();
+        foreach (BusinessPartner item in BusinessPartnerListData.AsEnumerable())
+        {
+            Lookup l = new Lookup()
+                {
+                    LookupText = item.BusinessPartnerName,
+                    LookupValue = item.BusinessPartnerId
+                };
+            list.Add(l);
+        }
+        return list;
+    }
+
     async void LinkCustomerPOClick(CustomerSoPoData row)
     {
         //linkingRow = row;
@@ -1923,7 +2308,7 @@ END";
         }
     }
 
-    async void OnSearchButtonClick_old(string poNo)
+    @* async void OnSearchButtonClick_old(string poNo)
     {
         if (useSearchButton)
         {
@@ -1942,7 +2327,7 @@ END";
             }
             await InvokeAsync(StateHasChanged); // <-- refreshes
         }
-    }
+    } *@
 
     async void LoadEdiOrderDetailGridData(EdiOrderDetailData row) //string poNo
     {
@@ -1959,7 +2344,7 @@ END";
         }
     }
 
-    // not used
+    @* // not used
     async void SaveCustomerPOLink(CustomerSoPoData soRow, EdiOrderDetailData ediRow)
     {
         //DisplayPopupMessage("Linking");
@@ -1995,7 +2380,7 @@ UPDATE [PIMS].[edi].[EdiTrn] SET [SoDetailId] = {3}, [ProductId] = {4} WHERE [Ed
         EdiOrderDetailGridData = await sqlData.GetEdiOrderDetailViewData(ediRow.PONumber);
 
         await InvokeAsync(StateHasChanged); // <-- refreshes
-    }
+    } *@
 
     #endregion
 

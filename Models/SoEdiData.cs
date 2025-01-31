@@ -17,6 +17,7 @@ namespace LAGem_POPortal.Models
 
         public int IsLinked { get; set; }
 
+        public int CustomerId { get; set; }
         public string CustomerName { get; set; }    // Header/Detail
         public string CustomerPO { get; set; }      // Header/Detail
         public string RefPonum { get; set; }
