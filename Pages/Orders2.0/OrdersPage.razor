@@ -65,9 +65,9 @@
                     SearchTextParseMode="CurrentSearchTextParseMode"
                     CustomizeElement="Grid_CustomizeElement"
                     CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                    EditModelSaving="SOGrid_EditModelSaving"
-                    DataItemDeleting="SOGridDataItemDeleting"
-                    CustomizeEditModel="SOGrid_CustomizeEditModel"
+                    EditModelSaving="MainGrid_EditModelSaving"
+                    DataItemDeleting="MainGridDataItemDeleting"
+                    CustomizeEditModel="MainGrid_CustomizeEditModel"
                     HighlightRowOnHover="true"
                     TextWrapEnabled="false"
                     ValidationEnabled="false">
@@ -112,7 +112,7 @@
                         EditButtonVisible="true"
                         CancelButtonVisible="true"
                         SaveButtonVisible="true"
-                        NewButtonVisible="false"
+                        NewButtonVisible="true"
                         FixedPosition="GridColumnFixedPosition.Right" />
                 </Columns>
                  <EditFormTemplate Context="EditFormContext">
@@ -178,9 +178,9 @@
                                         WordWrapEnabled="@WordWrapEnabled"
                                         CustomizeElement="Grid_CustomizeElement"
                                         CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                                        EditModelSaving="Grid_EditModelSaving"
-                                        DataItemDeleting="Grid_DataItemDeleting"
-                                        CustomizeEditModel="Grid_CustomizeEditModel"
+                                        CustomizeEditModel="DetailGrid_CustomizeEditModel"
+                                        EditModelSaving="DetailGrid_EditModelSaving"
+                                        DataItemDeleting="DetailGrid_DataItemDeleting"
                                         HighlightRowOnHover="true"
                                         style="max-height:300px;">
                                     <Columns>
@@ -198,6 +198,18 @@
                                         </DxGridCommandColumn>*@
                                         <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" MinWidth="60" Width="60" ReadOnly="true" Visible="false" />
                                         <DxGridDataColumn FieldName="CustomerPO" Caption="EDI PO" MinWidth="60" Width="140" ReadOnly="true" Visible="true" />
+                                        <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
+                                            <HeaderTemplate>
+                                                Un link
+                                            </HeaderTemplate>
+                                            <CellDisplayTemplate>
+                                                <div class="grid-cell-align-center">
+                                                    <DxButton IconCssClass="grid-icon grid-icon-undo"
+                                                              RenderStyle="ButtonRenderStyle.Secondary" aria-label="Un-Link"
+                                                              Click="@(() => OnUnLinkPOItemClick((SoEdiData)CustomerPOContext.DataItem))" />
+                                                </div>
+                                            </CellDisplayTemplate>
+                                        </DxGridCommandColumn>
 
                                         <DxGridDataColumn FieldName="ItemNo" Caption="Style#" MinWidth="90" Width="95" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="OrderQty" Caption="Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
@@ -238,9 +250,6 @@
                                         WordWrapEnabled="@WordWrapEnabled"
                                         CustomizeElement="Grid_CustomizeElement"
                                         CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                                        EditModelSaving="Grid_EditModelSaving"
-                                        DataItemDeleting="Grid_DataItemDeleting"
-                                        CustomizeEditModel="Grid_CustomizeEditModel"
                                         HighlightRowOnHover="true"
                                         style="max-height:300px;">
                                     <Columns>
@@ -310,9 +319,6 @@
                                         WordWrapEnabled="@WordWrapEnabled"
                                         CustomizeElement="Grid_CustomizeElement"
                                         CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                                        EditModelSaving="Grid_EditModelSaving"
-                                        DataItemDeleting="Grid_DataItemDeleting"
-                                        CustomizeEditModel="Grid_CustomizeEditModel"
                                         HighlightRowOnHover="true">
                                     <Columns>
                                         <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" MinWidth="60" Width="60" ReadOnly="true" Visible="false" />
@@ -1008,6 +1014,7 @@
     string headerNote { get; set; } = "";
     SoEdiData selectedRow { get; set; } // main row selected
     SoEdiData linkingRow { get; set; } // detail row
+    SoEdiData unLinkingRow { get; set; } // detail row
     EdiOrderDetailData selectedEdiRow { get; set; }
 
     SoEdiData linkingSoEdiDataItem { get; set; }
@@ -1115,6 +1122,10 @@
 
             await SaveCustomerPOLinking();
         }
+        if (callbackProcessName == "UnLinkSave")
+        {
+            await OnUnLinkPOItemSave(unLinkingRow);
+        }        
     }
 
     void CancelPopupClick()
@@ -1199,54 +1210,6 @@
         //         e.Style = "color: red";
         // }
     }
-    void EdiDetailGrid_CustomizeElement(GridCustomizeElementEventArgs e)
-    {
-        if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ProductNo")
-        {
-            string productNo = (string)e.Grid.GetRowValue(e.VisibleIndex, "ProductNo");
-            //if (productNo == linkingRow.ProductNo)
-            //    e.Style = "background: green; color: white;";
-        }
-
-        if (e.ElementType == GridElementType.DataRow)
-        {
-            string productNo = (string)e.Grid.GetRowValue(e.VisibleIndex, "ProductNo");
-            //if (productNo == linkingRow.ProductNo)
-            //    e.CssClass = "highlighted-item";
-        }
-
-        // // if (e.ElementType == GridElementType.DataRow && (System.Decimal)e.Grid.GetRowValue(e.VisibleIndex, "Total") > 1000)
-        // // {
-        // //     e.CssClass = "highlighted-item";
-        // // }
-
-        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "CustomerName")
-        // {
-        //     string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
-        //     if (customerName == "MACYS")
-        //         e.Style = "background: green";
-        // }
-        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
-        // {
-        //     e.Style = "font-weight: 800";
-        // }
-        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
-        // {
-        //     e.Style = "font-weight: 800";
-        // }
-        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
-        // {
-        //     decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
-        //     if (units > 100)
-        //         e.Style = "color: red";
-        // }
-        // if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "SOQty")
-        // {
-        //     decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "SOQty");
-        //     if (units > 100)
-        //         e.Style = "color: red";
-        // }
-    }
     void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
     {
         // string[] dateList = new string[] { "SODate", "StartDate", "EndDate", "ShipmentDate", "ShipToETA" };
@@ -1257,7 +1220,8 @@
                 e.DisplayText = "";
         }
     }
-    void SOGrid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+
+    async Task MainGrid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
     {
         if (e.IsNew)
         {
@@ -1268,8 +1232,7 @@
             }
         }
     }
-
-    async Task SOGrid_EditModelSaving(GridEditModelSavingEventArgs e)
+    async Task MainGrid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         e.Cancel = true;
 
@@ -1290,7 +1253,7 @@
             await OrdersHeaderGrid.CancelEditAsync();
         }
     }
-    async Task SOGridDataItemDeleting(GridDataItemDeletingEventArgs e)
+    async Task MainGridDataItemDeleting(GridDataItemDeletingEventArgs e)
     {
         var deletingData = (SoEdiData)e.DataItem;
 
@@ -1302,19 +1265,7 @@
         // SOGridData = await sqlData.GetCustomerSoData();
     }
 
-    void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
-    {
-        if (e.IsNew)
-        {
-            if (e.EditModel.GetType() == typeof(SoEdiData))
-            {
-                var newObject = (SoEdiData)e.EditModel;
-
-            }
-        }
-    }
-
-    async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+    async Task DetailGrid_EditModelSaving(GridEditModelSavingEventArgs e)
     {
         e.Cancel = true;
 
@@ -1335,7 +1286,7 @@
             await OrdersHeaderGrid.CancelEditAsync();
         }
     }
-    async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+    async Task DetailGrid_DataItemDeleting(GridDataItemDeletingEventArgs e)
     {
         if (e.DataItem.GetType() == typeof(SoEdiData))
         {
@@ -1347,11 +1298,22 @@
             //await GridDetail.CancelEditAsync();
         }
     }
-    async Task Grid_EditCanceling(GridEditCancelingEventArgs e)
+    async Task DetailGrid_EditCanceling(GridEditCancelingEventArgs e)
     {
 
     }
-        
+    async Task DetailGrid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+    {
+        if (e.IsNew)
+        {
+            if (e.EditModel.GetType() == typeof(SoEdiData))
+            {
+                var newObject = (SoEdiData)e.EditModel;
+
+            }
+        }
+    }
+
     async void EDIItemGrid_OnRowClick(GridRowClickEventArgs e)
     {
         if (LinkEdiOrderDetailGrid != null)
@@ -1834,7 +1796,8 @@ UPDATE [PIMS].[edi].[EdiTrn] SET [SoDetailId] = {3}, [ProductId] = {4} WHERE [Ed
 
         //DisplayPopupMessage("Linking");
        
-        try{
+        try
+        {
             using (var uow = new UnitOfWork())
             {
                 await uow.ExecuteNonQueryAsync(fullQuery);
@@ -1860,6 +1823,62 @@ UPDATE [PIMS].[edi].[EdiTrn] SET [SoDetailId] = {3}, [ProductId] = {4} WHERE [Ed
         EdiOrderDetailGridData = await sqlData.GetEdiOrderDetailViewData(ediRow.PONumber); *@
 
         await InvokeAsync(StateHasChanged); // <-- refreshes 
+    }
+
+    async Task OnUnLinkPOItemClick(SoEdiData ediData)
+    {
+        if (string.IsNullOrWhiteSpace(ediData.CustomerPO))
+            return;
+
+        string selectedSono = ediData.SONumber;
+        string selectedEdiPO = ediData.CustomerPO;
+
+        unLinkingRow =ediData;
+        
+        //int ediHdrId = ediData.EdiHdrId;
+        //int soHeaderId = ediData.SOHeaderId;
+        //int ediTrnId = ediData.EdiTrnId;
+        //int soDetailId = ediData.SoDetailId;
+        //int productId = ediData.ProductId;
+
+        string message = "Are you sure you want to " + Environment.NewLine + "UNLINK i2 SO " + selectedSono + " with EDI PO Number " + selectedEdiPO + "?";
+        DisplayPopupQuestion(message, "Confirmation", "UnLinkSave");
+    }
+
+    async Task OnUnLinkPOItemSave(SoEdiData ediData)
+    {      
+        int ediHdrId = ediData.EdiHdrId;
+        int soHeaderId = ediData.SOHeaderId;
+
+        int ediTrnId = ediData.EdiTrnId;
+        int soDetailId = ediData.SoDetailId;
+        int productId = ediData.ProductId;
+                
+        string query = "";
+        string fullQuery = "";
+
+        query = @"UPDATE [PIMS].[edi].[EdiTrn] SET [SoDetailId] = NULL, [ProductId] = NULL WHERE [Editrnid] = {1} AND [Edihdrid] = {0}
+IF (SELECT COUNT(*) FROM [PIMS].[edi].[EdiTrn] WHERE [Edihdrid] = {0}) = 0
+BEGIN
+	UPDATE [PIMS].[edi].[EdiHdr] SET [SoHeaderId] = NULL WHERE [Edihdrid] = {0}
+END";
+
+        fullQuery += string.Format(query, ediHdrId, ediTrnId);
+        try
+        {
+            using (var uow = new UnitOfWork())
+            {
+                await uow.ExecuteNonQueryAsync(fullQuery);
+            }
+        }
+        catch (Exception ex)
+        {
+            DisplayPopupMessage("Error Saving:" + ex.Message);
+        }
+
+        SqlData sqlData = new SqlData();
+        OrdersHeaderGridData = await sqlData.GetSoEdiData();
+        await InvokeAsync(StateHasChanged); // <-- refreshes
     }
 
     #endregion
