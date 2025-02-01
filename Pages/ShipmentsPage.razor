@@ -34,6 +34,7 @@
                     AutoCollapseDetailRow="true"
                     ColumnResizeMode="@CurrentColumnResizeMode"
                     EditMode="@CurrentEditMode"
+                    PopupEditFormHeaderText="@mainGridEditFormHeaderText"
                     PopupEditFormCssClass="my-popup-style"
                     FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
                     FooterDisplayMode="GridFooterDisplayMode.Auto"
@@ -60,7 +61,7 @@
                                          SaveButtonVisible="true"
                                          NewButtonVisible="true" FixedPosition="GridColumnFixedPosition.Left" />
 
-                    <DxGridDataColumn FieldName="VendorName" Caption="Vendor" ReadOnly="true" Width="100" MinWidth="120" FixedPosition="GridColumnFixedPosition.Left" />
+                    <DxGridDataColumn FieldName="VendorName" Caption="Vendor" ReadOnly="true" Width="100" MinWidth="120" />@* FixedPosition="GridColumnFixedPosition.Left" *@
 
                     <DxGridDataColumn FieldName="ShipmentDate" Caption="Shipment Date" ReadOnly="false" DisplayFormat="d" Width="100" MinWidth="80" />                    
                     <DxGridDataColumn FieldName="InvoiceNo" Caption="Invoice No" ReadOnly="false" Width="100" MinWidth="100" />
@@ -148,13 +149,13 @@
                         @* <DxFormLayoutItem Caption="Vendor Name:" ColSpanMd="6">
                             @EditFormContext.GetEditor("VendorName")
                         </DxFormLayoutItem> *@
-                        <DxFormLayoutItem Caption="Shipment Date:" ColSpanMd="6">
+                        <DxFormLayoutItem Caption="Ship From Factory:" ColSpanMd="6">
                             @EditFormContext.GetEditor("ShipmentDate")
                         </DxFormLayoutItem>
                         <DxFormLayoutItem Caption="Tracking No:" ColSpanMd="6">
                             @EditFormContext.GetEditor("TrackingNumber")
                         </DxFormLayoutItem>
-                        <DxFormLayoutItem Caption="Ship To ETA:" ColSpanMd="6">
+                        <DxFormLayoutItem Caption="Expected Arrival:" ColSpanMd="6">
                             @EditFormContext.GetEditor("ShipToETA")
                         </DxFormLayoutItem>
                         <DxFormLayoutItem Caption="Invoice No:" ColSpanMd="6">
@@ -235,12 +236,12 @@
                                     <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Width="100" MinWidth="100" />
                                     <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" MinWidth="50" />
                                     <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" Width="100" MinWidth="110" />
-                                    <DxGridDataColumn FieldName="OrderQty" Caption="Order Qty" DisplayFormat="n0" ReadOnly="true" Width="100" MinWidth="50" TextAlignment="GridTextAlignment.Right" >
+                                    <DxGridDataColumn FieldName="OrderQty" Caption="PO Order Units" DisplayFormat="n0" ReadOnly="true" Width="100" MinWidth="50" TextAlignment="GridTextAlignment.Right" >
                                         <EditSettings>
                                             <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="true" NullText="Order Qty" />
                                         </EditSettings>
                                     </DxGridDataColumn>
-                                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Ship Qty" DisplayFormat="n0" ReadOnly="false" Width="100" MinWidth="50" TextAlignment="GridTextAlignment.Right">
+                                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" ReadOnly="false" Width="100" MinWidth="50" TextAlignment="GridTextAlignment.Right">
                                         <EditSettings>
                                             <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="false" NullText="Ship Qty" InputCssClass="focus-text-box" />
                                         </EditSettings>
@@ -440,6 +441,7 @@
 
     bool usePopupEditForm { get; set; } = true;
     GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+    string mainGridEditFormHeaderText { get; set; } = "In Transit POs";
 
     IReadOnlyList<object> SelectedDataItems { get; set; } // Items Selected in Edit Form
     IReadOnlyList<object> SelectedDataPOListGridItems { get; set; }
@@ -768,29 +770,29 @@
 
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "CustomerName")
         {
-            string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
-            if (customerName == "MACYS")
-                e.Style = "background: green";
+            //string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
+            //if (customerName == "MACYS")
+            //    e.Style = "background: green";
         }
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
         {
-            e.Style = "font-weight: 800";
+            //e.Style = "font-weight: 800";
         }
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
         {
-            e.Style = "font-weight: 800";
+            //e.Style = "font-weight: 800";
         }
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
         {
-            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
-            if (units > 100)
-                e.Style = "color: red";
+            //decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
+            //if (units > 100)
+            //    e.Style = "color: red";
         }
         if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "SOQty")
         {
-            decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "SOQty");
-            if (units > 100)
-                e.Style = "color: red";
+            //decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "SOQty");
+            //if (units > 100)
+            //    e.Style = "color: red";
         }
     }
     void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)

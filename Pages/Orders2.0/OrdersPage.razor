@@ -106,7 +106,7 @@
                     </DxGridCommandColumn>
 
                     <DxGridDataColumn FieldName="CustomerPO" Caption="Customer PO" ReadOnly="true" />
-                    <DxGridDataColumn FieldName="Description" Caption="Description" ReadOnly="!isBlankOrder" />
+                    <DxGridDataColumn FieldName="Description" Caption="Description" ReadOnly="false" />
                     <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="!isBlankOrder" />
                     <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" DisplayFormat="d" ReadOnly="!isBlankOrder"/>
                     <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" DisplayFormat="d" ReadOnly="!isBlankOrder"/>
@@ -132,7 +132,7 @@
                         FixedPosition="GridColumnFixedPosition.Right" /> *@
                     <DxGridCommandColumn Context="OrdersHeaderGridContext" Width="50px">
                         <HeaderTemplate>
-                            <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Auto"
+                            <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Auto Forecast"
                                       Click="@(() => {
                                                 isBlankOrder = true;
                                                 mainGridEditFormHeaderText = "Auto Forecast Order";
@@ -657,14 +657,21 @@
             <BodyContentTemplate>
                 @* <SampleEditForm /> *@
                 <DxFormLayout CssClass="w-100">
-                    <DxFormLayoutItem Caption="Search PO:" ColSpanMd="6">
-                        @* <DxTextBox Text="@CustomerPOContext.GetRowValue("CustomerPO").ToString()" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))"></DxTextBox> *@
-                        <DxTextBox @ref=searchBoxRef Text="@searchText" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))"></DxTextBox>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="3">
+                    @* <DxFormLayoutItem ColSpanMd="3">
                         <DxButton IconCssClass="grid-icon grid-icon-add" RenderStyle="ButtonRenderStyle.Primary" aria-label="Add" Text="Search EDI PO" Click="@(() => OnSearchButtonClick(@searchText))" />
+                    </DxFormLayoutItem> *@
+                    <DxFormLayoutItem ColSpanMd="6">
+                        @* <DxTextBox Text="@CustomerPOContext.GetRowValue("CustomerPO").ToString()" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))"></DxTextBox> *@
+                        <div style="display: flex;">
+                            <div style="margin-right: 10px;">
+                                <DxButton IconCssClass="grid-icon grid-icon-add" RenderStyle="ButtonRenderStyle.Primary" aria-label="Add" Text="Search EDI PO" Click="@(() => OnSearchButtonClick(@searchText))" />
+                            </div>
+                            <div>
+                                <DxTextBox @ref=searchBoxRef Text="@searchText" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))"></DxTextBox>
+                            </div>
+                        </div>
                     </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="3">
+                    <DxFormLayoutItem ColSpanMd="6">
                     </DxFormLayoutItem>
 
                     <DxFormLayoutItem ColSpanMd="12" Visible="displayPopupGrid">
@@ -707,7 +714,11 @@
                                         <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
                                     </HeaderTemplate>
                                     <CellDisplayTemplate>
-                                        <DxButton IconCssClass="grid-icon grid-icon-add" RenderStyle="ButtonRenderStyle.Primary" aria-label="Add" Text="Select EDI PO" Click="@(() => OnSearchPOClick((EdiOrderDetailData)EdiPOContext.DataItem))" />
+                                        <DxButton IconCssClass="grid-icon grid-icon-add" aria-label="Add" 
+                                            RenderStyle="ButtonRenderStyle.Primary" 
+                                            RenderStyleMode="ButtonRenderStyleMode.Outline" 
+                                            Text="Select EDI PO" 
+                                            Click="@(() => OnSearchPOClick((EdiOrderDetailData)EdiPOContext.DataItem))" />
                                     </CellDisplayTemplate>
                                 </DxGridCommandColumn>
                                 <DxGridDataColumn FieldName="ShipYear" Caption="Ship Year" DisplayFormat="0" ReadOnly="true" Visible="false" />
@@ -1090,6 +1101,7 @@
     }
     bool usePopupEditForm { get; set; } = true;
     GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+    string mainGridEditFormHeaderText { get; set; } = "EDI Edit";
 
     bool ShowGroupPanel { get; set; } = true;    
     Dictionary<string, string[]> GroupInfo { get; } = new Dictionary<string, string[]> {
@@ -1119,8 +1131,6 @@
     string popupBodyText { get; set; } = "Sample Popup Message";
 
     string callbackProcessName { get; set; } = null;
-
-    string mainGridEditFormHeaderText{ get; set; } = "EDI Edit";
 
     // ------------------------------------------------------------ \\
 
@@ -1316,7 +1326,21 @@
     }
 
     void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
-    {
+    {        
+        if (e.Grid.Data != null && e.Grid.Data.GetType().GetGenericArguments().Single() == typeof(SoEdiData))
+        {
+            //if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Description")
+            if (e.ElementType == GridElementType.DataCell)
+            {
+                if ((e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Description"){
+                    string desc = (string)e.Grid.GetRowValue(e.VisibleIndex, "Description");
+                    if (desc.ToLower().Contains("auto forecast")) {
+                        e.Style = "color: red";
+                    }
+                }
+            }
+        }
+
         // // if (e.ElementType == GridElementType.DataRow && (System.Decimal)e.Grid.GetRowValue(e.VisibleIndex, "Total") > 1000)
         // // {
         // //     e.CssClass = "highlighted-item";
@@ -2145,8 +2169,8 @@ WHERE [SOHeaderId] = {0}";
     {
         // Note: if 'Auto Forecast' order, transfer [Description] and [Comments] to [PIMS].[edi].[EdiHdr]
 
-        //if (!isBlankOrder)
-        //{
+        if (!isBlankOrder)
+        {
             int edihdrid = selectedEdiRow.EdiHdrId;
             string query = "";
             string fullQuery = "";
@@ -2183,14 +2207,64 @@ UPDATE [PIMS].[edi].[EdiTrn] SET [SoDetailId] = {3}, [ProductId] = {4} WHERE [Ed
             OrdersHeaderGridData = await sqlData.GetSoEdiData();
 
             await InvokeAsync(StateHasChanged); // <-- refreshes 
-        //}
-        //else
-        //{
-        //    //linkingRow(SoEdiData) row clicked on [main row]
-        //    //selectedEdiRow(EdiOrderDetailData) search EDI
-        //    //LinkEdiOrderDetailGridData(IEnumerable < CustomerSoPoData > LinkSOOrderDetailGridData) EDI detail data
-        //
-        //}
+        }
+        else
+        {
+            //linkingRow(SoEdiData) row clicked on [main row]
+            //selectedEdiRow(EdiOrderDetailData) search EDI
+            //LinkEdiOrderDetailGridData(IEnumerable < CustomerSoPoData > LinkSOOrderDetailGridData) EDI detail data
+
+            int edihdrid = selectedEdiRow.EdiHdrId;
+            int soHeaderId = linkingRow.SOHeaderId; // > 1000000
+            string soDesc = linkingRow.Description;
+            string soComments = linkingRow.Comments;
+            string soQBSO = linkingRow.QBSO;
+
+            string query = "";
+            string fullQuery = "";
+
+            query = @"
+UPDATE [PIMS].[edi].[EdiHdr] 
+SET [SoHeaderId] = {1} 
+    ,[Description] = '{2}'
+    ,[Comments] = '{3}'
+    ,[QBSO] = '{4}'
+WHERE [Edihdrid] = {0}";
+            fullQuery = string.Format(query, edihdrid, soHeaderId, soDesc, soComments, soQBSO);
+
+            query = @"
+UPDATE [PIMS].[edi].[EdiTrn] 
+SET [SoDetailId] = 0
+    ,[ProductId] = (SELECT ISNULL([ProductId],0) AS [ProductId] FROM [PIMS].[dbo].[Product] WHERE [ProductNo] = '{2}')
+WHERE [Editrnid] = {1} AND [Edihdrid] = {0}";
+            foreach (SoEdiData item in LinkEdiOrderDetailGridData)
+            {
+                if (item.IsItemLinked) //item.LinkedToId = ediData.EdiTrnId;
+                {
+                    fullQuery += string.Format(query, edihdrid, item.EdiTrnId, item.ItemNo);
+                }
+            }
+
+            try
+            {
+                using (var uow = new UnitOfWork())
+                {
+                    await uow.ExecuteNonQueryAsync(fullQuery);
+                }
+            }
+            catch (Exception ex)
+            {
+                DisplayPopupMessage("Error Saving:" + ex.Message);
+            }
+
+            //TogglePopupVisibilityAsync()
+            await windowRefLinking.CloseAsync();
+
+            SqlData sqlData = new SqlData();
+            OrdersHeaderGridData = await sqlData.GetSoEdiData();
+
+            await InvokeAsync(StateHasChanged); // <-- refreshes
+        }
     }
 
     async Task OnUnLinkPOItemClick(SoEdiData ediData)

@@ -648,7 +648,7 @@ ORDER BY [SOShipYear] DESC
             }
         }
         //"Orders"
-        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId, bool includePackaging = false) //
+        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId, bool includePackaging = false, bool includeLinked = false) //
         {
             string query = @"
 SELECT edi.[Edihdrid]   AS [EdiHdrId]
@@ -689,9 +689,12 @@ FROM [PIMS].[edi].[EdiOrderDetailvw] edi
 		ON sodm.[SODetailMaterialId] = som.[SODetailMaterialId]
 WHERE edi.[Edihdrid] = {0}";
 
-            if (includePackaging)
-                query += @" AND som.[SoSubLineType] <> 'Packaging'";
+            if (!includePackaging)
+                query += @" AND ISNULL(som.[SoSubLineType], '') <> 'Packaging'";
 
+            if (!includeLinked)
+                query += @" AND edi.[SODetailId] IS NOT NULL";
+            
             string fullQuery = string.Format(query, ediId);
 
             return await GetSqlData<SoEdiData>(fullQuery);

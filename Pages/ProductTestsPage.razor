@@ -75,7 +75,7 @@
         <DxGridDataColumn FieldName="MaterialName" Caption="Material Desc" ReadOnly="true" Visible="false" /> *@
         
         <DxGridDataColumn FieldName="PONumber" Caption="PO Number" ReadOnly="true" Visible="true" MinWidth="90" />
-                <DxGridDataColumn FieldName="Supplier" Caption="Supplier" ReadOnly="true" Visible="true" MinWidth="90" />
+        <DxGridDataColumn FieldName="Supplier" Caption="Supplier" ReadOnly="true" Visible="true" MinWidth="90" />
 
         <DxGridDataColumn FieldName="Requested" Caption="Test Sent" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
         <DxGridDataColumn FieldName="RequestedBy" Caption="Test Passed By" ReadOnly="true" Width="80" MinWidth="80" Visible="false" />
@@ -193,7 +193,8 @@
                             AutoFitColumnWidths="true"
                             AutoCollapseDetailRow="true"
                             ColumnResizeMode="@CurrentColumnResizeMode"
-                            EditMode="@CurrentEditMode"
+                                    EditMode="@CurrentEditMode"
+                                    PopupEditFormHeaderText="@mainGridEditFormHeaderText"
                             FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
                             FooterDisplayMode="GridFooterDisplayMode.Auto"
                             TextWrapEnabled="@TextWrapEnabled"
@@ -451,6 +452,7 @@
     }
     bool usePopupEditForm { get; set; } = true;
     GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+    string mainGridEditFormHeaderText { get; set; } = "Test Update";
 
     IReadOnlyList<object> SelectedDataItems { get; set; }
     IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();

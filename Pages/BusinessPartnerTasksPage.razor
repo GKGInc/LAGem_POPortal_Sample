@@ -97,6 +97,7 @@
                                     AutoCollapseDetailRow="true"
                                     ColumnResizeMode="@CurrentColumnResizeMode"
                                     EditMode="@CurrentEditMode"
+                                    PopupEditFormHeaderText="@mainGridEditFormHeaderText"
                                     FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
                                     FooterDisplayMode="GridFooterDisplayMode.Auto"
                                     TextWrapEnabled="@TextWrapEnabled"
@@ -431,6 +432,7 @@
 
     bool usePopupEditForm { get; set; } = true;
     GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+    string mainGridEditFormHeaderText{ get; set; } = "Task Edit";
 
     IReadOnlyList<object> SelectedDataItems { get; set; }
     IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
