@@ -31,12 +31,11 @@ namespace LAGem_POPortal.Models
 
         public DateTime? StartDate { get; set; }     //Customer Ship date       // Header/Detail
         public DateTime? EndDate { get; set; }       //Factory Cancel Date      // Header/Detail
+        public DateTime? ShipWindow { get; set; }
 
         public int OrderQty { get; set; }   // Header/Detail
         public int SOHeaderId { get; set; }
         public int EdiHdrId { get; set; }   // Header/Detail
-
-
 
         // Detail Data
         public int EdiTrnId { get; set; }   
@@ -54,11 +53,21 @@ namespace LAGem_POPortal.Models
         public string QBSO { get; set; }
         public string Comments { get; set; }
 
+        public int IntransitUnits { get; set; }
+
+        // Linked SO columns
+        public DateTime? ShipmentDate { get; set; }
+        public string TrackingNumber { get; set; }
+        public DateTime? ShipToETA { get; set; }
+        public int ShipmentQty { get; set; }
+
+
         // Link columns
         public bool IsItemLinked { get; set; }
         public string LinkedStatus { get; set; }
         public int LinkedToId { get; set; }
         public string LinkedToName { get; set; }
 
+        public bool Archived { get; set; }        
     }
 }

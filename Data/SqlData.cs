@@ -439,9 +439,13 @@ SELECT ROW_NUMBER() OVER (ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] 
   ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] ASC, ediView.[ShipWeek] ASC, ediView.[Ponum]";
             return await GetSqlData<EdiOrderDetailData>(query);
         }
-        public async Task<List<EdiOrderDetailData>> SearchEdiOrderSummaryViewData(string poNo) // [EdiOrderSummaryVw]
+        public async Task<List<EdiOrderDetailData>> SearchEdiOrderSummaryViewData(string poNo, bool unLinkedSOsOnly) // [EdiOrderSummaryVw]
         {
-            string query = @"
+            bool useSP = true;  //SP_GetEdiSearchData
+
+            if (!useSP)
+            {
+                string query = @"
 SELECT ROW_NUMBER() OVER (ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] ASC, ediView.[ShipWeek] ASC, ediView.[Ponum]) AS [Id]
       ,ediView.[Tradpartid]	AS [TradingPartnerId]
       ,ISNULL(bizPartner.BusinessPartnerCode, '') AS [TradingPartnerCode]
@@ -463,8 +467,15 @@ SELECT ROW_NUMBER() OVER (ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] 
   WHERE ediView.[Ponum] LIKE '%{0}%'
   ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] ASC, ediView.[ShipWeek] ASC, ediView.[Ponum]";
 
-            string fullQuery = string.Format(query, poNo);
-            return await GetSqlData<EdiOrderDetailData>(fullQuery);
+                string fullQuery = string.Format(query, poNo);
+                return await GetSqlData<EdiOrderDetailData>(fullQuery);
+            }
+            else
+            {
+                string storedProcedure = string.Format("[PIMS].[dbo].[SP_GetEdiSearchData] '{0}', {1}", poNo, (unLinkedSOsOnly) ? 1 : 0);
+
+                return await GetSqlData<EdiOrderDetailData>(storedProcedure);
+            }
         }
         //"EDI Orders", "Orders"
         public async Task<List<EdiOrderDetailData>> GetEdiOrderDetailViewData(string poNo) // [EdiOrderDetailvw]
@@ -648,10 +659,14 @@ ORDER BY [SOShipYear] DESC
             }
         }
         //"Orders"
-        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId, bool includePackaging = false, bool includeLinked = false) //
+        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId, bool includePackaging, bool includeUnLinked) //
         {
-            string query = @"
-SELECT edi.[Edihdrid]   AS [EdiHdrId]
+            bool useSP = true;
+
+            if (!useSP)
+            {
+                string query = @"
+SELECT DISTINCT edi.[Edihdrid]   AS [EdiHdrId]
     ,edi.[Editrnid] AS [EdiTrnId]
 	,edi.[Ponum]    AS [CustomerPO]
     ,edi.[Item]		AS [ItemNo]
@@ -689,15 +704,22 @@ FROM [PIMS].[edi].[EdiOrderDetailvw] edi
 		ON sodm.[SODetailMaterialId] = som.[SODetailMaterialId]
 WHERE edi.[Edihdrid] = {0}";
 
-            if (!includePackaging)
-                query += @" AND ISNULL(som.[SoSubLineType], '') <> 'Packaging'";
+                if (!includePackaging)
+                    query += @" AND ISNULL(som.[SoSubLineType], '') <> 'Packaging'";
 
-            if (!includeLinked)
-                query += @" AND edi.[SODetailId] IS NOT NULL";
-            
-            string fullQuery = string.Format(query, ediId);
+                if (!includeUnLinked)
+                    query += @" AND edi.[SODetailId] IS NOT NULL";
 
-            return await GetSqlData<SoEdiData>(fullQuery);
+                string fullQuery = string.Format(query, ediId);
+
+                return await GetSqlData<SoEdiData>(fullQuery);
+            }
+            else
+            {
+                string storedProcedure = string.Format("[PIMS].[dbo].[SP_GetEdiSearchDetailData] {0}, {1}, {2}", ediId, (includePackaging) ? 1 : 0, (includeUnLinked) ? 1 : 0);
+
+                return await GetSqlData<SoEdiData>(storedProcedure);
+            }
         }
 
         //"I2 Orders", "Orders"
@@ -827,6 +849,13 @@ ORDER BY main.[SOShipYear] DESC
             }
 
             return await GetSqlData<CustomerSoPoData>(query);
+        }
+        //"Orders"
+        public async Task<List<CustomerSoPoData>> GetSODetailSearchData(int soHeaderId, bool includePackaging, bool includeLinked = true) //
+        {
+            string storedProcedure = string.Format("[PIMS].[dbo].[SP_GetSODetailSearchData] {0}, {1}, {2}", soHeaderId, (includePackaging) ? 1 : 0, (includeLinked) ? 1 : 0);
+
+            return await GetSqlData<CustomerSoPoData>(storedProcedure);
         }
         //"I2 Orders"
         public async Task<List<CustomerSoPoData>> GetCustomerSoPoSummaryData(int soShipYear, int soShipWeek, bool populatePOListString = true)

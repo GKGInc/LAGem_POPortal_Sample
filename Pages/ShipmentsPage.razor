@@ -6,6 +6,7 @@
 @using LAGem_POPortal.Data
 @using LAGem_POPortal.Models
 @using Microsoft.EntityFrameworkCore
+@using System.Drawing
 @inject IJSRuntime js
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager navManager
@@ -18,6 +19,26 @@
         @* <div hidden="!@HiddenGrid">
             <a href="/login">@HeaderMessage</a>
         </div> *@
+
+        <DxPopup @bind-Visible="@PopupVisible"
+                 AllowDrag="true"
+                 AllowDragByHeaderOnly="allowDragByHeaderOnly"
+                 ShowFooter="true"
+                 CloseOnEscape="false"
+                 CloseOnOutsideClick="false"
+                 ShowCloseButton="false"
+                 HeaderText="@popupTitleText"
+                 BodyText="@popupBodyText"
+                 PositionX="positionX"
+                 PositionY="positionY"
+                 DragCompleted="OnPopupDragCompleted">
+            <FooterContentTemplate Context="Context">
+                <div class="popup-demo-events-footer">
+                    <DxButton CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="@popupOkButtonText" Click="OkPopupClick" />
+                    <DxButton CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Secondary" Visible="@isPopupCancelButtonVisible" Text="@popupCancelButtonText" Click="CancelPopupClick" />
+                </div>
+            </FooterContentTemplate>
+        </DxPopup>
 
         @* <div hidden="@HiddenGrid"> *@
         <div>
@@ -85,6 +106,9 @@
                 <EditFormTemplate Context="EditFormContext">
                     @{
                         var shipping = (ShippingData)EditFormContext.EditModel; // previously -> supplier
+
+                        //BrowserDimension dim = GetDimensions().Result;
+                        //DisplayPopupMessage("Screen H" + dim.Height + " W" + dim.Width);
                     }
                     <DxFormLayout CssClass="w-100">
                          <DxFormLayoutItem Caption="Vendor:" ColSpanMd="6">
@@ -199,21 +223,17 @@
                         </DxFormLayoutItem>                        
                         <DxFormLayoutItem ColSpanMd="1"/>
 
-                        <DxFormLayoutItem Caption=" " ColSpanMd="10">
+                        <DxFormLayoutItem Caption=" " ColSpanMd="12">
                             <DxGrid @ref="POShipmentListGrid"
-                                    Data="POShipmentListGridData"   
-                                    AutoExpandAllGroupRows="true"
+                                    Data="POShipmentListGridData"
                                     KeyFieldName="Id"
+                                    AutoExpandAllGroupRows="true"
                                     PageSizeSelectorVisible="false"
                                     ShowAllRows="true"
-                                    VirtualScrollingEnabled="true"
-                                    ValidationEnabled="false"
+                                    ShowFilterRow="false"
                                     EditMode="GridEditMode.EditCell"
                                     FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Default"
-                                    ShowFilterRow="false"
                                     ColumnResizeMode="GridColumnResizeMode.NextColumn"
-                                    TextWrapEnabled="false"
-                                    HighlightRowOnHover="true"
                                     SelectAllCheckboxMode="CurrentSelectAllCheckboxMode"
                                     SelectedDataItems="@SelectedDataItems"
                                     SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged(selectedItems))"
@@ -223,25 +243,29 @@
                                     EditStart="ItemGrid_OnEditStart"
                                     CustomizeEditModel="ItemGrid_CustomizeEditModel"
                                     CustomizeElement="ItemGrid_CustomizeElement"
-                                    EditModelSaving="ItemGrid_EditModelSaving" 
+                                    EditModelSaving="ItemGrid_EditModelSaving"
+                                    HighlightRowOnHover="true"
+                                    TextWrapEnabled="true"
+                                    ValidationEnabled="false"
+                                    VirtualScrollingEnabled="true"
                                     VerticalScrollBarMode="@ScrollBarMode.Auto"
                                     VerticalScrollableHeight=@editPOShipmentListGridHeight
-                                    style="height:200px;">
+                                    style="height:600px;">
                                 @* @bind-SelectedDataItems="SelectedDataItems"
                                 SelectedDataItems="@SelectedDataItems"
                                 SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged(selectedItems))"
                                 style="margin-top: 20px;"*@
                                 <Columns>
                                     <DxGridSelectionColumn Width="75px"/>
-                                    <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Width="100" MinWidth="100" />
+                                    <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" MinWidth="100" Width="100" />
                                     <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" MinWidth="50" />
-                                    <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" Width="100" MinWidth="110" />
-                                    <DxGridDataColumn FieldName="OrderQty" Caption="PO Order Units" DisplayFormat="n0" ReadOnly="true" Width="100" MinWidth="50" TextAlignment="GridTextAlignment.Right" >
+                                    <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" MinWidth="110" Width="120" />
+                                    <DxGridDataColumn FieldName="OrderQty" Caption="PO Order Units" DisplayFormat="n0" ReadOnly="true" MinWidth="50" Width="90" TextAlignment="GridTextAlignment.Right">
                                         <EditSettings>
                                             <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="true" NullText="Order Qty" />
                                         </EditSettings>
                                     </DxGridDataColumn>
-                                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" ReadOnly="false" Width="100" MinWidth="50" TextAlignment="GridTextAlignment.Right">
+                                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" ReadOnly="false" MinWidth="50" Width="90" TextAlignment="GridTextAlignment.Right">
                                         <EditSettings>
                                             <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="false" NullText="Ship Qty" InputCssClass="focus-text-box" />
                                         </EditSettings>
@@ -318,6 +342,9 @@
                 Total: @TotalRecords records
                 </div> *@
             </div>
+            @* <button class="btn btn-primary" @onclick="OnButtonClick">Get Dimensions</button><br /><br />
+            <p>Window Height: @Height</p>
+            <p>Window Width: @Width</p> *@
         </div>
     </Authorized>
     <NotAuthorized Context="NotAuthorized">
@@ -345,7 +372,8 @@
 
     .my-popup-style {
         min-width: 1200px;
-        min-height: 450px;
+        /* min-height: 50vw; */
+        min-height: 900px;
     }
 
   /*   .dxbl-grid table {
@@ -366,6 +394,23 @@
         });
     }
 </script> *@
+<script type="text/javascript">
+    window.registerViewportChangeCallback = (dotnetHelper) => {
+        window.addEventListener('load', () => {
+            dotnetHelper.invokeMethodAsync('OnResize', window.innerWidth, window.innerHeight);
+        });
+        window.addEventListener('resize', () => {
+            dotnetHelper.invokeMethodAsync('OnResize', window.innerWidth, window.innerHeight);
+        });
+    }
+
+    window.getDimensions = function() {
+        return {
+                width: window.innerWidth,
+                height: window.innerHeight
+            };
+    };
+</script>
 
 @code {
     // ============================================================ \\
@@ -400,7 +445,7 @@
     List<Lookup> openPOList { get; set; }
 
     // ------------------------------------------------------------ \\
-    
+
     bool AutoCollapseDetailRow { get; set; }
     TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -447,7 +492,23 @@
     IReadOnlyList<object> SelectedDataPOListGridItems { get; set; }
     IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
     GridSelectAllCheckboxMode CurrentSelectAllCheckboxMode { get; set; }
-    
+
+    // ------------------------------------------------------------ \\
+
+    bool PopupVisible { get; set; } = false;
+    const string LocalStorageKey = "DialogsAndWindows-Popup-Dragging";
+    int? positionX, positionY;
+    bool allowDragByHeaderOnly = true;
+
+    string popupOkButtonText { get; set; } = "Ok";
+    string popupCancelButtonText { get; set; } = "Cancel";
+    bool isPopupCancelButtonVisible { get; set; } = false;
+
+    string popupTitleText { get; set; } = "Notification";
+    string popupBodyText { get; set; } = "Sample Popup Message";
+
+    string callbackProcessName { get; set; } = null;
+
     // ------------------------------------------------------------ \\
 
     string headerMessage { get; set; } = "Loading Data...";
@@ -461,6 +522,16 @@
     public int editPOShipmentListGridHeight { get; set; } = 200;
 
     CriteriaOperator shippingGridFilterCriteria { get; set; }
+
+    // ------------------------------------------------------------ \\
+
+    public class BrowserDimension
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
+    public int Height { get; set; } = 0;
+    public int Width { get; set; } = 0;
     
     // ------------------------------------------------------------ \\
 
@@ -549,13 +620,19 @@
 
             }
         }
+
+        var dim = await js.InvokeAsync<BrowserDimension>("getDimensions");
+        Height = dim.Height;
+        Width = dim.Width;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await DataLoadedTcs.Task; // Waits for grid data to load
+           await js.InvokeVoidAsync("window.registerViewportChangeCallback", DotNetObjectReference.Create(this));
+    
+           await DataLoadedTcs.Task; // Waits for grid data to load
                                       // Grid.ExpandDetailRow(0);
         }
         @* CurrentColumnResizeMode = GridColumnResizeMode.ColumnsContainer;
@@ -593,6 +670,68 @@
         headerMessage = "";
         hiddenGrid = true;
         // Northwind?.Dispose();
+    }
+
+    [JSInvokable]
+    public void OnResize(int width, int height)
+    {
+        if(Width == width && Height == height) return;
+        Width = width;
+        Height = height;
+        StateHasChanged();
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    #region Popup Functions
+
+    async void OkPopupClick()
+    {
+        PopupVisible = false;
+
+        //if (callbackProcessName == "SaveLinks")
+        //{
+        //    //@PopupLinkingFormContext.CloseCallback
+        //    windowRefLinking.CloseAsync();
+        //
+        //    await SaveCustomerPOLinking();
+        //}
+        //if (callbackProcessName == "UnLinkSave")
+        //{
+        //    await OnUnLinkPOItemSave(unLinkingRow);
+        //}
+    }
+
+    void CancelPopupClick()
+    {
+        PopupVisible = false;
+        //linkingEdiPOtoSO = false;
+    }
+
+    void DisplayPopupMessage(string message, string title = "Notification", string callbackName = null)
+    {
+        isPopupCancelButtonVisible = false;
+        popupOkButtonText = "Ok";
+        popupCancelButtonText = "Cancel";
+        popupTitleText = title;
+        popupBodyText = message;
+        PopupVisible = true;
+
+        callbackProcessName = callbackName;
+    }
+
+    void DisplayPopupQuestion(string message, string title = "Alert", string callbackName = null)
+    {
+        isPopupCancelButtonVisible = true;
+        popupOkButtonText = "Yes";
+        popupCancelButtonText = "No";
+        popupTitleText = title;
+        popupBodyText = message;
+        PopupVisible = true;
+
+        callbackProcessName = callbackName;
     }
 
     #endregion
@@ -1016,10 +1155,10 @@ WHERE [PODetailId] = {0}";
 
         // Get list of Rows Selected. See SelectedDataItems list
         List<string> productlist = new List<string>();
-        if (SelectedDataItems.Count > 0)
+        if (SelectedDataItems != null && SelectedDataItems.Count > 0)
             productlist = SelectedDataItems.Select(x => (x as ShippingData).ProductNo).Distinct().ToList();
         List<int> soDetailIds = new List<int>();
-        if (SelectedDataItems.Count > 0)
+        if (SelectedDataItems != null && SelectedDataItems.Count > 0)
             soDetailIds = SelectedDataItems.Select(x => (x as ShippingData).SODetailId).Distinct().ToList();
 
         // Save POShipmentListGrid data
@@ -1320,6 +1459,74 @@ WHERE [PODetailId] = {0}";
 
             POShipmentListGridData.Where(c => c.Id == savingObject.Id).FirstOrDefault().ShipmentQty = savingObject.ShipmentQty;
         }
+    }
+
+    #endregion
+
+    // ============================================================ \\
+
+    private async Task OnButtonClick()
+    {
+        try
+        {
+            var dim = await js.InvokeAsync<BrowserDimension>("getDimensions");
+            Height = dim.Height;
+            Width = dim.Width;
+
+            DisplayPopupMessage("Screen H" + dim.Height + " W" + dim.Width);
+        }
+        catch (Exception ex)
+        {
+            
+        }
+    }
+
+    public async Task<BrowserDimension> GetDimensions()
+    {
+        try
+        {
+            return await js.InvokeAsync<BrowserDimension>("getDimensions");
+        }
+        catch(Exception ex)
+        {
+            return new BrowserDimension();
+        }
+    }
+
+    // ============================================================ \\
+
+    #region Popup Functions
+
+    async Task OnPopupDragCompleted(PopupDragCompletedEventArgs args)
+    {
+        (positionX, positionY) = (args.End.X, args.End.Y);
+        await SavePositionToLocalStorageAsync(args.End);
+    }
+    // Refer to https://docs.microsoft.com/en-us/aspnet/core/blazor/state-management
+    // to learn more about Blazor state management
+    // In Blazor Server apps, prefer ASP.NET Core Protected Browser Storage
+    async Task<Point?> LoadPositionFromLocalStorageAsync()
+    {
+        //var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", LocalStorageKey);
+        //return string.IsNullOrEmpty(json) ? null : JsonSerializer.Deserialize<Point>(json);
+        return null;
+    }
+    async Task SavePositionToLocalStorageAsync(Point position)
+    {
+        //await JSRuntime.InvokeVoidAsync("localStorage.setItem", LocalStorageKey, JsonSerializer.Serialize(position));
+    }
+    async Task RemovePositionFromLocalStorageAsync()
+    {
+        //await JSRuntime.InvokeVoidAsync("localStorage.removeItem", LocalStorageKey);
+    }
+    async Task ReloadPageButton_ClickAsync()
+    {
+        //await JSRuntime.InvokeVoidAsync("location.reload");
+    }
+    async Task ResetPositionButton_ClickAsync()
+    {
+        //await RemovePositionFromLocalStorageAsync();
+        //await JSRuntime.InvokeVoidAsync("location.reload");
     }
 
     #endregion

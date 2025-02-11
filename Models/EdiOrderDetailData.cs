@@ -37,6 +37,7 @@ namespace LAGem_POPortal.Models
 
         public DateTime? ShipDate { get; set; }     // EdiOrderSummaryVw.StartDate
         public DateTime? CancelDate { get; set; }   // EdiOrderSummaryVw   
+        public DateTime? ShipWindow { get; set; }     // 
 
         public int ShipYear { get; set; }
         public int ShipMonth { get; set; }
