@@ -62,12 +62,12 @@ namespace LAGem_POPortal.Models
 
 
         // Link columns
-        public bool IsItemLinked { get; set; }
+        public bool IsItemLinked { get; set; } // 
         public string LinkedStatus { get; set; }
         public int LinkedToId { get; set; }
         public string LinkedToName { get; set; }
 
-        public int IsLinked { get; set; }
+        public int IsLinked { get; set; }   // from SP [INT]
         //public bool IsLinked { get; set; }
         public bool Archived { get; set; }
         public bool IsGroupPO { get; set; }

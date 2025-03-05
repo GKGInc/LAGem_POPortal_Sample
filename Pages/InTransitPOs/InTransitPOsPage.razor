@@ -1,0 +1,428 @@
+﻿@page "/InTransitPOs"
+@inherits InTransitPOsBase
+
+<script>
+    /* var _input;
+    window.AssignGotFocus = function () {
+        _input = document.getElementsByClassName("focus-text-box")[0];
+        _input.select();
+        _input.addEventListener("focus", function (event) {
+            setTimeout(function () { _input.select(); }, 0);
+        });
+    }*/
+
+    window.getWindowSize = function () {
+        return {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+    };
+
+    function resizeListener(dotnethelper) {
+        $(window).resize(() => {
+            clearTimeout(window.resizedFinished);
+            window.resizedFinished = setTimeout(function () {
+                dotnethelper.invokeMethodAsync('UpdatePage').then(() => {
+                }).catch(error => {
+                    console.log("Error: " + error);
+                });
+            }, 250);
+        });
+    }
+
+    window.registerViewportChangeCallback = (dotnetHelper) => {
+        window.addEventListener('load', () => {
+            dotnetHelper.invokeMethodAsync('OnResize', window.innerWidth, window.innerHeight);
+        });
+        window.addEventListener('resize', () => {
+            dotnetHelper.invokeMethodAsync('OnResize', window.innerWidth, window.innerHeight);
+        });
+    }
+
+    window.getDimensions = function () {
+        return {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+    };
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" type="text/javascript"></script>
+
+<AuthorizeView>
+    <Authorized Context="Authorized">
+        @* <div hidden="!@HiddenGrid">
+            <a href="/login">@HeaderMessage</a>
+        </div> *@
+
+        <DxPopup @bind-Visible="@PopupVisible"
+                 AllowDrag="true"
+                 AllowDragByHeaderOnly="allowDragByHeaderOnly"
+                 ShowFooter="true"
+                 CloseOnEscape="false"
+                 CloseOnOutsideClick="false"
+                 ShowCloseButton="false"
+                 HeaderText="@popupTitleText"
+                 BodyText="@popupBodyText"
+                 PositionX="positionX"
+                 PositionY="positionY"
+                 DragCompleted="OnPopupDragCompleted">
+            <FooterContentTemplate Context="Context">
+                <div class="popup-demo-events-footer">
+                    <DxButton CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="@popupOkButtonText" Click="OkPopupClick" />
+                    <DxButton CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Secondary" Visible="@isPopupCancelButtonVisible" Text="@popupCancelButtonText" Click="CancelPopupClick" />
+                </div>
+            </FooterContentTemplate>
+        </DxPopup>
+
+        @* <div hidden="@HiddenGrid"> *@
+        <div>
+            <DxGrid @ref="Grid"
+                    Data="GridData"
+                    KeyFieldName="Id"
+                    PagerPosition="GridPagerPosition.Bottom"
+                    PageSizeSelectorVisible="true"
+                    PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25, 30 })"
+                    PageSizeSelectorAllRowsItemVisible="true"
+                    PageSize="@PageSize"
+                    @bind-PageIndex="@ActivePageIndex"
+                    AutoFitColumnWidths="true"
+                    AutoCollapseDetailRow="true"
+                    HorizontalScrollBarMode="ScrollBarMode.Visible"
+                    VerticalScrollBarMode="ScrollBarMode.Visible"
+                    VerticalScrollableHeight="@scrollHeight"
+                    ColumnResizeMode="@CurrentColumnResizeMode"
+                    EditMode="@CurrentEditMode"
+                    PopupEditFormHeaderText="@mainGridEditFormHeaderText"
+                    PopupEditFormCssClass="my-popup-style"
+                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
+                    FooterDisplayMode="GridFooterDisplayMode.Auto"
+                    TextWrapEnabled="@TextWrapEnabled"
+                    ValidationEnabled="false"
+                    WordWrapEnabled="@WordWrapEnabled"
+                    HighlightRowOnHover="true"
+                    ShowFilterRow="true"
+                    ShowGroupPanel="true"
+                    ShowSearchBox="true"
+                    SearchText=""
+                    SearchTextParseMode="CurrentSearchTextParseMode"
+                    Visible="false"
+                    CustomizeElement="Grid_CustomizeElement"
+                    CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
+                    CustomizeEditModel="Grid_CustomizeEditModel"
+                    EditModelSaving="Grid_EditModelSaving"
+                    DataItemDeleting="Grid_DataItemDeleting"
+                    CssClass="mainGridCSS">
+                <Columns>
+                    <DxGridCommandColumn Width="150px" Visible="true"
+                                         DeleteButtonVisible="false"
+                                         EditButtonVisible="true"
+                                         CancelButtonVisible="true"
+                                         SaveButtonVisible="true"
+                                         NewButtonVisible="true" FixedPosition="GridColumnFixedPosition.Left" />
+
+                    <DxGridDataColumn FieldName="VendorName" Caption="Vendor" ReadOnly="true" Width="100" MinWidth="120" />@* FixedPosition="GridColumnFixedPosition.Left" *@
+
+                    <DxGridDataColumn FieldName="ShipmentDate" Caption="Shipment Date" ReadOnly="false" DisplayFormat="d" Width="100" MinWidth="80" />                    
+                    <DxGridDataColumn FieldName="InvoiceNo" Caption="Invoice No" ReadOnly="false" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking Number" ReadOnly="false" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="ShipToETA" Caption="Ship To ETA" DisplayFormat="d" ReadOnly="false" Width="100" MinWidth="80" />
+
+                    <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" Width="100" MinWidth="100" />
+                    <DxGridDataColumn FieldName="PODate" Caption="PODate" DisplayFormat="d" Width="100" MinWidth="80" />
+
+                    <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Width="100" MinWidth="150" />
+                    <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" Width="100" MinWidth="200" Visible="false" />
+                    
+                    <DxGridDataColumn FieldName="OrderQty" Caption="Order Qty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" />
+                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Shipment Qty" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" />
+
+                    <DxGridDataColumn FieldName="SONumber" Caption="SO No" ReadOnly="true" SortIndex="0" Width="100" MinWidth="60" />
+                    <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" ReadOnly="true" Width="100" MinWidth="80" />
+                    <DxGridDataColumn FieldName="CustomerName" Caption="Customer" ReadOnly="true" Width="100" MinWidth="100" />
+
+                </Columns>
+                <EditFormTemplate Context="EditFormContext">
+                    @{
+                        var shipping = (ShippingData)EditFormContext.EditModel; // previously -> supplier
+
+                        //BrowserDimension dim = GetDimensions().Result;
+                        //DisplayPopupMessage("Screen H" + dim.Height + " W" + dim.Width);
+                    }
+                    <DxFormLayout CssClass="w-100">
+                         <DxFormLayoutItem Caption="Vendor:" ColSpanMd="6">
+                            <DxComboBox Data="@POOpenVendorData"
+                                        NullText="Select Vendor..."
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        TextFieldName="VendorName"
+                                        ValueFieldName="VendorId"
+                                        Value="@shipping.VendorId"
+                                        ReadOnly="!isVendorEditable"
+                                        ValueChanged="(int newCellValue) => {
+                                                    shipping.VendorId = newCellValue;
+                                                    shipping.VendorName = POOpenVendorData.Where(c => c.VendorId == newCellValue).FirstOrDefault()?.VendorName;
+                                                    shipping.POHeaderId = 0;
+                                              }">
+                            </DxComboBox>
+                        </DxFormLayoutItem>
+                          <DxFormLayoutItem Caption="Open POs:" ColSpanMd="6">
+                            @{
+                                SqlData sqlData = new SqlData();
+                                //POOpenDetailData = sqlData.GetPOOpenDetailData(shipping.VendorId).Result;
+                                //var openPOsDirect = sqlData.GetPOOpenDetailData(shipping.VendorId).Result;
+                                //var openPOs = POOpenDetailData.Where(x => x.VendorId == shipping.VendorId).Select(x => x.PONumber).Distinct().ToList();
+                                openPOList = GetPOListData(shipping.VendorId);
+                            }
+                            @* <DxComboBox Data="@openPOs"
+                                        NullText="Select PO..."
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        @bind-Value="@shipping.POHeaderId"
+                                        TextFieldName="PONumber"
+                                        ValueFieldName="POHeaderId">             
+                            </DxComboBox> *@
+                            @* <DxComboBox Data="@openPOs"
+                                        NullText="Select PO..."
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        TextFieldName="PONumber"
+                                        ValueFieldName="POHeaderId"
+                                        ValueChanged="(int newCellValue) => {
+                                                    shipping.POHeaderId = newCellValue;
+                                                    shipping.PONumber = openPOs.Where(c => c.POHeaderId == newCellValue).FirstOrDefault()?.PONumber;
+                                            }">                                        
+                            </DxComboBox> *@
+                            <DxComboBox Data="@openPOList"
+                                        NullText="Select PO..."
+                                        FilteringMode="DataGridFilteringMode.Contains"
+                                        TextFieldName="LookupText"
+                                        ValueFieldName="LookupValue"
+                                        Value="@POHeaderIdSelected"
+                                        ValueChanged="(int newCellValue) => {
+                                                    shipping.POHeaderId = newCellValue;
+                                                    POHeaderIdSelected = shipping.POHeaderId;
+                                                    //shipping.PONumber = POOpenDetailData.Where(c => c.POHeaderId == shipping.POHeaderId).FirstOrDefault()?.PONumber;
+                                                    //AddToPOListGridData(POOpenDetailData.Where(c => c.POHeaderId == shipping.POHeaderId).FirstOrDefault());
+                                                    ShippingData poSelected = OpenPOShipmentData.Where(c => c.POHeaderId == shipping.POHeaderId).FirstOrDefault();
+                                                    //poSelected.PONumber = poSelected?.PONumber;
+                                                    AddToPOListGridData(poSelected);
+                                                    LoadItemGridData(poSelected.PONumber);
+                                            }">
+                                @* Value="@shipping.POHeaderId" *@
+                            </DxComboBox>
+                        </DxFormLayoutItem>
+                        @* <DxFormLayoutItem Caption="Vendor Name:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("VendorName")
+                        </DxFormLayoutItem> *@
+                        <DxFormLayoutItem Caption="Ship From Factory:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("ShipmentDate")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Tracking No:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("TrackingNumber")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Expected Arrival:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("ShipToETA")
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="Invoice No:" ColSpanMd="6">
+                            @EditFormContext.GetEditor("InvoiceNo")
+                        </DxFormLayoutItem>
+                        @* <DxFormLayoutItem Caption="PO No:" ColSpanMd="6">
+                           @EditFormContext.GetEditor("PONumber")
+                        </DxFormLayoutItem> *@  
+                        <DxFormLayoutItem ColSpanMd="6"/>
+
+                        <DxFormLayoutItem Caption="PO No:" ColSpanMd="5">
+                            <DxGrid @ref="POListGrid"
+                                    Data="POListGridData"
+                                    PageSize="10"
+                                    AutoExpandAllGroupRows="true"
+                                    KeyFieldName="Id"
+                                    ValidationEnabled="false"
+                                    EditMode="GridEditMode.EditRow"
+                                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Default"
+                                    ShowFilterRow="false"
+                                    ColumnResizeMode="GridColumnResizeMode.NextColumn"
+                                    TextWrapEnabled="false"
+                                    HighlightRowOnHover="true"
+                                    @bind-SelectedDataItems="SelectedDataPOListGridItems"
+                                    RowClick="POListGrid_OnRowClick"
+                                    RowDoubleClick="POListGrid_OnRowDoubleClick"
+                                    CustomizeElement="POListGrid_CustomizeElement" 
+                                    DataItemDeleting="POListGrid_DataItemDeleting"
+                                    style="min-width: 200px;">
+                                <Columns>
+                                    <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" MinWidth="140" />
+                                    <DxGridDataColumn FieldName="TotalSum" Caption="Incoming Units" DisplayFormat="n0" ReadOnly="true" MinWidth="50" Width="100" TextAlignment="GridTextAlignment.Right" />
+                                    <DxGridCommandColumn Width="100px" Visible="true"
+                                       DeleteButtonVisible="true"
+                                       EditButtonVisible="false"
+                                       CancelButtonVisible="false"
+                                       SaveButtonVisible="false"
+                                       NewButtonVisible="false" /> 
+                                </Columns>
+                            </DxGrid>
+                        </DxFormLayoutItem>    
+                        <DxFormLayoutItem ColSpanMd="1"/>
+
+                        <DxFormLayoutItem ColSpanMd="12">
+                            <DxGrid @ref="POShipmentListGrid"
+                                    Data="POShipmentListGridData"
+                                    KeyFieldName="Id"
+                                    AutoExpandAllGroupRows="true"
+                                    PageSizeSelectorVisible="false"
+                                    ShowAllRows="true"
+                                    ShowFilterRow="false"
+                                    EditMode="GridEditMode.EditCell"
+                                    FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Default"
+                                    ColumnResizeMode="GridColumnResizeMode.NextColumn"
+                                    SelectAllCheckboxMode="CurrentSelectAllCheckboxMode"
+                                    SelectedDataItems="@SelectedDataItems"
+                                    SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged(selectedItems))"
+                                    RowClick="ItemGrid_OnRowClick"
+                                    RowDoubleClick="ItemGrid_OnRowDoubleClick"
+                                    FilterCriteriaChanged="ItemGrid_FilterCriteriaChanged"
+                                    EditStart="ItemGrid_OnEditStart"
+                                    CustomizeEditModel="ItemGrid_CustomizeEditModel"
+                                    CustomizeElement="ItemGrid_CustomizeElement"
+                                    EditModelSaving="ItemGrid_EditModelSaving"
+                                    HighlightRowOnHover="true"
+                                    TextWrapEnabled="true"
+                                    ValidationEnabled="false"
+                                    VirtualScrollingEnabled="true"
+                                    VerticalScrollBarMode="@ScrollBarMode.Auto"
+                                    VerticalScrollableHeight=@editPOShipmentListGridHeight
+                                    style="height:600px;">
+                                @* @bind-SelectedDataItems="SelectedDataItems"
+                                SelectedDataItems="@SelectedDataItems"
+                                SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedDataItemsChanged(selectedItems))"
+                                style="margin-top: 20px;"*@
+                                <Columns>
+                                    <DxGridSelectionColumn Width="75px"/>
+                                    <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" MinWidth="100" Width="100" />
+                                    <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" MinWidth="50" />
+                                    <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" MinWidth="110" Width="120" />
+                                    <DxGridDataColumn FieldName="OrderQty" Caption="PO Order Units" DisplayFormat="n0" ReadOnly="true" MinWidth="50" Width="90" TextAlignment="GridTextAlignment.Right">
+                                        <EditSettings>
+                                            <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="true" NullText="Order Qty" />
+                                        </EditSettings>
+                                    </DxGridDataColumn>
+                                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" ReadOnly="false" MinWidth="50" Width="90" TextAlignment="GridTextAlignment.Right">
+                                        <EditSettings>
+                                            <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="false" NullText="Ship Qty" InputCssClass="focus-text-box" />
+                                        </EditSettings>
+                                        @* <EditSettings>
+                                            <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="false" NullText="Ship Qty" />
+                                        </EditSettings> *@
+                                       @*  <CellEditTemplate Context="CellEditTemplateContext">
+                                            @{
+                                               var shipping = (ShippingData)EditFormContext.EditModel;
+                                            }
+                                            <CascadingValue Name="FocusOnEditStart" Value="CellEditTemplateContext.DataColumn.FieldName == FocusedColumn">
+
+                                            </CascadingValue>
+                                        </CellEditTemplate> *@
+                                    </DxGridDataColumn>
+                                    @* <DxGridCommandColumn Width="150px" Visible="true"
+                                                         DeleteButtonVisible="false"
+                                                         EditButtonVisible="true"
+                                                         CancelButtonVisible="true"
+                                                         SaveButtonVisible="true"
+                                                         NewButtonVisible="false"
+                                                         FixedPosition="GridColumnFixedPosition.Right" /> *@
+                                </Columns>
+                                @* <ToolbarTemplate>
+                                    <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                        <Items>
+                                            <DxToolbarItem BeginGroup="true" Alignment="ToolbarItemAlignment.Left">
+                                                <Template Context="toolbar_item_context">
+                                                    <div class="d-flex flex-row align-items-center">
+                                                        <div class="me-2">Select All Checkbox Mode:</div>
+                                                        <DxComboBox Label="" Data="@SelectAllCheckboxModes"
+                                                                    @bind-Value="@CurrentSelectAllCheckboxMode" />
+                                                    </div>
+                                                </Template>
+                                            </DxToolbarItem>
+                                        </Items>
+                                    </DxToolbar>
+                                </ToolbarTemplate> *@
+                            </DxGrid>
+                        </DxFormLayoutItem>
+
+                        @* <DxFormLayoutItem ColSpanMd="12">
+                            <DxButton Text="Cancel" SubmitFormOnClick="true" Click="@CancelAddItem" IconCssClass="oi oi-cancel" CssClass="dxbl-btn dxbl-btn-secondary"></DxButton>
+                            <DxButton Text="Save" SubmitFormOnClick="false" Click="@UpdateAddItem" IconCssClass="oi oi-save" CssClass="dxbl-btn dxbl-btn-primary"></DxButton>
+                        </DxFormLayoutItem> *@
+                        @* <DxFormLayoutItem >
+                            <DxButton Click="ItemGrid_Click" Text="BatchEdit"></DxButton>
+                        </DxFormLayoutItem> *@
+                    </DxFormLayout>
+                </EditFormTemplate>
+                <ToolbarTemplate Context="GridToolbar">
+                    <DxToolbar Context="GridToolbar" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                        <Items>
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Auto Fit Columns" RenderStyle="ButtonRenderStyle.Secondary" Click="Grid_FitWidths"  />
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Column Chooser" RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="grid-icon-column-chooser" Click="ColumnChooserButton_Click" />
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Refresh Data" RenderStyle="ButtonRenderStyle.Secondary" Click="RefreshData_Click" />
+                            <DxToolbarItem BeginGroup="true" Alignment="ToolbarItemAlignment.Left">
+                                <Template Context="toolbar_item_context">
+                                    <div class="d-flex flex-row align-items-center h-100">
+                                        <DxCheckBox Checked="usePopupEditForm" CheckedChanged="new Func<bool, Task>(UsePopupEditForm_CheckedChanged)">Use Popup Edit Form</DxCheckBox>
+                                    </div>
+                                </Template>
+                            </DxToolbarItem>
+                        </Items>
+                    </DxToolbar>
+                </ToolbarTemplate>
+                @* <DetailRowTemplate Context="DetailRow">
+                    <PODataPage SODetailData="(ShippingData)DetailRow.DataItem" />
+                </DetailRowTemplate> *@
+            </DxGrid>
+            <div class="pager-container">
+                @* <DxPager PageCount="@PageCount" @bind-ActivePageIndex="@ActivePageIndex" /> *@
+                @* <div>
+                Total: @TotalRecords records
+                </div> *@
+            </div>
+            @* <button class="btn btn-primary" @onclick="OnButtonClick">Get Dimensions</button><br /><br />
+            <p>Window Height: @Height</p>
+            <p>Window Width: @Width</p> *@
+        </div>
+    </Authorized>
+    <NotAuthorized Context="NotAuthorized">
+        @*  @{ navManager.NavigateTo("/Login");} *@
+        <h3>Please <a href="/login">Login</a> to access the Portal</h3>
+        @* <LoginPage /> *@
+        @* <LoginRedirect /> *@
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .highlighted-item > td {
+        background-color: rgba(245, 198, 203, 0.5);
+    }
+    .dx-datagrid-headers {
+        white-space: normal;
+    }
+    .dx-datagrid-nowrap.dx-datagrid-headers .dx-header-row > td > .dx-datagrid-text-content {
+        white-space: normal;
+    }
+
+    /*.dxbl-grid {
+        height: 522px;
+    } */
+
+    .my-popup-style {
+        min-width: 1200px;
+        /* min-height: 50vw; */
+        min-height: 900px;
+    }
+
+  /*   .dxbl-grid table {
+        table-layout: auto !important;
+    }
+    .dxbl-grid table > colgroup > col {
+        width: auto !important;
+    } */
+
+    .mainGridCSS {
+        height: @mainGridSectionHeight;
+    }
+</style>

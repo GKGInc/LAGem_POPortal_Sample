@@ -1,5 +1,5 @@
 ﻿@page "/Orders"
-@inherits LAGem_POPortal.Orders3.OrdersPage3Base
+@inherits OrdersPage3Base
 @* @inject IJSRuntime js *@
 
 <script>
@@ -163,7 +163,9 @@
                             <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Un-Link" />
                         </HeaderTemplate>
                         <CellDisplayTemplate>
-                            @if (((System.Boolean)CustomerPOLinkedContext.GetRowValue("IsItemLinked")) == true || ((int)CustomerPOLinkedContext.GetRowValue("EdiHdrId") > 0))
+                            @if (((System.Boolean)CustomerPOLinkedContext.GetRowValue("IsItemLinked")) == true || 
+                                ((int)CustomerPOLinkedContext.GetRowValue("EdiHdrId") > 0) ||
+                                ((int)CustomerPOLinkedContext.GetRowValue("IsLinked") > 0))
                             {
                                 <div class="grid-cell-align-center">
                                 <DxButton IconCssClass="grid-icon grid-icon-undo"

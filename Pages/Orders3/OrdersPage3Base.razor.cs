@@ -1224,7 +1224,7 @@ WHERE [SOHeaderId] = {0}";
 
             SqlData sqlData = new SqlData();
             EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(row.EdiHdrId, false, false); // EDI Tab
-            SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(row.SOHeaderId, true);
+            SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(row.SOHeaderId, true); // Jewelry/Packaging Tab
 
             EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>().OrderBy(o => o.CustomerName);
             EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
@@ -2299,11 +2299,25 @@ END";
             }
             else
             {
-                query = @"
+                bool isGroupedPo = ediData.IsGroupPO;
+                string groupPO = ediData.GroupPO;
+
+                if (isGroupedPo)
+                {
+                    query = @"
+UPDATE [PIMS].[edi].[EdiTrn] SET [SoDetailId] = NULL, [ProductId] = NULL WHERE [GroupPO] = '{0}'
+UPDATE [PIMS].[edi].[EdiHdr] SET [SoHeaderId] = NULL WHERE [Editrnid] IN (SELECT [Edihdrid] FROM [PIMS].[edi].[EdiHdr] WHERE [GroupPO] = '{0}')";
+
+                    fullQuery += string.Format(query, groupPO);
+                }
+                else
+                {
+                    query = @"
 UPDATE [PIMS].[edi].[EdiTrn] SET [SoDetailId] = NULL, [ProductId] = NULL WHERE [Edihdrid] = {0}
 UPDATE [PIMS].[edi].[EdiHdr] SET [SoHeaderId] = NULL WHERE [Edihdrid] = {0}";
 
-                fullQuery += string.Format(query, ediHdrId);
+                    fullQuery += string.Format(query, ediHdrId);
+                }
             }
 
             try
