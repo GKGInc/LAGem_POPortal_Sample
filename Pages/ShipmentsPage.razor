@@ -190,7 +190,7 @@
                         </DxFormLayoutItem> *@  
                         <DxFormLayoutItem ColSpanMd="6"/>
 
-                        <DxFormLayoutItem Caption="PO No:" ColSpanMd="1">
+                        <DxFormLayoutItem Caption="PO No:" ColSpanMd="5">
                             <DxGrid @ref="POListGrid"
                                     Data="POListGridData"
                                     PageSize="10"
@@ -208,22 +208,22 @@
                                     RowDoubleClick="POListGrid_OnRowDoubleClick"
                                     CustomizeElement="POListGrid_CustomizeElement" 
                                     DataItemDeleting="POListGrid_DataItemDeleting"
-                                    style="min-width: 150px; width: 250px;">
+                                    style="min-width: 200px;">
                                 <Columns>
                                     <DxGridDataColumn FieldName="PONumber" Caption="PO No" ReadOnly="true" MinWidth="140" />
+                                    <DxGridDataColumn FieldName="TotalSum" Caption="Incoming Units" DisplayFormat="n0" ReadOnly="true" MinWidth="50" Width="100" TextAlignment="GridTextAlignment.Right" />
                                     <DxGridCommandColumn Width="100px" Visible="true"
                                        DeleteButtonVisible="true"
                                        EditButtonVisible="false"
                                        CancelButtonVisible="false"
                                        SaveButtonVisible="false"
-                                       NewButtonVisible="false"
-                                       FixedPosition="GridColumnFixedPosition.Right" /> 
+                                       NewButtonVisible="false" /> 
                                 </Columns>
                             </DxGrid>
-                        </DxFormLayoutItem>                        
+                        </DxFormLayoutItem>    
                         <DxFormLayoutItem ColSpanMd="1"/>
 
-                        <DxFormLayoutItem Caption=" " ColSpanMd="12">
+                        <DxFormLayoutItem ColSpanMd="12">
                             <DxGrid @ref="POShipmentListGrid"
                                     Data="POShipmentListGridData"
                                     KeyFieldName="Id"
@@ -427,17 +427,12 @@
     protected Task<AuthenticationState> AuthStat { get; set; }
 
     IGrid Grid { get; set; }
-    //IGrid ItemGrid { get; set; }
     IGrid POListGrid { get; set; }
-    // IGrid POListGrid { get; set; }
     IGrid POShipmentListGrid { get; set; }
     IGrid TestGrid { get; set; }
 
     IEnumerable<ShippingData> GridData { get; set; }
     IEnumerable<POOpenVendor> POOpenVendorData { get; set; }
-    // IEnumerable<POOpenDetail> POOpenDetailData { get; set; }
-    // IEnumerable<POOpenDetail> ItemGridData { get; set; }
-    // IEnumerable<POOpenDetail> POListGridData { get; set; }
     IEnumerable<ShippingData> OpenPOShipmentData { get; set; }
     IEnumerable<ShippingData> POListGridData { get; set; }
     IEnumerable<ShippingData> POShipmentListGridData { get; set; }
@@ -769,24 +764,19 @@
         return list;
     }
 
-    public void AddToPOListGridData_old(POOpenDetail poData)
-    {
-        @* POOpenDetail poOListGridDataItrem = POListGridData.Where(c => c.POHeaderId == poData.POHeaderId).FirstOrDefault();
-
-        if (poOListGridDataItrem == null)
-        {
-            //POListGridData.Append<POOpenDetail>(poData); 
-            //POListGridData.Concat(new[] { poData });
-            POListGridData = POListGridData.Concat(new[] { poData });
-        }
-        SelectedDataPOListGridItems = new List<object>();
-        SelectedDataPOListGridItems.Append(poData); *@
-    } 
     public void AddToPOListGridData(ShippingData poData)
     {
         if (poData != null)
         {
             bool isAddon = false;
+            int incomingUnitsSum = 0;
+
+            // Append to POShipmentListGridData
+            IEnumerable<ShippingData> poShipmentList = OpenPOShipmentData.Where(c => c.PONumber == poData.PONumber);
+            //incomingUnitsSum = (poShipmentList.Count() == 0) ? 0 : poShipmentList.Select(x => x.LastShipmentQty).Sum();
+            incomingUnitsSum = (poShipmentList.Count() == 0) ? 0 : poShipmentList.Select(x => x.ShipmentQty).Sum();
+            poData.TotalSum = incomingUnitsSum;
+
             if (POListGridData == null)
             {
                 isAddon = true;
@@ -809,8 +799,6 @@
             SelectedDataPOListGridItems = new List<object>();
             SelectedDataPOListGridItems.Append(poData);
 
-            // Append to POShipmentListGridData
-            IEnumerable<ShippingData> poShipmentList = OpenPOShipmentData.Where(c => c.PONumber == poData.PONumber);
             if (POShipmentListGridData == null)
             {
                 POShipmentListGridData = poShipmentList;
@@ -829,25 +817,16 @@
         }
     }
 
-    public void LoadItemGridData(string poNo)
+    public async Task LoadItemGridData(string poNo)
     {
         //POShipmentListGridData = OpenPOShipmentData.Where(c => c.PONumber == poNo);
         TestGridData = OpenPOShipmentData.Where(c => c.PONumber == poNo);
 
         var criteria = new InOperator("PONumber", new string[] { poNo });
-        //var criteria = new InOperator("ProductNo", new string[] { "468403PTT" });
         shippingGridFilterCriteria = criteria;
 
         if (POShipmentListGrid != null)
         {
-            //POShipmentListGrid.SetFilterCriteria(CriteriaOperator.FromLambda<ShippingData>(x => x.ProductNo == "468403PTT"));
-            //POShipmentListGrid.SetFilterCriteria(filterCriteria);
-
-            //var criteria = new FunctionOperator(FunctionOperatorType.StartsWith, new OperandProperty("ShipCountry"), "it");
-            //var criteria = new FunctionOperator(FunctionOperatorType.Contains, new OperandProperty("ProductNo"), "468403PTT");
-
-            //var criteria = new InOperator("PONumber", new string[] { poNo });
-            @* var criteria = new InOperator("ProductNo", new string[] { "468403PTT" }); *@
             try
             {
                 POShipmentListGrid.SetFilterCriteria(criteria);
@@ -1243,40 +1222,40 @@ WHERE [PODetailId] = {0}";
     {
         //OpenPOShipmentData = await sqlData.GetOpenPOShipmentData();
 
-        @* ShippingData openPOShipmentDataItem = OpenPOShipmentData.Where(c => c.Id == poShipmentListGridDataItem.Id).FirstOrDefault();
-        if (openPOShipmentDataItem != null)
-        {
-            openPOShipmentDataItem.ShipmentHeaderId = poShipmentListGridDataItem.ShipmentHeaderId;
-            openPOShipmentDataItem.ShipmentDate = poShipmentListGridDataItem.ShipmentDate;
-            openPOShipmentDataItem.InvoiceNo = poShipmentListGridDataItem.InvoiceNo;
-            openPOShipmentDataItem.TrackingNumber = poShipmentListGridDataItem.TrackingNumber;
-            openPOShipmentDataItem.ShipToETA = poShipmentListGridDataItem.ShipToETA;
-            openPOShipmentDataItem.PONumber = poShipmentListGridDataItem.PONumber;
-            openPOShipmentDataItem.ProductNo = poShipmentListGridDataItem.ProductNo;
-            openPOShipmentDataItem.ProductName = poShipmentListGridDataItem.ProductName;
-            openPOShipmentDataItem.OrderQty = poShipmentListGridDataItem.OrderQty;
-            openPOShipmentDataItem.ShipmentQty = poShipmentListGridDataItem.ShipmentQty;
-            openPOShipmentDataItem.ShipmentDetailId = poShipmentListGridDataItem.ShipmentDetailId;
-            openPOShipmentDataItem.PODetailId = poShipmentListGridDataItem.PODetailId;
-            openPOShipmentDataItem.ProductId = poShipmentListGridDataItem.ProductId;
-
-            openPOShipmentDataItem.POHeaderId = poShipmentListGridDataItem.POHeaderId;
-            openPOShipmentDataItem.SOHeaderId = poShipmentListGridDataItem.SOHeaderId;
-            openPOShipmentDataItem.SODetailId = poShipmentListGridDataItem.SODetailId;
-
-            openPOShipmentDataItem.VendorId = poShipmentListGridDataItem.VendorId;
-            openPOShipmentDataItem.VendorName = poShipmentListGridDataItem.VendorName;
-            openPOShipmentDataItem.CustomerId = poShipmentListGridDataItem.CustomerId;
-            openPOShipmentDataItem.CustomerName = poShipmentListGridDataItem.CustomerName;
-
-            openPOShipmentDataItem.SODate = poShipmentListGridDataItem.SODate;
-            openPOShipmentDataItem.PODate = poShipmentListGridDataItem.PODate;
-            openPOShipmentDataItem.EndDate = poShipmentListGridDataItem.EndDate;
-            openPOShipmentDataItem.StartDate = poShipmentListGridDataItem.StartDate;
-            openPOShipmentDataItem.SONumber = poShipmentListGridDataItem.SONumber;
-
-            openPOShipmentDataItem.ForProductNo = poShipmentListGridDataItem.ForProductNo;
-        } *@
+        //ShippingData openPOShipmentDataItem = OpenPOShipmentData.Where(c => c.Id == poShipmentListGridDataItem.Id).FirstOrDefault();
+        //if (openPOShipmentDataItem != null)
+        //{
+        //    openPOShipmentDataItem.ShipmentHeaderId = poShipmentListGridDataItem.ShipmentHeaderId;
+        //    openPOShipmentDataItem.ShipmentDate = poShipmentListGridDataItem.ShipmentDate;
+        //    openPOShipmentDataItem.InvoiceNo = poShipmentListGridDataItem.InvoiceNo;
+        //    openPOShipmentDataItem.TrackingNumber = poShipmentListGridDataItem.TrackingNumber;
+        //    openPOShipmentDataItem.ShipToETA = poShipmentListGridDataItem.ShipToETA;
+        //    openPOShipmentDataItem.PONumber = poShipmentListGridDataItem.PONumber;
+        //    openPOShipmentDataItem.ProductNo = poShipmentListGridDataItem.ProductNo;
+        //    openPOShipmentDataItem.ProductName = poShipmentListGridDataItem.ProductName;
+        //    openPOShipmentDataItem.OrderQty = poShipmentListGridDataItem.OrderQty;
+        //    openPOShipmentDataItem.ShipmentQty = poShipmentListGridDataItem.ShipmentQty;
+        //    openPOShipmentDataItem.ShipmentDetailId = poShipmentListGridDataItem.ShipmentDetailId;
+        //    openPOShipmentDataItem.PODetailId = poShipmentListGridDataItem.PODetailId;
+        //    openPOShipmentDataItem.ProductId = poShipmentListGridDataItem.ProductId;
+        //
+        //    openPOShipmentDataItem.POHeaderId = poShipmentListGridDataItem.POHeaderId;
+        //    openPOShipmentDataItem.SOHeaderId = poShipmentListGridDataItem.SOHeaderId;
+        //    openPOShipmentDataItem.SODetailId = poShipmentListGridDataItem.SODetailId;
+        //
+        //    openPOShipmentDataItem.VendorId = poShipmentListGridDataItem.VendorId;
+        //    openPOShipmentDataItem.VendorName = poShipmentListGridDataItem.VendorName;
+        //    openPOShipmentDataItem.CustomerId = poShipmentListGridDataItem.CustomerId;
+        //    openPOShipmentDataItem.CustomerName = poShipmentListGridDataItem.CustomerName;
+        //
+        //    openPOShipmentDataItem.SODate = poShipmentListGridDataItem.SODate;
+        //    openPOShipmentDataItem.PODate = poShipmentListGridDataItem.PODate;
+        //    openPOShipmentDataItem.EndDate = poShipmentListGridDataItem.EndDate;
+        //    openPOShipmentDataItem.StartDate = poShipmentListGridDataItem.StartDate;
+        //    openPOShipmentDataItem.SONumber = poShipmentListGridDataItem.SONumber;
+        //
+        //    openPOShipmentDataItem.ForProductNo = poShipmentListGridDataItem.ForProductNo;
+        //}
     }
 
     #endregion
@@ -1285,7 +1264,7 @@ WHERE [PODetailId] = {0}";
 
     #region Template POList Grid Functions
 
-    void POListGrid_OnRowClick(GridRowClickEventArgs e)
+    async void POListGrid_OnRowClick(GridRowClickEventArgs e)
     {
         //if (ItemGrid != null)
         //{
@@ -1294,13 +1273,21 @@ WHERE [PODetailId] = {0}";
 
         if (POListGrid != null)
         {
-            @* if (POListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
-                POHeaderIdSelected = (POListGrid.GetDataItem(e.VisibleIndex) as POOpenDetail).POHeaderId;
-            LoadItemGridData((POListGrid.GetDataItem(e.VisibleIndex) as POOpenDetail).PONumber); *@
+            //if (POListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
+            //    POHeaderIdSelected = (POListGrid.GetDataItem(e.VisibleIndex) as POOpenDetail).POHeaderId;
+            //LoadItemGridData((POListGrid.GetDataItem(e.VisibleIndex) as POOpenDetail).PONumber); 
 
             if (POListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
                 POHeaderIdSelected = (POListGrid.GetDataItem(e.VisibleIndex) as ShippingData).POHeaderId;
-            LoadItemGridData((POListGrid.GetDataItem(e.VisibleIndex) as ShippingData).PONumber);
+            await LoadItemGridData((POListGrid.GetDataItem(e.VisibleIndex) as ShippingData).PONumber);
+
+            int incomingUnitsSum = (POShipmentListGridData.Count() == 0) ? 0 : POShipmentListGridData.Select(x => x.LastShipmentQty).Sum();
+            ShippingData shipingData = POListGridData.Where(x => x.POHeaderId == POHeaderIdSelected).FirstOrDefault();
+            if (shipingData != null)
+            {
+                shipingData.TotalSum = incomingUnitsSum;
+                //(POListGridData.Where(x => x.POHeaderId == POHeaderIdSelected).FirstOrDefault()).LastShipmentQty = incomingUnitsSum;
+            }
         }
     }
 
@@ -1344,22 +1331,22 @@ WHERE [PODetailId] = {0}";
     {
         if (POShipmentListGrid != null)
         {
-       @*      if (POShipmentListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
-            {
-                ShippingData ship = POShipmentListGrid.GetDataItem(e.VisibleIndex) as ShippingData;
-                if (ship.ShipmentQty == 0)
-                    ship.ShipmentQty = ship.OrderQty;
-            }
-
-            POShipmentListGrid.StartEditRowAsync(e.VisibleIndex); *@
+            //if (POShipmentListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
+            //{
+            //    ShippingData ship = POShipmentListGrid.GetDataItem(e.VisibleIndex) as ShippingData;
+            //    if (ship.ShipmentQty == 0)
+            //        ship.ShipmentQty = ship.OrderQty;
+            //}
+            //
+            //POShipmentListGrid.StartEditRowAsync(e.VisibleIndex); 
         } 
     }
 
     async Task ItemGrid_OnRowDoubleClick(GridRowClickEventArgs e)
     {
-        @* //await e.Grid.SaveChangesAsync();
-        //FocusedColumn = (e.Column as DxGridDataColumn).FieldName;
-        await e.Grid.StartEditRowAsync(e.VisibleIndex); *@
+        ////await e.Grid.SaveChangesAsync();
+        ////FocusedColumn = (e.Column as DxGridDataColumn).FieldName;
+        //await e.Grid.StartEditRowAsync(e.VisibleIndex); 
     }
 
     void OnSelectedDataItemsChanged(IReadOnlyList<object> selectedDataItems)
@@ -1371,6 +1358,14 @@ WHERE [PODetailId] = {0}";
         {
             if (ship.ShipmentQty == 0)
                 ship.ShipmentQty = ship.OrderQty;
+        }
+
+        int incomingSelectedUnitsSum = (selectedDataItems.Count() == 0) ? 0 : selectedDataItems.Cast<ShippingData>().Select(x => x.ShipmentQty).Sum();
+        int incomingTotalUnitsSum = (POShipmentListGridData.Count() == 0) ? 0 : POShipmentListGridData.Select(x => x.ShipmentQty).Sum();
+        ShippingData shipingData = POListGridData.Where(x => x.POHeaderId == POHeaderIdSelected).FirstOrDefault();
+        if (shipingData != null)
+        {
+            shipingData.TotalSum = incomingTotalUnitsSum;
         }
     }
 
@@ -1388,16 +1383,6 @@ WHERE [PODetailId] = {0}";
             e.Style = "font-weight: 800";
             e.Style = "color: red";
         }
-
-        @* if (e.Column is DevExpress.Blazor.DxGridDataColumn  && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
-        {
-            if (e.ElementType != GridElementType.DataCell)
-                e.Style = "color: white";
-        }
-        if (e.ElementType == GridElementType.EditCell)
-        {
-
-        } *@
     }
 
     void ItemGrid_FilterCriteriaChanged(GridFilterCriteriaChangedEventArgs args)
@@ -1458,6 +1443,12 @@ WHERE [PODetailId] = {0}";
             }
 
             POShipmentListGridData.Where(c => c.Id == savingObject.Id).FirstOrDefault().ShipmentQty = savingObject.ShipmentQty;
+
+            int incomingUnitsSum = (POShipmentListGridData.Count() == 0) ? 0 : POShipmentListGridData.Select(x => x.ShipmentQty).Sum();
+            ShippingData shipingData = POListGridData.Where(x => x.POHeaderId == POHeaderIdSelected).FirstOrDefault();
+            if (shipingData != null){
+                shipingData.TotalSum = incomingUnitsSum;
+            }
         }
     }
 

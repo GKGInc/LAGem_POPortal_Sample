@@ -59,12 +59,16 @@ namespace LAGem_POPortal.Models
         public int EdiTrnId { get; set; }
         public string EDIPONumber { get; set; }
         public string EDIRefPONumber { get; set; }
-
+        public string Notes { get; set; }
+        
         // Link columns
         public bool IsItemLinked { get; set; }
         public string LinkedStatus { get; set; }
         public int LinkedToId { get; set; }
         public string LinkedToName { get; set; }
 
+        public bool Archived { get; set; }
+        public bool IsGroupPO { get; set; }
+        public string GroupPO { get; set; }
     }
 }

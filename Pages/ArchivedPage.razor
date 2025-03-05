@@ -1,5 +1,4 @@
-﻿@page "/Orders2"
-@* @inherits OrdersPage2 *@
+﻿@page "/Archived"
 
 @using DevExpress.Data.Filtering
 @using DevExpress.Xpo
@@ -135,14 +134,7 @@
                     <DxGridDataColumn FieldName="PONumber" Caption="PO Numbers" ReadOnly="!isBlankOrder" />
                     <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
 
-                    @* <DxGridCommandColumn Width="100px" Visible="true"
-                        DeleteButtonVisible="false"
-                        EditButtonVisible="true"
-                        CancelButtonVisible="true"
-                        SaveButtonVisible="true"
-                        NewButtonVisible="true"
-                        FixedPosition="GridColumnFixedPosition.Right" /> *@
-                    <DxGridCommandColumn Context="OrdersHeaderGridContext" Width="70px">
+                    <DxGridCommandColumn Context="OrdersHeaderGridContext" Width="70px" Visible="false" >
                         <HeaderTemplate>
                             <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Auto Forecast"
                                       Click="@(() => {
@@ -165,9 +157,6 @@
                             }
                             else 
                             {  
-                                @* <div class="grid-cell-align-center">
-                                    <DxButton RenderStyle="ButtonRenderStyle.None" Text="Not Linked" />
-                                </div> *@
 
                                 if ((int)OrdersHeaderGridContext.GetRowValue("SOHeaderId") > 1000000){
                                            <div class="grid-cell-align-center">
@@ -193,8 +182,7 @@
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
 
-                    <DxGridDataColumn FieldName="Archived" Caption="Archive" MinWidth="60" Width="65" ReadOnly="false" Visible="false" />
-                    @* <DxGridSelectionColumn Width="75px" /> *@
+                    <DxGridDataColumn FieldName="Archived" Caption="Un Archive" MinWidth="60" Width="65" ReadOnly="false" Visible="false" />
                     <DxGridSelectionColumn Width="75px">
                         <HeaderTemplate>
                             <text>Archive</text>
@@ -210,801 +198,8 @@
                         <text>@context.ColumnCaption: @context.GroupValueDisplayText</text>
                     }
                 </DataColumnGroupRowTemplate>
-                <EditFormTemplate Context="EditFormContext">
-                    @{
-                        var order = (SoEdiData)EditFormContext.EditModel;
-                     }
-                    <DxFormLayout CssClass="w-100">
-                        @if (isBlankOrder)
-                        {
-                            @* <DxFormLayoutItem Caption="Customer PO:" ColSpanMd="5">
-                                @EditFormContext.GetEditor("CustomerPO")
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem ColSpanMd="3">
-                               <DxButton IconCssClass="grid-icon grid-icon-add"
-                                          RenderStyle="ButtonRenderStyle.Primary" aria-label="Search"
-                                          Text="Search EDI PO"
-                                          Click="@(() => LinkCustomerPOClick(order,"BlankOrder"))" />
-                            </DxFormLayoutItem>
-                             <DxFormLayoutItem Caption="SO Number:" ColSpanMd="4">
-                                @EditFormContext.GetEditor("SONumber")
-                            </DxFormLayoutItem> *@
-
-                            <DxFormLayoutItem Caption="Customer:" ColSpanMd="10">
-                                <DxComboBox Data="@partnerList"
-                                            NullText="Select Business Parner..."
-                                            FilteringMode="DataGridFilteringMode.Contains"
-                                            TextFieldName="LookupText"
-                                            ValueFieldName="LookupValue"
-                                            ValueChanged="(int newCellValue) => {
-                                        businessPartnerIdSelected = newCellValue;
-                                        Lookup selectedLookup = partnerList.Where(c => c.LookupValue == newCellValue).FirstOrDefault();
-                                        order.CustomerId = newCellValue;
-                                        order.CustomerName = selectedLookup.LookupText;
-                                    }">
-                                </DxComboBox>
-                            </DxFormLayoutItem>
-
-                            <DxFormLayoutItem Caption="Description:" ColSpanMd="12">
-                                @EditFormContext.GetEditor("Description")
-                            </DxFormLayoutItem>
-
-                            <DxFormLayoutItem Caption="Ship Date:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("StartDate")
-                            </DxFormLayoutItem>                       
-                            <DxFormLayoutItem Caption="Cancel Date:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("EndDate")
-                            </DxFormLayoutItem>
-                            
-                            @* <DxFormLayoutItem Caption="Ship Window:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("ShipWindow")
-                            </DxFormLayoutItem>                       
-                            <DxFormLayoutItem Caption="" ColSpanMd="6">
-                            </DxFormLayoutItem> *@
-
-                            <DxFormLayoutItem Caption="Order Qty:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("OrderQty")
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="Price:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("Price")
-                            </DxFormLayoutItem>
-
-                            <DxFormLayoutItem Caption="QB SO:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("QBSO")
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="" ColSpanMd="6">
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="Comments:" ColSpanMd="12">
-                                <DxMemo @bind-Text="order.Comments"
-                                        ResizeMode="MemoResizeMode.VerticalAndHorizontal">
-                                </DxMemo>
-                            </DxFormLayoutItem>
-                        }
-                        else
-                        {
-                            <DxFormLayoutItem Caption="Customer PO:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("CustomerPO")
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="SO Number:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("SONumber")
-                            </DxFormLayoutItem>
-
-                            <DxFormLayoutItem Caption="Description:" ColSpanMd="12">
-                                @EditFormContext.GetEditor("Description")
-                            </DxFormLayoutItem>
-
-                            <DxFormLayoutItem Caption="Ship Window:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("ShipWindow")
-                            </DxFormLayoutItem>  
-                            <DxFormLayoutItem Caption="QB SO:" ColSpanMd="6">
-                                @EditFormContext.GetEditor("QBSO")
-                            </DxFormLayoutItem>
-
-                            <DxFormLayoutItem Caption="Comments:" ColSpanMd="12">
-                                <DxMemo @bind-Text="order.Comments"
-                                        ResizeMode="MemoResizeMode.VerticalAndHorizontal">
-                                </DxMemo>
-                            </DxFormLayoutItem>
-                        }
-                    </DxFormLayout>
-                 </EditFormTemplate>
-                <DetailRowTemplate Context="OrdersDetailGridDataContext">
-                    @{
-                        var _selectedRow = (SoEdiData)OrdersDetailGridDataContext.DataItem;
-                        LoadGridDetailData(_selectedRow);
-                        LoadTasksGridData(_selectedRow);
-                        LoadTestsGridData(_selectedRow);
-                        selectedRow = _selectedRow;
-                        <div class="mb-2">
-                            @headerNote
-                        </div>
-
-                        <DxTabs @bind-ActiveTabIndex="@ActiveTabIndex">
-                            <DxTabPage Text="EDI">
-                                <DxGrid @ref="OrdersDetailEDIGrid"
-                                        Data="EDIOrdersDetailGridData"
-                                        KeyFieldName="Id"
-                                        PageSizeSelectorVisible="false"
-                                        ShowAllRows="true"
-                                        PagerPosition="GridPagerPosition.Bottom"
-                                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
-                                        PageSizeSelectorAllRowsItemVisible="true"
-                                        AutoFitColumnWidths="true"
-                                        PageSize="@PageSize"
-                                        AutoCollapseDetailRow="true"
-                                        ValidationEnabled="false"
-                                        EditMode="GridEditMode.EditRow"
-                                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                                        FooterDisplayMode="GridFooterDisplayMode.Auto"
-                                        ShowSearchBox="false"
-                                        SearchText=""
-                                        SearchTextParseMode="CurrentSearchTextParseMode"
-                                        ShowGroupPanel="false"
-                                        ColumnResizeMode="@CurrentColumnResizeMode"
-                                        TextWrapEnabled="true"
-                                        WordWrapEnabled="@WordWrapEnabled"
-                                        CustomizeElement="Grid_CustomizeElement"
-                                        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                                        CustomizeEditModel="DetailGrid_CustomizeEditModel"
-                                        EditModelSaving="DetailGrid_EditModelSaving"
-                                        DataItemDeleting="DetailGrid_DataItemDeleting"
-                                        HighlightRowOnHover="true"
-                                        style="max-height:300px;">
-                                    <Columns>
-                                        @*<DxGridCommandColumn Context="CustomerPOContext" Width="45px">
-                                            <HeaderTemplate>
-                                                <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
-                                            </HeaderTemplate>
-                                            <CellDisplayTemplate>
-                                                <div class="grid-cell-align-center">
-                                                    <DxButton IconCssClass="grid-icon grid-icon-add"
-                                                              RenderStyle="ButtonRenderStyle.Link" aria-label="Add"
-                                                              Click="@(() => LinkCustomerPOClick((CustomerSoPoData)CustomerPOContext.DataItem))" />
-                                                </div>
-                                            </CellDisplayTemplate>
-                                        </DxGridCommandColumn>*@
-                                        <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" MinWidth="60" Width="60" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="CustomerPO" Caption="EDI PO" MinWidth="60" Width="140" ReadOnly="true" Visible="true" />
-                                        <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
-                                            <HeaderTemplate>
-                                                Un link
-                                            </HeaderTemplate>
-                                            <CellDisplayTemplate>
-                                                <div class="grid-cell-align-center">
-                                                    <DxButton IconCssClass="grid-icon grid-icon-undo"
-                                                              RenderStyle="ButtonRenderStyle.Secondary" aria-label="Un-Link"
-                                                              Click="@(() => OnUnLinkPOItemClick((SoEdiData)CustomerPOContext.DataItem))" />
-                                                </div>
-                                            </CellDisplayTemplate>
-                                        </DxGridCommandColumn>
-
-                                        <DxGridDataColumn FieldName="ItemNo" Caption="Style#" MinWidth="90" Width="95" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="OrderQty" Caption="Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" MinWidth="85" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" MinWidth="85" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" MinWidth="85" Width="85" DisplayFormat="d" Visible="false" />
-
-                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c2" MinWidth="60" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ExtPrice" Caption="ExtPrice" DisplayFormat="c2" MinWidth="60" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="Description" Caption="Description" MinWidth="60" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="ShipmentDate" Caption="Ship From Factory" DisplayFormat="d" MinWidth="85" />
-                                        <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking No" MinWidth="80" Width="80" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="ShipToETA" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" />
-                                        <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
-
-                                    </Columns>
-                                </DxGrid>
-                            </DxTabPage>
-
-                            <DxTabPage Text="Jewelry">
-                                <DxGrid @ref="OrdersDetailJewelryGrid"
-                                        Data="EdiOrderDetailGridJewelryData"
-                                        KeyFieldName="Id"
-                                        PageSizeSelectorVisible="false"
-                                        ShowAllRows="true"
-                                        PagerPosition="GridPagerPosition.Bottom"
-                                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
-                                        PageSizeSelectorAllRowsItemVisible="true"
-                                        AutoFitColumnWidths="true"
-                                        PageSize="@PageSize"
-                                        AutoCollapseDetailRow="true"
-                                        ValidationEnabled="false"
-                                        EditMode="GridEditMode.EditRow"
-                                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                                        FooterDisplayMode="GridFooterDisplayMode.Auto"
-                                        ShowSearchBox="false"
-                                        SearchText=""
-                                        SearchTextParseMode="CurrentSearchTextParseMode"
-                                        ShowGroupPanel="false"
-                                        ColumnResizeMode="@CurrentColumnResizeMode"
-                                        WordWrapEnabled="@WordWrapEnabled"
-                                        CustomizeElement="Grid_CustomizeElement"
-                                        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                                        TextWrapEnabled="true"
-                                        HighlightRowOnHover="true"
-                                        style="max-height:300px;">
-                                    <Columns>
-                                        @*<DxGridCommandColumn Context="CustomerPOContext" Width="45px">
-                                            <HeaderTemplate>
-                                                <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
-                                            </HeaderTemplate>
-                                            <CellDisplayTemplate>
-                                                <div class="grid-cell-align-center">
-                                                    <DxButton IconCssClass="grid-icon grid-icon-add"
-                                                              RenderStyle="ButtonRenderStyle.Link" aria-label="Add"
-                                                              Click="@(() => LinkCustomerPOClick((CustomerSoPoData)CustomerPOContext.DataItem))" />
-                                                </div>
-                                            </CellDisplayTemplate>
-                                        </DxGridCommandColumn>*@
-                                        <DxGridDataColumn FieldName="CustomerPO" Caption="EDI PO" MinWidth="60" Width="135" ReadOnly="true" Visible="true" /> 
-                                        <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" MinWidth="60" Width="60" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="ProgramName" Caption="Program Name" MinWidth="85" Width="95" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="SODate" Caption="SO Date" MinWidth="80" Width="80" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="StartDate" Caption="Start Date" MinWidth="85" Width="85" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="EndDate" Caption="End Date" MinWidth="85" Width="85" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" MinWidth="85" Width="85" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="SOLineNo" Caption="SO Line No" MinWidth="40" Width="40" DisplayFormat="n0" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" MinWidth="80" Width="100" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" MinWidth="80" Width="80" ReadOnly="true" Visible="false" />
-
-                                        <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="c2" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c2" MinWidth="60" Width="65" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="VendorPO" Caption="Vendor PO" MinWidth="80" Width="95" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="VendorName" Caption="Vendor Name" MinWidth="80" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="POQty" Caption="PO Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ShipmentDate" Caption="Ship From Factory" DisplayFormat="d" MinWidth="85" Width="90" />
-                                        <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking No" MinWidth="80" Width="80" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="ShipToETA" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" Width="90" />
-                                        <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" MinWidth="60" Width="90" ReadOnly="true" />
-
-                                    </Columns>
-                                </DxGrid>
-                            </DxTabPage>
-
-                            <DxTabPage Text="Packaging">
-                                <DxGrid @ref="OrdersDetailPackagingGrid"
-                                        Data="EdiOrderDetailGridPackagingData"
-                                        KeyFieldName="Id"
-                                        PagerPosition="GridPagerPosition.Bottom"
-                                        PageSizeSelectorVisible="true"
-                                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
-                                        PageSizeSelectorAllRowsItemVisible="true"
-                                        AutoFitColumnWidths="true"
-                                        PageSize="@PageSize"
-                                        AutoCollapseDetailRow="true"
-                                        ValidationEnabled="false"
-                                        EditMode="GridEditMode.EditRow"
-                                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                                        FooterDisplayMode="GridFooterDisplayMode.Auto"
-                                        ShowSearchBox="false"
-                                        SearchText=""
-                                        SearchTextParseMode="CurrentSearchTextParseMode"
-                                        ShowGroupPanel="false"
-                                        ColumnResizeMode="@CurrentColumnResizeMode"
-                                        TextWrapEnabled="@TextWrapEnabled"
-                                        WordWrapEnabled="@WordWrapEnabled"
-                                        CustomizeElement="Grid_CustomizeElement"
-                                        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                                        HighlightRowOnHover="true">
-                                    <Columns>
-                                        <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" MinWidth="60" Width="60" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" MinWidth="60" Width="65" ReadOnly="true" Visible="false"/>
-                                        <DxGridDataColumn FieldName="ProgramName" Caption="Program Name" MinWidth="85" Width="95" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="SODate" Caption="SO Date" MinWidth="80" Width="80" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="StartDate" Caption="Start Date" MinWidth="85" Width="85" DisplayFormat="d" Visible="false"/>
-                                        <DxGridDataColumn FieldName="EndDate" Caption="End Date" MinWidth="85" Width="85" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" MinWidth="85" Width="85" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="SOLineNo" Caption="SO Line No" MinWidth="40" Width="40" DisplayFormat="n0" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" MinWidth="80" Width="85" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" MinWidth="80" Width="80" ReadOnly="true" Visible="false" />
-
-                                        <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="c2" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c2" MinWidth="60" Width="65" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="VendorPO" Caption="Vendor PO" MinWidth="80" Width="90" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="VendorName" Caption="Vendor Name" MinWidth="80" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="POQty" Caption="PO Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ShipmentDate" Caption="Ship Date" DisplayFormat="d" MinWidth="85" Width="85" />
-                                        <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking No" MinWidth="80" Width="80" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="ShipToETA" Caption="Ship To ETA" DisplayFormat="d" MinWidth="85" Width="85" />
-                                        <DxGridDataColumn FieldName="ShipmentQty" Caption="Ship Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
-                                    </Columns>
-                                </DxGrid>
-                            </DxTabPage>
-
-                            <DxTabPage Text="Tasks">
-                                <DxGrid @ref="TasksMainGrid"
-                                        Data="TasksMainGridData"
-                                        CssClass="@gridCss"
-                                        Name="TasksMainGrid"
-                                        KeyFieldName="Id"
-                                        PagerPosition="GridPagerPosition.Bottom"
-                                        PageSizeSelectorVisible="true"
-                                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
-                                        PageSizeSelectorAllRowsItemVisible="true"
-                                        PageSize="@PageSize"
-                                        @bind-PageIndex="@ActivePageIndex"
-                                        AutoFitColumnWidths="true"
-                                        AutoCollapseDetailRow="@AutoCollapseDetailRow"
-                                        AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
-                                        ColumnResizeMode="@CurrentColumnResizeMode"
-                                        EditMode="GridEditMode.EditRow"
-                                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                                        FooterDisplayMode="GridFooterDisplayMode.Auto"
-                                        ShowGroupPanel="@ShowGroupPanel"
-                                        ShowSearchBox="@ShowSearchBox"
-                                        SearchText=""
-                                        SearchTextParseMode="CurrentSearchTextParseMode"
-                                        CustomizeElement="Grid_CustomizeElement"
-                                        HighlightRowOnHover="true"
-                                        TextWrapEnabled="true"
-                                        ValidationEnabled="false">
-                                    <Columns>                                        
-                                        <DxGridDataColumn FieldName="ProductNo" Caption="Item No" ReadOnly="true" MinWidth="100" Width="100" />
-                                        <DxGridDataColumn FieldName="SONumber" Caption="SO No" ReadOnly="true" MinWidth="100" Width="100" />
-                                        <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" ReadOnly="true" MinWidth="100" />
-                                        <DxGridDataColumn FieldName="TasksCount" Caption="Tasks" DisplayFormat="n0" ReadOnly="true" TextAlignment="GridTextAlignment.Right" Width="100" MinWidth="60" Visible="true" />
-                                        <DxGridDataColumn FieldName="ProductName" Caption="Item Desc" ReadOnly="true" MinWidth="100" />
-                                        <DxGridDataColumn FieldName="ProductTypeName" Caption="Item Type" ReadOnly="true" MinWidth="100" Width="100" />
-                                        <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" ReadOnly="true" MinWidth="80" Width="100" />
-
-                                        <DxGridCommandColumn Width="150px" Visible="false"
-                                                             DeleteButtonVisible="false"
-                                                             EditButtonVisible="false"
-                                                             CancelButtonVisible="false"
-                                                             SaveButtonVisible="false"
-                                                             NewButtonVisible="false" />
-                                    </Columns>
-                                    <DetailRowTemplate Context="ProductDataFormContext">
-                                        @{
-                                            var _selectedRow = (TaskQueue)ProductDataFormContext.DataItem;
-                                            //if (productId != selectedRow.ProductId || soHeaderId != selectedRow.SoHeaderId)
-                                            //{
-                                            var _productId = _selectedRow.ProductId;
-                                            var _soHeaderId = _selectedRow.SoHeaderId;
-
-                                            LoadTasksDetailGridData("TasksGrid", _productId, _soHeaderId);
-                                            //}
-                                            <div class="mb-2">
-                                                @headerNote
-                                            </div>
-
-                                            <DxFormLayout CssClass="w-100">
-                                                <DxFormLayoutItem Context="TestsList" ColSpanMd="12" CssClass="fl">
-
-                                                    <DxGrid @ref="TasksDetailGrid"
-                                                            Data="TasksDetailGridData" CssClass="my-partnertasks-grid"
-                                                            PopupEditFormCssClass="my-popup-style"
-                                                            KeyFieldName="TaskQueueId"
-                                                            PagerPosition="GridPagerPosition.Bottom"
-                                                            PageSizeSelectorVisible="false"
-                                                            PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25, 30 })"
-                                                            PageSizeSelectorAllRowsItemVisible="true"
-                                                            PageSize="@PageSize"
-                                                            @bind-PageIndex="@ActivePageIndex"
-                                                            AutoFitColumnWidths="true"
-                                                            AutoCollapseDetailRow="true"
-                                                            ColumnResizeMode="@CurrentColumnResizeMode"
-                                                            EditMode="@CurrentEditMode"
-                                                            FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                                                            FooterDisplayMode="GridFooterDisplayMode.Auto"
-                                                            TextWrapEnabled="@TextWrapEnabled"
-                                                            ValidationEnabled="false"
-                                                            WordWrapEnabled="@WordWrapEnabled"
-                                                            HighlightRowOnHover="true"
-                                                            ShowAllRows="true"
-                                                            ShowFilterRow="false"
-                                                            ShowGroupPanel="false"
-                                                            ShowSearchBox="false"
-                                                            SearchText=""
-                                                            SearchTextParseMode="CurrentSearchTextParseMode"
-                                                            SelectionMode="GridSelectionMode.Single">
-                                                        <Columns>
-                                                            <DxGridDataColumn FieldName="TaskName" Caption="Task Name" ReadOnly="true" Width="100" MinWidth="160" />
-                                                            <DxGridDataColumn FieldName="TaskDescription" Caption="Task Description" ReadOnly="true" MinWidth="100" Visible="false" />
-                                                            <DxGridDataColumn FieldName="TaskType" Caption="Task Type" ReadOnly="true" Width="100" MinWidth="100" />
-
-                                                            <DxGridDataColumn FieldName="TaskSequence" Caption="Task Sequence" ReadOnly="true" Width="60" SortIndex="0" SortOrder="GridColumnSortOrder.Ascending" Visible="false" />
-                                                            <DxGridDataColumn FieldName="Required" Caption="Required" ReadOnly="true" Width="60" />
-                                                            <DxGridDataColumn FieldName="Qty" Caption="Qty" ReadOnly="true" MinWidth="100" Visible="true" />
-                                                            <DxGridDataColumn FieldName="AssignedTo" Caption="AssignedTo" ReadOnly="true" MinWidth="100" Visible="true" />
-
-                                                            @*<DxGridDataColumn FieldName="TaskStatusId" Caption="Task Status" ReadOnly="true" Width="100" MinWidth="100" Visible="false" />*@
-                                                            <DxGridDataColumn FieldName="TaskStatusName" Caption="Task Status" ReadOnly="true" Width="100" MinWidth="100" />
-                                                            <DxGridDataColumn FieldName="TaskCompleted" Caption="Completed" ReadOnly="false" Width="60" />
-                                                            <DxGridDataColumn FieldName="TaskNote" Caption="Notes" ReadOnly="false" MinWidth="100" />
-                                                        </Columns>                                                        
-                                                    </DxGrid>
-
-                                                </DxFormLayoutItem>
-
-                                            </DxFormLayout>
-                                        }
-                                    </DetailRowTemplate>
-                                </DxGrid>
-                            </DxTabPage>
-                            
-                            <DxTabPage Text="Tests">
-                                <DxGrid @ref="TestsMainGrid"
-                                        Data="TestsMainGridData"
-                                        CssClass="@gridCss"
-                                        Name="TestsMainGrid"
-                                        KeyFieldName="Id"
-                                        PagerPosition="GridPagerPosition.Bottom"
-                                        PageSizeSelectorVisible="true"
-                                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
-                                        PageSizeSelectorAllRowsItemVisible="true"
-                                        PageSize="@PageSize"
-                                        AutoFitColumnWidths="true"
-                                        AutoCollapseDetailRow="@AutoCollapseDetailRow"
-                                        AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
-                                        ColumnResizeMode="@CurrentColumnResizeMode"
-                                        EditMode="GridEditMode.EditRow"
-                                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                                        FooterDisplayMode="GridFooterDisplayMode.Auto"
-                                        ShowGroupPanel="false"
-                                        ShowSearchBox="false"
-                                        SearchText=""
-                                        SearchTextParseMode="CurrentSearchTextParseMode"
-                                        HighlightRowOnHover="true"
-                                        TextWrapEnabled="true"
-                                        CustomizeElement="TestsMainGrid_CustomizeElement"
-                                        ValidationEnabled="false">
-                                    <Columns>
-                                        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" Visible="true" MinWidth="90" />
-                                        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" Visible="true" />
-
-                                        <DxGridDataColumn FieldName="PONumber" Caption="PO Number" ReadOnly="true" Visible="false" MinWidth="90" />
-                                        <DxGridDataColumn FieldName="Supplier" Caption="Supplier" ReadOnly="true" Visible="true" MinWidth="90" />
-
-                                        <DxGridDataColumn FieldName="Requested" Caption="Test Sent" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
-                                        <DxGridDataColumn FieldName="RequestedBy" Caption="Test Passed By" ReadOnly="true" Width="80" MinWidth="80" Visible="false" />
-                                        <DxGridDataColumn FieldName="Received" Caption="Test Received" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
-
-                                        <DxGridDataColumn FieldName="ProcessedDate" Caption="Processed Date" DisplayFormat="d" ReadOnly="false" Width="80" MinWidth="80" Visible="false" />
-                                        <DxGridDataColumn FieldName="ProcessedBy" Caption="Processed By" ReadOnly="true" Width="80" MinWidth="80" Visible="false" />
-                                        <DxGridDataColumn FieldName="TestStatus" Caption="Test Status" ReadOnly="true" Width="110" MinWidth="80" Visible="true" />
-                                        <DxGridDataColumn FieldName="Comments" Caption="Comments" ReadOnly="false" MinWidth="100" />
-                                    </Columns>
-                                </DxGrid>
-                            </DxTabPage>
-
-                        </DxTabs>
-                    }
-                </DetailRowTemplate>
             </DxGrid>
         </div>
-
-        <DxWindow @ref=windowRefPOSearch
-                  AllowResize="true"
-                  ShowCloseButton="true"
-                  CloseOnEscape="true"
-                  HeaderText="@searchTitleText"
-                  FooterText="Footer"
-                  ShowFooter="true"
-                  Width="max(90vw, 900px)"
-                  MinWidth="800"
-                  MinHeight="600"
-                  MaxWidth="1600"
-                  MaxHeight="1080"
-                  @bind-Visible=windowRefPOSearchVisible
-                  Context="PopupLinkingFormContext">
-            <BodyContentTemplate>
-                @* <SampleEditForm /> *@
-                <DxFormLayout CssClass="w-100">
-                    @* <DxFormLayoutItem ColSpanMd="3">
-                        <DxButton IconCssClass="grid-icon grid-icon-add" RenderStyle="ButtonRenderStyle.Primary" aria-label="Add" Text="Search EDI PO" Click="@(() => OnSearchButtonClick(@searchText))" />
-                    </DxFormLayoutItem> *@
-                    <DxFormLayoutItem ColSpanMd="6">
-                        @* <DxTextBox Text="@CustomerPOContext.GetRowValue("CustomerPO").ToString()" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))"></DxTextBox> *@
-                        <div style="display: flex;">
-                            <div style="margin-right: 10px;">
-                                <DxButton IconCssClass="grid-icon grid-icon-add" RenderStyle="ButtonRenderStyle.Primary" aria-label="Add" Text="Search EDI PO" Click="@(() => OnSearchButtonClick(@searchText))" />
-                            </div>
-                            <div>
-                                <DxTextBox @ref=searchBoxRef Text="@searchText" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))"></DxTextBox>
-                            </div>
-                        </div>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="6">
-                    </DxFormLayoutItem>
-
-                    <DxFormLayoutItem ColSpanMd="12" Visible="displayPopupGrid">
-                        <DxGrid @ref="EdiOrderHeaderGrid"
-                                Data="EdiOrderHeaderGridData"
-                                CssClass="@gridCss"
-                                Name="EdiMainGrid"
-                                KeyFieldName="Id"
-                                PagerPosition="GridPagerPosition.Bottom"
-                                PageSizeSelectorVisible="false"
-                                PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
-                                PageSizeSelectorAllRowsItemVisible="true"
-                                PageSize="@PageSize"
-                                AutoFitColumnWidths="true"
-                                AutoCollapseDetailRow="@AutoCollapseDetailRow"
-                                AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
-                                EditMode="GridEditMode.EditRow"
-                                FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                                FooterDisplayMode="GridFooterDisplayMode.Auto"
-                                ShowGroupPanel="false"
-                                ShowSearchBox="true"
-                                SearchText=""
-                                SearchTextParseMode="CurrentSearchTextParseMode"
-                                CustomizeElement="Grid_CustomizeElement"
-                                CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                                HighlightRowOnHover="true"
-                                TextWrapEnabled="true"
-                                ValidationEnabled="false">
-                            <Columns>
-                                @*<DxGridCommandColumn Context="EdiPOContext" MinWidth="100">
-                                <HeaderTemplate>
-                                <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
-                                </HeaderTemplate>
-                                <CellDisplayTemplate>
-                                <DxButton IconCssClass="grid-icon grid-icon-add" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" Text="Link to EDI PO" Click="@(() => LinkCustomerPOClick((EdiOrderDetailData)EdiPOContext.DataItem))" />
-                                </CellDisplayTemplate>
-                                </DxGridCommandColumn>*@
-                                <DxGridCommandColumn Context="EdiPOContext" MinWidth="100">
-                                    <HeaderTemplate>
-                                        <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
-                                    </HeaderTemplate>
-                                    <CellDisplayTemplate>
-                                        <DxButton IconCssClass="grid-icon grid-icon-add" aria-label="Add" 
-                                            RenderStyle="ButtonRenderStyle.Primary" 
-                                            RenderStyleMode="ButtonRenderStyleMode.Outline" 
-                                            Text="Select EDI PO" 
-                                            Click="@(() => OnSearchPOClick((EdiOrderDetailData)EdiPOContext.DataItem))" />
-                                    </CellDisplayTemplate>
-                                </DxGridCommandColumn>
-                                <DxGridDataColumn FieldName="ShipYear" Caption="Ship Year" DisplayFormat="0" ReadOnly="true" Visible="false" />
-                                <DxGridDataColumn FieldName="ShipMonth" Caption="Ship Month" DisplayFormat="n0" ReadOnly="true" Visible="false" />
-                                <DxGridDataColumn FieldName="ShipWeek" Caption="Ship Week" DisplayFormat="n0" ReadOnly="true" Visible="false" />
-                                <DxGridDataColumn FieldName="TradingPartnerCode" Caption="Customer Code" ReadOnly="true" Visible="false" />
-                                <DxGridDataColumn FieldName="TradingPartnerName" Caption="Customer Name" ReadOnly="true" Visible="false" />
-                                <DxGridDataColumn FieldName="PONumber" Caption="PO Number" ReadOnly="true" />
-                                <DxGridDataColumn FieldName="ShipDate" Caption="Ship Date" DisplayFormat="d" />
-                                <DxGridDataColumn FieldName="CancelDate" Caption="Cancel Date" DisplayFormat="d" />
-                                <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" DisplayFormat="d" Visible="false" />
-
-                                <DxGridDataColumn FieldName="ItemsCount" Caption="Items" DisplayFormat="n0" ReadOnly="true" />
-                                <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" ReadOnly="true" />
-                                <DxGridDataColumn FieldName="ExtPrice" Caption="Ext Price" DisplayFormat="n3" ReadOnly="true" />
-                            </Columns>
-                        </DxGrid>
-                    </DxFormLayoutItem>
-
-                </DxFormLayout>
-            </BodyContentTemplate>
-            <FooterContentTemplate>
-                <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@PopupLinkingFormContext.CloseCallback" />
-                <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Cancel" Click="@PopupLinkingFormContext.CloseCallback" />
-            </FooterContentTemplate>
-        </DxWindow>
-
-        <DxWindow @ref=windowRefLinking
-                  AllowResize="true"
-                  ShowCloseButton="true"
-                  CloseOnEscape="true"
-                  HeaderText="@searchTitleText"
-                  FooterText="Footer"
-                  ShowFooter="true"
-                  Width="max(90vw, 900px)"
-                  MinWidth="900"
-                  MinHeight="600"
-                  MaxWidth="1920"
-                  MaxHeight="1080"
-                  @bind-Visible=windowRefLinkingVisible
-                  Context="PopupLinkingFormContext">
-            <BodyContentTemplate>
-                @* <SampleEditForm /> *@
-                <DxFormLayout CssClass="w-100">
-                    @* <DxFormLayoutItem Caption="Search PO:" ColSpanMd="6">
-                        <DxTextBox @ref=searchBoxRef Text="@searchText" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))"></DxTextBox>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="3">
-                        <DxButton IconCssClass="grid-icon grid-icon-add" RenderStyle="ButtonRenderStyle.Primary" aria-label="Add" Text="Search SO" Click="@(() => OnSearchButtonClick(@searchText))" />
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem ColSpanMd="3">
-                    </DxFormLayoutItem> *@
-
-                        <DxFormLayoutItem Context="ProductLinkSection_EDIData" ColSpanMd="6" CssClass="fl">
-
-                            <DxFormLayoutItem ColSpanMd="12" Visible="displayPopupGrid">
-                                <div style="font-weight:bold;">
-                                    @selectedEdiPO EDI Items
-                                </div>
-                                <DxGrid @ref="LinkEdiOrderDetailGrid"
-                                        Data="LinkEdiOrderDetailGridData"
-                                        CssClass="@gridCss"
-                                        Name="EdiMainGrid"
-                                        KeyFieldName="Id"
-                                        PagerPosition="GridPagerPosition.Bottom"
-                                        PageSizeSelectorVisible="false"
-                                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
-                                        PageSizeSelectorAllRowsItemVisible="true"
-                                        PageSize="@PageSize"
-                                        AutoFitColumnWidths="true"
-                                        AutoCollapseDetailRow="@AutoCollapseDetailRow"
-                                        AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
-                                        EditMode="GridEditMode.EditRow"
-                                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                                        FooterDisplayMode="GridFooterDisplayMode.Auto"
-                                        ShowGroupPanel="false"
-                                        ShowSearchBox="true"
-                                        SearchText=""
-                                        SearchTextParseMode="CurrentSearchTextParseMode"
-                                        CustomizeElement="Grid_CustomizeElement"
-                                        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                                        RowClick="EDIItemGrid_OnRowClick"
-                                        RowDoubleClick="EDIItemGrid_OnRowDoubleClick"
-                                        HighlightRowOnHover="true"
-                                        TextWrapEnabled="true"
-                                        ValidationEnabled="false">
-                                    <Columns>
-                                        <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" MinWidth="60" Width="60" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="CustomerPO" Caption="EDI PO" MinWidth="60" Width="140" ReadOnly="true" Visible="false" />
-
-                                        <DxGridDataColumn FieldName="ItemNo" Caption="Style#" MinWidth="90"ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="OrderQty" Caption="Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" MinWidth="85" DisplayFormat="d" />
-                                        <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" MinWidth="85" DisplayFormat="d" />
-                                        <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" DisplayFormat="d" Visible="false" />
-
-                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n3" MinWidth="60" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="Description" Caption="Description" MinWidth="60" ReadOnly="true" Visible="false" />
-                                        
-                                        <DxGridDataColumn FieldName="LinkedToName" Caption="Linked To" MinWidth="60" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="LinkedToId" Caption="Linked To Id" MinWidth="60" ReadOnly="true" Visible="false" />
-
-                                        <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
-                                            <HeaderTemplate>
-                                                Link
-                                            </HeaderTemplate>
-                                            <CellDisplayTemplate>
-                                                <div class="grid-cell-align-center">
-                                                    <DxButton IconCssClass="grid-icon grid-icon-add"
-                                                              RenderStyle="ButtonRenderStyle.Secondary" aria-label="Link"
-                                                              Click="@(() => OnLinkPOItemClick((SoEdiData)CustomerPOContext.DataItem, "link"))" />
-                                                </div>
-                                            </CellDisplayTemplate>
-                                        </DxGridCommandColumn>
-                                        <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
-                                            <HeaderTemplate>
-                                                Un link
-                                            </HeaderTemplate>
-                                            <CellDisplayTemplate>
-                                                <div class="grid-cell-align-center">
-                                                    <DxButton IconCssClass="grid-icon grid-icon-undo"
-                                                              RenderStyle="ButtonRenderStyle.Secondary" aria-label="Un-Link"
-                                                              Click="@(() => OnLinkPOItemClick((SoEdiData)CustomerPOContext.DataItem, "unlink"))" />
-                                                </div>
-                                            </CellDisplayTemplate>
-                                        </DxGridCommandColumn>
-                                        <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="LinkedStatus" Caption="Linked Status" MinWidth="60" ReadOnly="true" Visible="false" />
-
-                                    </Columns>
-                                </DxGrid>
-                            </DxFormLayoutItem>
-
-                        </DxFormLayoutItem>
-
-                        <DxFormLayoutItem Context="ProductLinkSection_SOData" ColSpanMd="6" CssClass="fl">
-                            
-                            <DxFormLayoutItem ColSpanMd="12" Visible="displayPopupGrid">
-                                <div style="font-weight:bold;">
-                                    @selectedSono SO Items
-                                </div>
-                                <DxGrid @ref="LinkSOOrderDetailGrid"
-                                        Data="LinkSOOrderDetailGridData"
-                                        CssClass="@gridCss"
-                                        Name="EdiMainGrid"
-                                        KeyFieldName="Id"
-                                        PagerPosition="GridPagerPosition.Bottom"
-                                        PageSizeSelectorVisible="false"
-                                        PageSizeSelectorItems="@(new int[] { 5, 10, 15, 20, 25 })"
-                                        PageSizeSelectorAllRowsItemVisible="true"
-                                        PageSize="@PageSize"
-                                        AutoFitColumnWidths="true"
-                                        AutoCollapseDetailRow="@AutoCollapseDetailRow"
-                                        AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
-                                        EditMode="GridEditMode.EditRow"
-                                        FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
-                                        FooterDisplayMode="GridFooterDisplayMode.Auto"
-                                        ShowGroupPanel="false"
-                                        ShowSearchBox="true"
-                                        SearchText=""
-                                        SearchTextParseMode="CurrentSearchTextParseMode"
-                                        CustomizeElement="Grid_CustomizeElement"
-                                        CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
-                                        RowClick="SOItemGrid_OnRowClick"
-                                        RowDoubleClick="SOItemGrid_OnRowDoubleClick"
-                                        HighlightRowOnHover="true"
-                                        TextWrapEnabled="true"
-                                        ValidationEnabled="false">
-                                    <Columns>
-                                        <DxGridDataColumn FieldName="ProductNo" Caption="Product No" MinWidth="80"  ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ProductName" Caption="Product Name" MinWidth="80" Width="80" ReadOnly="true" Visible="false" />
-
-                                        <DxGridDataColumn FieldName="SONumber" Caption="SO Number" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" MinWidth="60" Width="60" ReadOnly="true" Visible="false" />
-                                                                                
-                                        <DxGridDataColumn FieldName="SODate" Caption="SO Date" MinWidth="80" Width="80" DisplayFormat="d" Visible="false" />
-                                        <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="n3" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
-                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n3" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
-                                        
-                                        <DxGridDataColumn FieldName="VendorPO" Caption="Vendor PO" MinWidth="80" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="VendorName" Caption="Vendor Name" MinWidth="80" ReadOnly="true" />
-
-                                        <DxGridDataColumn FieldName="LinkedToName" Caption="Linked To" MinWidth="60" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="LinkedToId" Caption="Linked To Id" MinWidth="60" ReadOnly="true" Visible="false" />
-
-                                        <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
-                                            <HeaderTemplate>
-                                                Link
-                                            </HeaderTemplate>
-                                            <CellDisplayTemplate>
-                                                <div class="grid-cell-align-center">
-
-                                                     <DxButton IconCssClass="grid-icon grid-icon-add"
-                                                              RenderStyle="ButtonRenderStyle.Secondary" aria-label="Link"
-                                                              Click="@(() => OnLinkPOItemClick((CustomerSoPoData)CustomerPOContext.DataItem, "link"))" />
-                                                @*if ((int)CustomerPOContext.GetRowValue("SOQty") > 0){
-                                                    <DxButton IconCssClass="grid-icon grid-icon-add"
-                                                          RenderStyle="ButtonRenderStyle.Secondary" aria-label="Link"
-                                                          Click="@(() => OnLinkPOItemClick((CustomerSoPoData)CustomerPOContext.DataItem, "link"))" />
-                                                }
-                                                else{
-                                                   
-                                                } *@
-
-                                            </div>
-                                            </CellDisplayTemplate>
-                                        </DxGridCommandColumn>
-                                        <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
-                                            <HeaderTemplate>
-                                                Un-Link
-                                            </HeaderTemplate>
-                                            <CellDisplayTemplate>
-                                                <div class="grid-cell-align-center">
-                                                    <DxButton IconCssClass="grid-icon grid-icon-undo"
-                                                              RenderStyle="ButtonRenderStyle.Secondary" aria-label="Un-Link"
-                                                              Click="@(() => OnLinkPOItemClick((CustomerSoPoData)CustomerPOContext.DataItem, "unlink"))" />
-                                                </div>
-                                            </CellDisplayTemplate>
-                                        </DxGridCommandColumn>
-                                        <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="LinkedStatus" Caption="Linked Status" MinWidth="60" ReadOnly="true" Visible="false" />
-
-                                    </Columns>
-                                </DxGrid>
-                            </DxFormLayoutItem>
-
-                        </DxFormLayoutItem>
-
-                </DxFormLayout>
-            </BodyContentTemplate>
-            <FooterContentTemplate>
-                <label style="text-align: left; width: 100%; color: red; font-weight: bolder;">@linkingItemText</label>
-                @* <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@PopupLinkingFormContext.CloseCallback" /> *@
-                <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@(() => OnLinkinkPopupOkClick())" />
-                <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Cancel" Click="@PopupLinkingFormContext.CloseCallback" />
-            </FooterContentTemplate>
-        </DxWindow>
 
     </Authorized>
     <NotAuthorized Context="NotAuthorized">
@@ -1300,7 +495,7 @@
 
                 //OrdersHeaderGrid.ShowAllRows = true;
 
-                var criteria = new InOperator("Archived", new Boolean[] { false });
+                var criteria = new InOperator("Archived", new Boolean[] { true });
                 criteriaOrderOperator = criteria;
                 if (OrdersHeaderGrid != null)
                     OrdersHeaderGrid.SetFilterCriteria(criteriaOrderOperator);
@@ -1362,8 +557,57 @@
                     item.Archived = true;
 
                     // Update SQL table
-                    string query = @"UPDATE [PIMS].[dbo].[SOHeader] SET [Archived] = 1 WHERE [SOHeaderId] = {0}";
-                    string fullQuery = string.Format(query, item.SOHeaderId);
+                    string query = "";
+                    string fullQuery = "";
+                    if (item.IsLinked == 0)
+                    {
+                        query = @"UPDATE [PIMS].[dbo].[SOHeader] SET [Archived] = 1 WHERE [SOHeaderId] = {0}";
+                        fullQuery = string.Format(query, item.SOHeaderId);
+                    }
+                    else
+                    {
+                        query = @"UPDATE [PIMS].[edi].[EdiHdr] SET [Archived] = 1 WHERE [Edihdrid] = {0}";
+                        fullQuery = string.Format(query, item.EdiHdrId);
+                    }
+
+                    using (var uow = new UnitOfWork())
+                    {
+                        await uow.ExecuteNonQueryAsync(fullQuery);
+                    }
+
+                    OrdersHeaderGrid.BeginUpdate();
+                    OrdersHeaderGrid.ClearFilter();
+                    OrdersHeaderGrid.SetFilterCriteria(criteriaOrderOperator);
+                    OrdersHeaderGrid.EndUpdate();
+
+                    // Clear list
+                    SelectedDataItems = new List<object>();
+
+                    await InvokeAsync(StateHasChanged); // <-- refreshes
+                }
+            }
+        }
+        if (callbackProcessName == "UnArchive")
+        {
+            foreach (SoEdiData item in SelectedDataItems.Cast<SoEdiData>())
+            {
+                if (item.Archived)
+                {
+                    item.Archived = false;
+
+                    // Update SQL table
+                    string query = "";
+                    string fullQuery = "";
+                    if (item.IsLinked == 0)
+                    {
+                        query = @"UPDATE [PIMS].[dbo].[SOHeader] SET [Archived] = 0 WHERE [SOHeaderId] = {0}";
+                        fullQuery = string.Format(query, item.SOHeaderId);
+                    }
+                    else
+                    {
+                        query = @"UPDATE [PIMS].[edi].[EdiHdr] SET [Archived] = 1 WHERE [Edihdrid] = {0}";
+                        fullQuery = string.Format(query, item.EdiHdrId);
+                    }
 
                     using (var uow = new UnitOfWork())
                     {
@@ -1390,6 +634,12 @@
         linkingEdiPOtoSO = false;
 
         if (callbackProcessName == "Archive")
+        {
+            // Clear list
+            SelectedDataItems = new List<object>();
+        }
+
+        if (callbackProcessName == "UnArchive")
         {
             // Clear list
             SelectedDataItems = new List<object>();
@@ -1754,17 +1004,10 @@ WHERE [SOHeaderId] = {0}";
 
         foreach (SoEdiData item in selectedDataItems.Cast<SoEdiData>())
         {
-            if (!item.Archived)
+            if (item.Archived)
             {
-                string message = "Are you sure you want to " + Environment.NewLine + "archived i2 SO " + item.SONumber + "?";
-                DisplayPopupQuestion(message, "Confirmation", "Archive");
-                //item.Archived = true;
-
-                //OrdersHeaderGrid.BeginUpdate();
-                //OrdersHeaderGrid.ClearFilter();
-                //OrdersHeaderGrid.SetFilterCriteria(criteriaOrderOperator);
-                //OrdersHeaderGrid.EndUpdate();
-                //await InvokeAsync(StateHasChanged); // <-- refreshes
+                string message = "Are you sure you want to " + Environment.NewLine + "Un-Archive i2 SO " + item.SONumber + "?";
+                DisplayPopupQuestion(message, "Confirmation", "UnArchive");
             }
         }
     }

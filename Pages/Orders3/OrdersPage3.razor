@@ -1,5 +1,38 @@
-﻿@page "/Orders3"
+﻿@page "/Orders"
 @inherits LAGem_POPortal.Orders3.OrdersPage3Base
+@* @inject IJSRuntime js *@
+
+<script>
+    /* var _input;
+    window.AssignGotFocus = function () {
+        _input = document.getElementsByClassName("focus-text-box")[0];
+        _input.select();
+        _input.addEventListener("focus", function (event) {
+            setTimeout(function () { _input.select(); }, 0);
+        });
+    }*/
+
+    window.getWindowSize = function () {
+        return {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+    };
+
+    function resizeListener(dotnethelper) {
+        $(window).resize(() => {
+            clearTimeout(window.resizedFinished);
+            window.resizedFinished = setTimeout(function () {
+                dotnethelper.invokeMethodAsync('UpdatePage').then(() => {
+                }).catch(error => {
+                    console.log("Error: " + error);
+                });
+            }, 250);
+        });
+    }
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" type="text/javascript"></script>
 
 <AuthorizeView>
     <Authorized Context="Authorized">
@@ -21,14 +54,14 @@
                  DragCompleted="OnPopupDragCompleted">
             <FooterContentTemplate Context="Context">
                 <div class="popup-demo-events-footer">
-                    <DxButton CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="@popupOkButtonText" Click="OkPopupClick" />
                     <DxButton CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Secondary" Visible="@isPopupCancelButtonVisible" Text="@popupCancelButtonText" Click="CancelPopupClick" />
+                    <DxButton CssClass="popup-demo-events-button ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="@popupOkButtonText" Click="OkPopupClick" />
                 </div>
             </FooterContentTemplate>
         </DxPopup>
 
         @* <div hidden="@HiddenGrid"> *@
-        <div>
+        <div id="mainGridSection" style="height:@mainGridSectionHeight; overflow:hidden;">
             <DxGrid @ref="OrdersHeaderGrid"
                     Data="OrdersHeaderGridData"
                     KeyFieldName="Id"
@@ -39,6 +72,9 @@
                     @bind-PageIndex="@ActivePageIndex"
                     PageSize="@PageSize"
                     ShowAllRows="@ShowAllRows"
+                    HorizontalScrollBarMode="ScrollBarMode.Visible"
+                    VerticalScrollBarMode="ScrollBarMode.Visible"
+                    VerticalScrollableHeight="@scrollHeight"
                     AutoCollapseDetailRow="@AutoCollapseDetailRow"
                     AutoExpandAllGroupRows="@AutoExpandAllGroupRows"
                     ColumnResizeMode="GridColumnResizeMode.NextColumn"
@@ -61,7 +97,8 @@
                     CustomizeEditModel="MainGrid_CustomizeEditModel"
                     HighlightRowOnHover="true"
                     TextWrapEnabled="false"
-                    ValidationEnabled="false">
+                    ValidationEnabled="false"
+                    CssClass="mainGridCSS">
                 <Columns>
                     <DxGridDataColumn FieldName="ShipYear" Caption="SO Ship Year" DisplayFormat="0" ReadOnly="true" SortOrder="GridColumnSortOrder.Descending" />
                     @* <DxGridDataColumn FieldName="ShipYear" Caption="SO Ship Year" DisplayFormat="0" ReadOnly="true" SortOrder="GridColumnSortOrder.Descending" /> *@
@@ -71,12 +108,12 @@
 
                     <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
                         <HeaderTemplate>
-                            <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Add" />
+                            <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Link" />
                         </HeaderTemplate>
                         <CellDisplayTemplate>
                             <div class="grid-cell-align-center">
                                 <DxButton IconCssClass="grid-icon grid-icon-add"
-                                          RenderStyle="ButtonRenderStyle.Link" aria-label="Add"
+                                          RenderStyle="ButtonRenderStyle.Link" aria-label="Link"
                                           Click="@(() => {
                                                 var order = (SoEdiData)CustomerPOContext.DataItem;
 
@@ -93,6 +130,65 @@
                                                 }
                                             })" />
                             </div>
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn>
+                    @* <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
+                        <HeaderTemplate>
+                            <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Un-Link" />
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            <div class="grid-cell-align-center">
+                                <DxButton IconCssClass="grid-icon grid-icon-undo"
+                                          RenderStyle="ButtonRenderStyle.Link" aria-label="Un-Link"
+                                          Click="@(() => {
+                                                var order = (SoEdiData)CustomerPOContext.DataItem;
+
+                                                if (order.IsLinked >= 1000000){
+                                                    isBlankOrder = true;
+                                                    mainGridEditFormHeaderText = "Auto Forecast Order";
+                                                    UnLinkCustomerPOClick((SoEdiData)CustomerPOContext.DataItem, "BlankOrder");
+                                                }
+                                                else
+                                                {
+                                                    isBlankOrder = false;
+                                                    mainGridEditFormHeaderText = "Un-Link Order";
+                                                    UnLinkCustomerPOClick((SoEdiData)CustomerPOContext.DataItem, "SOOrder");
+                                                }
+                                            })" />
+                            </div>
+                        </CellDisplayTemplate>
+                    </DxGridCommandColumn> *@
+                    <DxGridCommandColumn Context="CustomerPOLinkedContext" Width="45px">
+                        <HeaderTemplate>
+                            <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Un-Link" />
+                        </HeaderTemplate>
+                        <CellDisplayTemplate>
+                            @if (((System.Boolean)CustomerPOLinkedContext.GetRowValue("IsItemLinked")) == true || ((int)CustomerPOLinkedContext.GetRowValue("EdiHdrId") > 0))
+                            {
+                                <div class="grid-cell-align-center">
+                                <DxButton IconCssClass="grid-icon grid-icon-undo"
+                                          RenderStyle="ButtonRenderStyle.Link" aria-label="Un-Link"
+                                          Click="@(() => {
+                                                var order = (SoEdiData)CustomerPOLinkedContext.DataItem;
+
+                                                if (order.IsLinked >= 1000000){
+                                                    isBlankOrder = true;
+                                                    mainGridEditFormHeaderText = "Auto Forecast Order";
+                                                    UnLinkCustomerPOClick((SoEdiData)CustomerPOLinkedContext.DataItem, "BlankOrder");
+                                                }
+                                                else
+                                                {
+                                                    isBlankOrder = false;
+                                                    mainGridEditFormHeaderText = "Un-Link Order";
+                                                    UnLinkCustomerPOClick((SoEdiData)CustomerPOLinkedContext.DataItem, "SOOrder");
+                                                }
+                                            })" />
+                                </div>
+                            }
+                            else
+                            {
+                               
+                            }
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
 
@@ -267,7 +363,23 @@
                             </DxFormLayoutItem>
                         }
                         else
-                        {
+                        {                            
+                            <DxFormLayoutItem Caption="Customer:" ColSpanMd="10">
+                                <DxComboBox Data="@partnerList"
+                                            NullText="Select Business Parner..."
+                                            FilteringMode="DataGridFilteringMode.Contains"
+                                            Value="@order.CustomerId"
+                                            TextFieldName="LookupText"
+                                            ValueFieldName="LookupValue"
+                                            ValueChanged="(int newCellValue) => {
+                                        businessPartnerIdSelected = newCellValue;
+                                        Lookup selectedLookup = partnerList.Where(c => c.LookupValue == newCellValue).FirstOrDefault();
+                                        order.CustomerId = newCellValue;
+                                        order.CustomerName = selectedLookup.LookupText;
+                                    }">
+                                </DxComboBox>
+                            </DxFormLayoutItem>
+
                             <DxFormLayoutItem Caption="Customer PO:" ColSpanMd="6">
                                 @EditFormContext.GetEditor("CustomerPO")
                             </DxFormLayoutItem>
@@ -279,10 +391,16 @@
                                 @EditFormContext.GetEditor("Description")
                             </DxFormLayoutItem>
 
-                            <DxFormLayoutItem Caption="Ship Window:" ColSpanMd="6">
+                            <DxFormLayoutItem Caption="Ship Window:" ColSpanMd="5">
                                 @EditFormContext.GetEditor("ShipWindow")
                             </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="QB SO:" ColSpanMd="6">
+                             <DxFormLayoutItem ColSpanMd="2">
+                                 <DxButton RenderStyle="ButtonRenderStyle.Primary"
+                                    RenderStyleMode="ButtonRenderStyleMode.Outline"
+                                    Text="Set To Auto"
+                                    Click="@(() => order.ShipWindow = new DateTime(1900,1,1))" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="QB SO:" ColSpanMd="5">
                                 @EditFormContext.GetEditor("QBSO")
                             </DxFormLayoutItem>
 
@@ -334,8 +452,8 @@
                                         CustomizeEditModel="DetailGrid_CustomizeEditModel"
                                         EditModelSaving="DetailGrid_EditModelSaving"
                                         DataItemDeleting="DetailGrid_DataItemDeleting"
-                                        HighlightRowOnHover="true"
-                                        style="max-height:300px;">
+                                        HighlightRowOnHover="true">
+                                        @*style="max-height:300px;"*@
                                     <Columns>
                                         @*<DxGridCommandColumn Context="CustomerPOContext" Width="45px">
                                     <HeaderTemplate>
@@ -410,8 +528,8 @@
                                         CustomizeElement="Grid_CustomizeElement"
                                         CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
                                         TextWrapEnabled="true"
-                                        HighlightRowOnHover="true"
-                                        style="max-height:300px;">
+                                        HighlightRowOnHover="true">
+                                        @*style="max-height:300px;"*@
                                     <Columns>
                                         @*<DxGridCommandColumn Context="CustomerPOContext" Width="45px">
                                     <HeaderTemplate>
@@ -700,8 +818,11 @@
                             <div style="margin-right: 10px;">
                                 <DxButton IconCssClass="grid-icon grid-icon-add" RenderStyle="ButtonRenderStyle.Primary" aria-label="Add" Text="Search EDI PO" Click="@(() => OnSearchButtonClick(@searchText))" />
                             </div>
-                            <div>
+                            <div style="margin-right: 10px;">
                                 <DxTextBox @ref=searchBoxRef Text="@searchText" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))"></DxTextBox>
+                            </div>
+                            <div style="margin-right: 10px;">
+                                <DxCheckBox Checked="unLinkedPOsOnly" CheckedChanged="new Func<bool, Task>(SearchUnLinkedPOsOnly_CheckedChanged)">Un-Linked POs Only</DxCheckBox>
                             </div>
                         </div>
                     </DxFormLayoutItem>
@@ -761,13 +882,15 @@
                                 <DxGridDataColumn FieldName="TradingPartnerCode" Caption="Customer Code" ReadOnly="true" Visible="false" />
                                 <DxGridDataColumn FieldName="TradingPartnerName" Caption="Customer Name" ReadOnly="true" Visible="false" />
                                 <DxGridDataColumn FieldName="PONumber" Caption="PO Number" ReadOnly="true" />
+                                <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" DisplayFormat="d" />
                                 <DxGridDataColumn FieldName="ShipDate" Caption="Ship Date" DisplayFormat="d" />
                                 <DxGridDataColumn FieldName="CancelDate" Caption="Cancel Date" DisplayFormat="d" />
-                                <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" DisplayFormat="d" Visible="false" />
 
                                 <DxGridDataColumn FieldName="ItemsCount" Caption="Items" DisplayFormat="n0" ReadOnly="true" />
                                 <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" ReadOnly="true" />
                                 <DxGridDataColumn FieldName="ExtPrice" Caption="Ext Price" DisplayFormat="n3" ReadOnly="true" />
+                                
+                                <DxGridDataColumn FieldName="IsGroupPO" Caption="PO Group" MinWidth="60" Width="80" ReadOnly="true" />
                             </Columns>
                         </DxGrid>
                     </DxFormLayoutItem>
@@ -815,7 +938,7 @@
                             <DxGrid @ref="LinkEdiOrderDetailGrid"
                                     Data="LinkEdiOrderDetailGridData"
                                     CssClass="@gridCss"
-                                    Name="EdiMainGrid"
+                                    Name="EdiItemsGrid"
                                     KeyFieldName="Id"
                                     PagerPosition="GridPagerPosition.Bottom"
                                     PageSizeSelectorVisible="false"
@@ -828,11 +951,13 @@
                                     EditMode="GridEditMode.EditRow"
                                     FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
                                     FooterDisplayMode="GridFooterDisplayMode.Auto"
+                                    SelectedDataItems="@SelectedEDIDataItems"
+                                    SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedEDIDataItemsChanged(selectedItems))"  
                                     ShowGroupPanel="false"
                                     ShowSearchBox="true"
                                     SearchText=""
                                     SearchTextParseMode="CurrentSearchTextParseMode"
-                                    CustomizeElement="Grid_CustomizeElement"
+                                    CustomizeElement="LinkingGrid_CustomizeElement"
                                     CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
                                     RowClick="EDIItemGrid_OnRowClick"
                                     RowDoubleClick="EDIItemGrid_OnRowDoubleClick"
@@ -844,7 +969,7 @@
                                     <DxGridDataColumn FieldName="CustomerPO" Caption="EDI PO" MinWidth="60" Width="140" ReadOnly="true" Visible="false" />
 
                                     <DxGridDataColumn FieldName="ItemNo" Caption="Style#" MinWidth="90" ReadOnly="true" />
-                                    <DxGridDataColumn FieldName="OrderQty" Caption="Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
+                                    <DxGridDataColumn FieldName="OrderQty" Caption="Units" DisplayFormat="n0" MinWidth="60" Width="80" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" MinWidth="85" DisplayFormat="d" />
                                     <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" MinWidth="85" DisplayFormat="d" />
                                     <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" DisplayFormat="d" Visible="false" />
@@ -855,7 +980,7 @@
                                     <DxGridDataColumn FieldName="LinkedToName" Caption="Linked To" MinWidth="60" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="LinkedToId" Caption="Linked To Id" MinWidth="60" ReadOnly="true" Visible="false" />
 
-                                    <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
+                                    <DxGridCommandColumn Context="EdiPOContext" Width="45px" Visible="!useCheckboxLinking">
                                         <HeaderTemplate>
                                             Link
                                         </HeaderTemplate>
@@ -863,11 +988,11 @@
                                             <div class="grid-cell-align-center">
                                                 <DxButton IconCssClass="grid-icon grid-icon-add"
                                                           RenderStyle="ButtonRenderStyle.Secondary" aria-label="Link"
-                                                          Click="@(() => OnLinkPOItemClick((SoEdiData)CustomerPOContext.DataItem, "link"))" />
+                                                          Click="@(() => OnLinkPOItemClick((SoEdiData)EdiPOContext.DataItem, "link"))" />
                                             </div>
                                         </CellDisplayTemplate>
                                     </DxGridCommandColumn>
-                                    <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
+                                    <DxGridCommandColumn Context="EdiPOContext" Width="45px" Visible="!useCheckboxLinking">
                                         <HeaderTemplate>
                                             Un link
                                         </HeaderTemplate>
@@ -875,12 +1000,32 @@
                                             <div class="grid-cell-align-center">
                                                 <DxButton IconCssClass="grid-icon grid-icon-undo"
                                                           RenderStyle="ButtonRenderStyle.Secondary" aria-label="Un-Link"
-                                                          Click="@(() => OnLinkPOItemClick((SoEdiData)CustomerPOContext.DataItem, "unlink"))" />
+                                                          Click="@(() => OnLinkPOItemClick((SoEdiData)EdiPOContext.DataItem, "unlink"))" />
                                             </div>
                                         </CellDisplayTemplate>
                                     </DxGridCommandColumn>
-                                    <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" />
+                                    @* <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" /> *@
+                                    <DxGridDataColumn Context="EdiPOIsLinkedContext" FieldName="IsItemLinked" Caption="Linked" MinWidth="60" Width="65" ReadOnly="true" >
+                                    <CellDisplayTemplate>
+                                            @if ((EdiPOIsLinkedContext.DataItem as SoEdiData) != null 
+                                                && (EdiPOIsLinkedContext.DataItem as SoEdiData).IsItemLinked != null 
+                                                && (EdiPOIsLinkedContext.DataItem as SoEdiData).IsItemLinked)
+                                            {
+                                                <span>Yes</span>
+                                            }
+                                            else
+                                            {
+                                                <span></span>
+                                            }
+                                        </CellDisplayTemplate>
+                                    </DxGridDataColumn>
                                     <DxGridDataColumn FieldName="LinkedStatus" Caption="Linked Status" MinWidth="60" ReadOnly="true" Visible="false" />
+                                    
+                                    <DxGridSelectionColumn Context="ProductLinkSection_EDIData_checkbox" Width="75px" Visible="useCheckboxLinking" >
+                                        <HeaderTemplate>
+                                            <text>Link/ Unlink</text>
+                                        </HeaderTemplate> 
+                                    </DxGridSelectionColumn>
 
                                 </Columns>
                             </DxGrid>
@@ -897,7 +1042,7 @@
                             <DxGrid @ref="LinkSOOrderDetailGrid"
                                     Data="LinkSOOrderDetailGridData"
                                     CssClass="@gridCss"
-                                    Name="EdiMainGrid"
+                                    Name="SOItemsGrid"
                                     KeyFieldName="Id"
                                     PagerPosition="GridPagerPosition.Bottom"
                                     PageSizeSelectorVisible="false"
@@ -910,11 +1055,13 @@
                                     EditMode="GridEditMode.EditRow"
                                     FilterMenuButtonDisplayMode="GridFilterMenuButtonDisplayMode.Always"
                                     FooterDisplayMode="GridFooterDisplayMode.Auto"
+                                    SelectedDataItems="@SelectedSODataItems"
+                                    SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedSODataItemsChanged(selectedItems))"  
                                     ShowGroupPanel="false"
                                     ShowSearchBox="true"
                                     SearchText=""
                                     SearchTextParseMode="CurrentSearchTextParseMode"
-                                    CustomizeElement="Grid_CustomizeElement"
+                                    CustomizeElement="LinkingGrid_CustomizeElement"
                                     CustomizeCellDisplayText="Grid_CustomizeCellDisplayText"
                                     RowClick="SOItemGrid_OnRowClick"
                                     RowDoubleClick="SOItemGrid_OnRowDoubleClick"
@@ -922,6 +1069,12 @@
                                     TextWrapEnabled="true"
                                     ValidationEnabled="false">
                                 <Columns>
+                                    <DxGridSelectionColumn Width="75px" Context="ProductLinkSection_SOData_checkbox" Visible="useCheckboxLinking" >
+                                        <HeaderTemplate>
+                                            <text>Link/ Unlink</text>
+                                        </HeaderTemplate> 
+                                    </DxGridSelectionColumn>
+                                    
                                     <DxGridDataColumn FieldName="ProductNo" Caption="Product No" MinWidth="80" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="ProductName" Caption="Product Name" MinWidth="80" Width="80" ReadOnly="true" Visible="false" />
 
@@ -929,7 +1082,7 @@
                                     <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" MinWidth="60" Width="60" ReadOnly="true" Visible="false" />
 
                                     <DxGridDataColumn FieldName="SODate" Caption="SO Date" MinWidth="80" Width="80" DisplayFormat="d" Visible="false" />
-                                    <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
+                                    <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" MinWidth="60" Width="80" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="n3" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
                                     <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n3" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
 
@@ -938,8 +1091,8 @@
 
                                     <DxGridDataColumn FieldName="LinkedToName" Caption="Linked To" MinWidth="60" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="LinkedToId" Caption="Linked To Id" MinWidth="60" ReadOnly="true" Visible="false" />
-
-                                    <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
+                                                                        
+                                    <DxGridCommandColumn Context="CustomerPOContext" Width="45px" Visible="!useCheckboxLinking">
                                         <HeaderTemplate>
                                             Link
                                         </HeaderTemplate>
@@ -955,13 +1108,11 @@
                                                 Click="@(() => OnLinkPOItemClick((CustomerSoPoData)CustomerPOContext.DataItem, "link"))" />
                                                 }
                                                 else{
-
                                                 } *@
-
                                             </div>
                                         </CellDisplayTemplate>
                                     </DxGridCommandColumn>
-                                    <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
+                                    <DxGridCommandColumn Context="CustomerPOContext" Width="45px" Visible="!useCheckboxLinking">
                                         <HeaderTemplate>
                                             Un-Link
                                         </HeaderTemplate>
@@ -973,7 +1124,21 @@
                                             </div>
                                         </CellDisplayTemplate>
                                     </DxGridCommandColumn>
-                                    <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" />
+                                    @* <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" /> *@
+                                    <DxGridDataColumn Context="CustomerPOIsLinkedContext" FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" >
+                                        <CellDisplayTemplate>
+                                            @if ((CustomerPOIsLinkedContext.DataItem as CustomerSoPoData) != null 
+                                                && (CustomerPOIsLinkedContext.DataItem as CustomerSoPoData).IsItemLinked != null 
+                                                && (CustomerPOIsLinkedContext.DataItem as CustomerSoPoData).IsItemLinked)
+                                            {
+                                                <span>Yes</span>
+                                            }
+                                            else
+                                            {
+                                                <span></span>
+                                            }
+                                        </CellDisplayTemplate>
+                                    </DxGridDataColumn>                       
                                     <DxGridDataColumn FieldName="LinkedStatus" Caption="Linked Status" MinWidth="60" ReadOnly="true" Visible="false" />
 
                                 </Columns>
@@ -986,9 +1151,9 @@
             </BodyContentTemplate>
             <FooterContentTemplate>
                 <label style="text-align: left; width: 100%; color: red; font-weight: bolder;">@linkingItemText</label>
-                @* <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@PopupLinkingFormContext.CloseCallback" /> *@
-                <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@(() => OnLinkinkPopupOkClick())" />
+                <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Info" Text="Cancel Linking" Visible="@isCurrentlyLinking" Click="@(() => CancelLinkingClick())" />
                 <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Cancel" Click="@PopupLinkingFormContext.CloseCallback" />
+                <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@(() => OnLinkinkPopupOkClick())" />
             </FooterContentTemplate>
         </DxWindow>
 
@@ -1059,5 +1224,13 @@
         margin-top: 0 !important;
     }
 
-</style>
+    .gridheight .table tr {
+        height: calc(6vh) !important;
+        border: 1px solid red;
+    }
 
+    .mainGridCSS {
+        height:@mainGridSectionHeight;
+    }
+
+</style>

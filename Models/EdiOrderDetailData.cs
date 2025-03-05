@@ -55,5 +55,10 @@ namespace LAGem_POPortal.Models
         public int CustTPId { get; set; }
         public string EDIPOType { get; set; }
         public string EDITradingPartnerName { get; set; }
+
+        public bool Archived { get; set; }
+        public bool IsGroupPO { get; set; }
+        public string GroupPO { get; set; }
+
     }
 }

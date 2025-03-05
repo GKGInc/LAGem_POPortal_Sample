@@ -659,7 +659,7 @@ ORDER BY [SOShipYear] DESC
             }
         }
         //"Orders"
-        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId, bool includePackaging, bool includeUnLinked) //
+        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId, bool includePackaging, bool includeUnLinked, string groupPO = "") //
         {
             bool useSP = true;
 
@@ -716,7 +716,7 @@ WHERE edi.[Edihdrid] = {0}";
             }
             else
             {
-                string storedProcedure = string.Format("[PIMS].[dbo].[SP_GetEdiSearchDetailData] {0}, {1}, {2}", ediId, (includePackaging) ? 1 : 0, (includeUnLinked) ? 1 : 0);
+                string storedProcedure = string.Format("[PIMS].[dbo].[SP_GetEdiSearchDetailData] {0}, {1}, {2}, '{3}'", ediId, (includePackaging) ? 1 : 0, (includeUnLinked) ? 1 : 0, groupPO);
 
                 return await GetSqlData<SoEdiData>(storedProcedure);
             }

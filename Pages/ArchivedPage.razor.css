@@ -1,0 +1,78 @@
+﻿::deep .grid-cell-align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4px;
+    margin-bottom: -4px;
+}
+
+::deep .grid-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    vertical-align: middle;
+}
+
+::deep .grid-icon-new {
+    -webkit-mask-image: url(../images/icons/new.svg);
+    mask-image: url(../images/icons/new.svg);
+}
+
+::deep .grid-icon-add {
+    -webkit-mask-image: url(../images/icons/add.svg);
+    mask-image: url(../images/icons/add.svg);
+}
+
+::deep .grid-icon-delete {
+    -webkit-mask-image: url("../images/icons/delete.svg");
+    mask-image: url("../images/icons/delete.svg");
+}
+
+::deep .grid-icon-undo {
+    -webkit-mask-image: url("../images/icons/undo.svg");
+    mask-image: url("../images/icons/undo.svg");
+}
+
+::deep .grid-toolbar-new,
+::deep .grid-toolbar-delete,
+::deep .grid-toolbar-save,
+::deep .grid-toolbar-cancel {
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    height: 16px;
+    width: 16px;
+    opacity: 0.7;
+}
+
+::deep .grid-toolbar-new {
+    -webkit-mask-image: url("images/icons/new.svg");
+    mask-image: url("images/icons/new.svg");
+}
+
+::deep .grid-toolbar-save {
+    -webkit-mask-image: url("images/icons/save.svg");
+    mask-image: url("images/icons/save.svg");
+}
+
+::deep .grid-toolbar-cancel {
+    -webkit-mask-image: url("images/icons/undo.svg");
+    mask-image: url("images/icons/undo.svg");
+}
+
+::deep .grid-modified-cell {
+    background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+::deep .grid-disabled-button {
+    pointer-events: none;
+}

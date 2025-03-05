@@ -216,3 +216,4 @@ C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sampl
 C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\LAGem_POPortal.pdb
 C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\LAGem_POPortal.genruntimeconfig.cache
 C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\ref\LAGem_POPortal.dll
+C:\Users\Helder\Documents\Visual Studio 2015\Projects\LAGem\LAGem_POPortal_Sample\obj\Debug\net7.0\scopedcss\Pages\ArchivedPage.razor.rz.scp.css

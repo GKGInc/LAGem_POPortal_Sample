@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LAGem_POPortal")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dc6991bf22daa3d8b3b3d03f285bfb52fa0a2732")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+22e61eb4de3859736af7960897a5c1d1077d0a0f")]
 [assembly: System.Reflection.AssemblyProductAttribute("LAGem_POPortal")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LAGem_POPortal")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

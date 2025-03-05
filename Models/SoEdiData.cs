@@ -15,8 +15,6 @@ namespace LAGem_POPortal.Models
 
         // Header Data
 
-        public int IsLinked { get; set; }
-
         public int CustomerId { get; set; }
         public string CustomerName { get; set; }    // Header/Detail
         public string CustomerPO { get; set; }      // Header/Detail
@@ -52,6 +50,7 @@ namespace LAGem_POPortal.Models
         public string PONumber { get; set; }
         public string QBSO { get; set; }
         public string Comments { get; set; }
+        public string Notes { get; set; }
 
         public int IntransitUnits { get; set; }
 
@@ -68,6 +67,10 @@ namespace LAGem_POPortal.Models
         public int LinkedToId { get; set; }
         public string LinkedToName { get; set; }
 
-        public bool Archived { get; set; }        
+        public int IsLinked { get; set; }
+        //public bool IsLinked { get; set; }
+        public bool Archived { get; set; }
+        public bool IsGroupPO { get; set; }
+        public string GroupPO { get; set; }
     }
 }

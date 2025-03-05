@@ -50,6 +50,7 @@ namespace LAGem_POPortal.Models
         public bool isNew { get; set; }
         public bool isUpdate { get; set; }
         public bool isDirty { get; set; }
+        public int TotalSum { get; set; } = 0;
 
     }
 }
