@@ -52,5 +52,7 @@ namespace LAGem_POPortal.Models
         public bool isDirty { get; set; }
         public int TotalSum { get; set; } = 0;
 
+        public string TransportationMode { get; set; }       
+
     }
 }

@@ -42,24 +42,24 @@ namespace LAGem_POPortal.Pages.InTransitPOs
         // ------------------------------------------------------------ \\
 
         [CascadingParameter]
-        private Task<AuthenticationState> authenticationState { get; set; }
-        string currentUser { get; set; } = "";
+        public Task<AuthenticationState> authenticationState { get; set; }
+        public string currentUser { get; set; } = "";
 
-        [CascadingParameter]
-        protected Task<AuthenticationState> AuthStat { get; set; }
+        //[CascadingParameter]
+        //public protected Task<AuthenticationState> AuthStat { get; set; }
 
-        IGrid Grid { get; set; }
-        IGrid POListGrid { get; set; }
-        IGrid POShipmentListGrid { get; set; }
-        IGrid TestGrid { get; set; }
+        public IGrid Grid { get; set; }
+        public IGrid POListGrid { get; set; }
+        public IGrid POShipmentListGrid { get; set; }
+        public IGrid TestGrid { get; set; }
 
-        IEnumerable<ShippingData> GridData { get; set; }
-        IEnumerable<POOpenVendor> POOpenVendorData { get; set; }
-        IEnumerable<ShippingData> OpenPOShipmentData { get; set; }
-        IEnumerable<ShippingData> POListGridData { get; set; }
-        IEnumerable<ShippingData> POShipmentListGridData { get; set; }
-        IEnumerable<ShippingData> TestGridData { get; set; }
-        List<Lookup> openPOList { get; set; }
+        public IEnumerable<ShippingData> GridData { get; set; }
+        public IEnumerable<POOpenVendor> POOpenVendorData { get; set; }
+        public IEnumerable<ShippingData> OpenPOShipmentData { get; set; }
+        public IEnumerable<ShippingData> POListGridData { get; set; }
+        public IEnumerable<ShippingData> POShipmentListGridData { get; set; }
+        public IEnumerable<ShippingData> TestGridData { get; set; }
+        public List<Lookup> openPOList { get; set; }
 
         // ------------------------------------------------------------ \\
 
@@ -73,82 +73,89 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             public int Height { get; set; }
         }
 
-        int PageCount { get; set; } = 0;
-        int TotalRecords { get; set; } = 0;
-        int PageSize { get; set; } = 20;
-        int ActivePageIndex { get; set; } = 0;
+        public int PageSize { get; set; } = 20;
+        public int PageCount { get; set; } = 0;
+        public int TotalRecords { get; set; } = 0;
+        public int ActivePageIndex { get; set; } = 0;
+        public bool ShowAllRows { get; set; } = true;
 
-        Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
+        public Dictionary<string, GridSearchTextParseMode> SearchTextParseModes { get; } = new Dictionary<string, GridSearchTextParseMode>{
         { "Group Words By And", GridSearchTextParseMode.GroupWordsByAnd },
         { "Group Words By Or", GridSearchTextParseMode.GroupWordsByOr },
         { "Exact Match", GridSearchTextParseMode.ExactMatch }
     };
-        void ChangeSearchMode(string key)
+        public void ChangeSearchMode(string key)
         {
             CurrentSearchTextParseModeDisplayText = key;
             CurrentSearchTextParseMode = SearchTextParseModes[key];
         }
-        string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
-        GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
+        public string CurrentSearchTextParseModeDisplayText { get; set; } = "Group Words By And";
+        public GridSearchTextParseMode CurrentSearchTextParseMode { get; set; } = GridSearchTextParseMode.GroupWordsByAnd;
 
-        GridColumnResizeMode CurrentColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer; // GridColumnResizeMode.NextColumn;
-        string CurrentColumnResizeModeDisplayText { get; set; } = "Next Column";
-        Dictionary<string, GridColumnResizeMode> GridColumnResizeModes { get; } = new Dictionary<string,
+        public GridColumnResizeMode CurrentColumnResizeMode { get; set; } = GridColumnResizeMode.ColumnsContainer; // GridColumnResizeMode.NextColumn;
+        public string CurrentColumnResizeModeDisplayText { get; set; } = "Next Column";
+        public Dictionary<string, GridColumnResizeMode> GridColumnResizeModes { get; } = new Dictionary<string,
         GridColumnResizeMode>{
         { "Disabled", GridColumnResizeMode.Disabled },                  //A user cannot resize columns.
         { "Next Column", GridColumnResizeMode.NextColumn },             //When a user resizes a column, the width of the column to the right changes, but the Grid's total width does not change.
         { "Columns Container", GridColumnResizeMode.ColumnsContainer }  //When a user resizes a column, all other columns retain width settings, but the width of the entire column container changes proportionally.
     };
-        void ChangeResizeMode(string key)
+        public void ChangeResizeMode(string key)
         {
             CurrentColumnResizeModeDisplayText = key;
             CurrentColumnResizeMode = GridColumnResizeModes[key];
         }
 
-        bool AutoCollapseDetailRow { get; set; }
-        TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public bool AutoCollapseDetailRow { get; set; }
+        public TaskCompletionSource<bool> DataLoadedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        bool TextWrapEnabled = true;
-        bool WordWrapEnabled = false;
+        public bool TextWrapEnabled = true;
+        public bool WordWrapEnabled = false;
 
-        bool usePopupEditForm { get; set; } = true;
-        GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
-        string mainGridEditFormHeaderText { get; set; } = "In Transit POs";
+        public bool usePopupEditForm { get; set; } = true;
+        public GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+        public string mainGridEditFormHeaderText { get; set; } = "In Transit POs";
 
-        IReadOnlyList<object> SelectedDataItems { get; set; } // Items Selected in Edit Form
-        IReadOnlyList<object> SelectedDataPOListGridItems { get; set; }
-        IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
-        GridSelectAllCheckboxMode CurrentSelectAllCheckboxMode { get; set; }
-
-        // ------------------------------------------------------------ \\
-
-        bool PopupVisible { get; set; } = false;
-        const string LocalStorageKey = "DialogsAndWindows-Popup-Dragging";
-        int? positionX, positionY;
-        bool allowDragByHeaderOnly = true;
-
-        string popupOkButtonText { get; set; } = "Ok";
-        string popupCancelButtonText { get; set; } = "Cancel";
-        bool isPopupCancelButtonVisible { get; set; } = false;
-
-        string popupTitleText { get; set; } = "Notification";
-        string popupBodyText { get; set; } = "Sample Popup Message";
-
-        string callbackProcessName { get; set; } = null;
+        public IReadOnlyList<object> SelectedDataItems { get; set; } // Items Selected in Edit Form
+        public IReadOnlyList<object> SelectedDataPOListGridItems { get; set; }
+        public IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
+        public GridSelectAllCheckboxMode CurrentSelectAllCheckboxMode { get; set; }
 
         // ------------------------------------------------------------ \\
 
-        string headerMessage { get; set; } = "Loading Data...";
-        bool hiddenGrid { get; set; } = true;
-        bool autoFitColWidths { get; set; } = true;
-        bool isAutoFitPending { get; set; } = true;
-        bool isVendorEditable { get; set; } = true;
-        bool selectCheckboxToEdit { get; set; } = false;
+        public bool PopupVisible { get; set; } = false;
+        public const string LocalStorageKey = "DialogsAndWindows-Popup-Dragging";
+        public int? positionX, positionY;
+        public bool allowDragByHeaderOnly = true;
+
+        public string popupOkButtonText { get; set; } = "Ok";
+        public string popupCancelButtonText { get; set; } = "Cancel";
+        public bool isPopupCancelButtonVisible { get; set; } = false;
+
+        public string popupTitleText { get; set; } = "Notification";
+        public string popupBodyText { get; set; } = "Sample Popup Message";
+
+        public string callbackProcessName { get; set; } = null;
+
+        // ------------------------------------------------------------ \\
+
+        public DateTime blankDate { get; set; } = new DateTime(1900, 1, 1);
+        public string headerMessage { get; set; } = "Loading Data...";
+        public bool hiddenGrid { get; set; } = true;
+        public bool autoFitColWidths { get; set; } = true;
+        public bool isAutoFitPending { get; set; } = true;
+        public bool isVendorEditable { get; set; } = true;
+        public bool selectCheckboxToEdit { get; set; } = false;
         string FocusedColumn { get; set; } = "OrderQty";
-        int POHeaderIdSelected { get; set; }
+        public int POHeaderIdSelected { get; set; }
         public int editPOShipmentListGridHeight { get; set; } = 200;
 
-        CriteriaOperator shippingGridFilterCriteria { get; set; }
+        public ShippingData savingShippingDataObject { get; set; }
+
+        public CriteriaOperator shippingGridFilterCriteria { get; set; }
+
+        public string modeOfTransportation { get; set; } = "";
+        public IEnumerable<string> modesOfTransportations = new[] { "Air", "Boat" };
 
         // ------------------------------------------------------------ \\
 
@@ -159,6 +166,21 @@ namespace LAGem_POPortal.Pages.InTransitPOs
         }
         public int Height { get; set; } = 0;
         public int Width { get; set; } = 0;
+
+        // ------------------------------------------------------------ \\
+
+        public List<GridCell> clickedCells = new List<GridCell>();
+
+        public class GridCell
+        {
+            public string colName { get; set; }
+            public int rowIndex { get; set; }
+            public GridCell(string _colName, int _rowIndex)
+            {
+                colName = _colName;
+                rowIndex = _rowIndex;
+            }
+        }
 
         // ------------------------------------------------------------ \\
 
@@ -197,7 +219,7 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
             isAutoFitPending = true;
 
-            var user = (await AuthStat).User;
+            var user = (await authenticationState).User;
             if (!user.Identity.IsAuthenticated)
             {
             //NavigationManager.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
@@ -272,26 +294,33 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
         public async Task AfterRenderAsync(bool firstRender)
         {
-
             if (firstRender)
             {
-                await js.InvokeVoidAsync("window.registerViewportChangeCallback", DotNetObjectReference.Create(this));
+                await js.InvokeAsync<string>("resizeListener", DotNetObjectReference.Create(this));
+                var dimension = await js.InvokeAsync<WindowDimensions>("getWindowSize");
+                windowHeight = dimension.Height;
+                windowWidth = dimension.Width;
+                SetPageSize(windowHeight);
+
+                StateHasChanged();
+
+                //await js.InvokeVoidAsync("window.registerViewportChangeCallback", DotNetObjectReference.Create(this));
 
                 await DataLoadedTcs.Task; // Waits for grid data to load
                                           // Grid.ExpandDetailRow(0);
             }
-        //CurrentColumnResizeMode = GridColumnResizeMode.ColumnsContainer;
-        //    Grid.AutoFitColumnWidths(); 
+            //CurrentColumnResizeMode = GridColumnResizeMode.ColumnsContainer;
+            //    Grid.AutoFitColumnWidths(); 
 
-        ////https://supportcenter.devexpress.com/ticket/details/t1207460/dxgrid-autofitcolumnwidths-true-does-not-set-widths-as-i-expected
-        // if (AutoFitColWidths && IsAutoFitPending)
-        //    {
-        //        IsAutoFitPending = false;
-        //        await Grid.WaitForDataLoadAsync();
-        //        Grid.AutoFitColumnWidths();
-        //    }
-            
-        if (Grid != null && GridData != null && isAutoFitPending)
+            ////https://supportcenter.devexpress.com/ticket/details/t1207460/dxgrid-autofitcolumnwidths-true-does-not-set-widths-as-i-expected
+            // if (AutoFitColWidths && IsAutoFitPending)
+            //    {
+            //        IsAutoFitPending = false;
+            //        await Grid.WaitForDataLoadAsync();
+            //        Grid.AutoFitColumnWidths();
+            //    }
+
+            if (Grid != null && GridData != null && isAutoFitPending)
             {
                 isAutoFitPending = false;
                 await Grid.WaitForDataLoadAsync();
@@ -320,7 +349,6 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             StateHasChanged();
         }
 
-
         [JSInvokable]
         public async void UpdatePage()
         {
@@ -336,11 +364,10 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             pageSize = ((height - 195) / 30);   // Not used
             title = height.ToString() + "/" + pageSize.ToString(); // Not used
 
-            int offset = 75;
+            int offset = 80;
             scrollHeight = height - 195 - offset;
             mainGridSectionHeight = (height - offset).ToString() + "px";
         }
-
 
         #endregion
 
@@ -348,7 +375,7 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
         #region Popup Functions
 
-        async void OkPopupClick()
+        public async void OkPopupClick()
         {
             PopupVisible = false;
 
@@ -359,19 +386,36 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             //
             //    await SaveCustomerPOLinking();
             //}
-            //if (callbackProcessName == "UnLinkSave")
-            //{
-            //    await OnUnLinkPOItemSave(unLinkingRow);
-            //}
+            if (callbackProcessName == "SaveShippingData-NEW")
+            {
+                await InsertShippingDataAsync(savingShippingDataObject);
+
+                await Grid.CancelEditAsync();
+            }
+            if (callbackProcessName == "SaveShippingData-UDPATE")
+            {
+                await UpdateShippingDataAsync(savingShippingDataObject);
+
+                await Grid.CancelEditAsync();
+            }
         }
 
-        void CancelPopupClick()
+        public void CancelPopupClick()
         {
             PopupVisible = false;
             //linkingEdiPOtoSO = false;
+
+            if (callbackProcessName == "SaveShippingData-NEW")
+            {
+                //savingShippingDataObject = null;
+            }
+            if (callbackProcessName == "SaveShippingData-UDPATE")
+            {
+                //savingShippingDataObject = null;
+            }
         }
 
-        void DisplayPopupMessage(string message, string title = "Notification", string callbackName = null)
+        public void DisplayPopupMessage(string message, string title = "Notification", string callbackName = null)
         {
             isPopupCancelButtonVisible = false;
             popupOkButtonText = "Ok";
@@ -383,7 +427,7 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             callbackProcessName = callbackName;
         }
 
-        void DisplayPopupQuestion(string message, string title = "Alert", string callbackName = null)
+        public void DisplayPopupQuestion(string message, string title = "Alert", string callbackName = null)
         {
             isPopupCancelButtonVisible = true;
             popupOkButtonText = "Yes";
@@ -514,20 +558,22 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
         #region Button Functions
 
-        void Grid_FitWidths()
+        public void Grid_FitWidths()
         {
             Grid.AutoFitColumnWidths();
         }
-        void ColumnChooserButton_Click()
+        public void ColumnChooserButton_Click()
         {
             Grid.ShowColumnChooser();
         }
-        async void RefreshData_Click()
+        public async void RefreshData_Click()
         {
             SqlData sqlData = new SqlData();
             GridData = await sqlData.GetShippingDetailData();
+
+            await InvokeAsync(StateHasChanged); // <-- refreshes
         }
-        async Task UsePopupEditForm_CheckedChanged(bool value)
+        public async Task UsePopupEditForm_CheckedChanged(bool value)
         {
             usePopupEditForm = value;
             await Grid.CancelEditAsync();
@@ -539,47 +585,16 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
         #region Main Grid Functions
 
-        void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+        public void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
         {
-            //bool isShipping = false;
-            //if (Grid.GetDataItem(e.VisibleIndex) is ShippingData)
-            //{
-            //    isShipping = true;
-            //}
-
-            // if (e.ElementType == GridElementType.DataRow && (System.Decimal)e.Grid.GetRowValue(e.VisibleIndex, "Total") > 1000)
-            // {
-            //     e.CssClass = "highlighted-item";
-            // }
-
-            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "CustomerName")
-            {
-                //string customerName = (string)e.Grid.GetRowValue(e.VisibleIndex, "CustomerName");
-                //if (customerName == "MACYS")
-                //    e.Style = "background: green";
-            }
-            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "FactoryCancel")
-            {
-                //e.Style = "font-weight: 800";
-            }
-            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "PONumber")
-            {
-                //e.Style = "font-weight: 800";
-            }
-            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "Units")
-            {
-                //decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "Units");
-                //if (units > 100)
-                //    e.Style = "color: red";
-            }
-            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "SOQty")
-            {
-                //decimal units = (decimal)e.Grid.GetRowValue(e.VisibleIndex, "SOQty");
-                //if (units > 100)
-                //    e.Style = "color: red";
-            }
+            //if (e.ElementType != GridElementType.DataCell) return;
+            //GridCell cell = clickedCells.Find(x => x.colName == (e.Column as DxGridDataColumn).FieldName && x.rowIndex == e.VisibleIndex);
+            //if (cell != null)
+            //    e.CssClass = "highlighted-item";
+            //else
+            //    e.CssClass = string.Empty;
         }
-        void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
+        public void Grid_CustomizeCellDisplayText(GridCustomizeCellDisplayTextEventArgs e)
         {
             //string[] dateList = { "SODate", "StartDate", "EndDate", "PODate", "ShipmentDate", "ShipToETA", "FactoryCancel" };
             //if (dateList.Contains(e.FieldName)) 
@@ -591,7 +606,7 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             }
         }
 
-        void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+        public void Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
         {
             if (e.IsNew)
             {
@@ -600,6 +615,7 @@ namespace LAGem_POPortal.Pages.InTransitPOs
                     var newObject = (ShippingData)e.EditModel;
                     newObject.Id = GridData.Count() + 1;
                     newObject.ShipmentDate = DateTime.Now;
+                    newObject.ShipToETA = blankDate;
 
                     POHeaderIdSelected = 0;
                     isVendorEditable = true;
@@ -627,7 +643,7 @@ namespace LAGem_POPortal.Pages.InTransitPOs
                 }
             }
         }
-        async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
+        public async Task Grid_EditModelSaving(GridEditModelSavingEventArgs e)
         {
             e.Cancel = true;
 
@@ -635,15 +651,21 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             {
                 var savingObject = (ShippingData)e.EditModel;
 
-                if (e.IsNew)
-                    await InsertShippingDataAsync(savingObject);
-                else
-                    await UpdateShippingDataAsync(savingObject);
+                savingShippingDataObject = savingObject;
+                string savingDataType = (e.IsNew) ? "SaveShippingData-NEW": "SaveShippingData-UDPATE";
 
-                await Grid.CancelEditAsync();
+                string message = "Are you sure you want to " + Environment.NewLine + "Shipping Data?";
+                DisplayPopupQuestion(message, "Confirmation", savingDataType);
+
+                //if (e.IsNew)
+                //    await InsertShippingDataAsync(savingObject);
+                //else
+                //    await UpdateShippingDataAsync(savingObject);
+
+                //await Grid.CancelEditAsync();
             }
         }
-        async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+        public async Task Grid_DataItemDeleting(GridDataItemDeletingEventArgs e)
         {
             if (e.DataItem.GetType() == typeof(BOMData))
             {
@@ -666,8 +688,10 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             //await UpdateDataAsync();
         }
 
-        async Task InsertShippingDataAsync(ShippingData item)
+        public async Task InsertShippingDataAsync(ShippingData item)
         {
+            bool alwaysInsert = true;
+
             // Don't save if empty detail list
             if (POShipmentListGridData.Count() == 0)
                 return;
@@ -675,10 +699,11 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             if (item.TrackingNumber == null) item.TrackingNumber = "";
             if (item.InvoiceNo == null) item.InvoiceNo = "";
 
-            string query = @"INSERT INTO [PIMS].[dbo].[ShipmentHeader] ([ShipmentDate],[TrackingNumber],[InvoiceNo],[CreatedOn]) 
-        SELECT '{0}','{1}','{2}',GETDATE()
-        SELECT @@IDENTITY AS 'pk'";
-            string fullQuery = string.Format(query, item.ShipmentDate, item.TrackingNumber, item.InvoiceNo);
+            string query = @"
+INSERT INTO [PIMS].[dbo].[ShipmentHeader] ([ShipmentDate],[TrackingNumber],[InvoiceNo],[CreatedOn],[ShipToETA],[TransportationMode]) 
+SELECT '{0}','{1}','{2}',GETDATE(),'{3}', '{4}'
+SELECT @@IDENTITY AS 'pk'";
+            string fullQuery = string.Format(query, item.ShipmentDate, item.TrackingNumber, item.InvoiceNo, item.ShipToETA, item.TransportationMode);
 
             int shipmentHeaderId = 0;
             using (var uow = new UnitOfWork())
@@ -715,17 +740,27 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             {
                 if (soDetailIds.Contains(ship.SODetailId))
                 {
-
-                    if (ship.ShipmentDetailId == 0)
+                    if (ship.ShipmentDetailId == 0 || alwaysInsert)
                     {
                         //int shipmentHeaderId = item.ShipmentHeaderId;
                         int poDetailId = ship.PODetailId;
                         int shipmentQty = ship.ShipmentQty;
 
                         // NEW insert
-                        string detailInsertQuery = @"INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
-                SELECT {0},{1},{2}, GETDATE()
-                SELECT @@IDENTITY AS 'pk'";
+                        string detailInsertQuery = @"
+INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
+SELECT {0},{1},{2}, GETDATE()
+
+--UPDATE [PIMS].[dbo].[PODetail] 
+--SET [ReceivedQty] = CASE WHEN [ReceivedQty] IS NULL THEN (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1}) + {2} ELSE [ReceivedQty] + {2} END 
+--WHERE [PODetailId] = {1}
+
+UPDATE [PIMS].[dbo].[PODetail]
+SET [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
+    ,[LastModifiedOn] = GETDATE()
+WHERE [PODetailId] = {1}
+
+SELECT @@IDENTITY AS 'pk'";
                         string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty);
 
                         int shipmentDetailId = 0;
@@ -756,12 +791,29 @@ namespace LAGem_POPortal.Pages.InTransitPOs
                     {
                         if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
                         {
-                            // UPDATE
-                            string detailUpdateQuery = @"UPDATE [PIMS].[dbo].[ShipmentDetails] 
-SET [ShipmentQty] = {1}
---, [LastModifiedOn] = GETDATE() 
-WHERE [PODetailId] = {0}";
-                            string detailUpdateFullQuery = string.Format(detailUpdateQuery, item.PODetailId, item.OrderQty);
+                            //                            // UPDATE
+                            //                            string detailUpdateQuery = @"
+                            //UPDATE [PIMS].[dbo].[ShipmentDetails] 
+                            //SET [ShipmentQty] = {1}
+                            //--, [LastModifiedOn] = GETDATE() 
+                            //WHERE [PODetailId] = {0}";
+                            //string detailUpdateFullQuery = string.Format(detailUpdateQuery, item.PODetailId, item.OrderQty);
+                            string detailUpdateQuery = @"
+--UPDATE [PIMS].[dbo].[PODetail] 
+--SET [ReceivedQty] = CASE WHEN [ReceivedQty] IS NULL THEN (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1}) + {2} ELSE [ReceivedQty] - (SELECT [ShipmentQty] FROM [PIMS].[dbo].[ShipmentDetails] WHERE [ShipmentDetailId] = {0}) + {2} END 
+--WHERE [PODetailId] = {1}
+
+UPDATE [PIMS].[dbo].[ShipmentDetails] 
+SET [ShipmentQty] = {2}
+    , [LastModifiedOn] = GETDATE() 
+WHERE [ShipmentDetailId] = {0}
+
+UPDATE [PIMS].[dbo].[PODetail] 
+SET [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
+    ,[LastModifiedOn] = GETDATE()
+WHERE [PODetailId] = {1}
+";
+                            string detailUpdateFullQuery = string.Format(detailUpdateQuery, ship.ShipmentDetailId, ship.PODetailId, ship.ShipmentQty);
 
                             using (var uow = new UnitOfWork())
                             {
@@ -777,21 +829,24 @@ WHERE [PODetailId] = {0}";
             SqlData sqlData = new SqlData();
             GridData = await sqlData.GetShippingDetailData();
 
+            await InvokeAsync(StateHasChanged); // <-- refreshes
         }
-        async Task UpdateShippingDataAsync(ShippingData item)
+        public async Task UpdateShippingDataAsync(ShippingData item)
         {
             // Don't save if empty detail list
             if (POShipmentListGridData.Count() == 0)
                 return;
 
-            string query = @"UPDATE [PIMS].[dbo].[ShipmentHeader] SET
-       [ShipmentDate] = '{1}'
-      ,[TrackingNumber] = '{2}'
-      ,[ShipToETA] = '{3}'
-      ,[InvoiceNo] = '{4}'
-      --,[LastModifiedOn] = GETDATE()
-      WHERE [ShipmentHeaderId] = {0}";
-            string fullQuery = string.Format(query, item.ShipmentHeaderId, item.ShipmentDate, item.TrackingNumber, item.ShipToETA, item.InvoiceNo);
+            string query = @"
+UPDATE [PIMS].[dbo].[ShipmentHeader] SET
+    [ShipmentDate] = '{1}'
+    ,[TrackingNumber] = '{2}'
+    ,[ShipToETA] = '{3}'
+    ,[InvoiceNo] = '{4}'
+    ,[LastModifiedOn] = GETDATE()
+    ,[TransportationMode] = '{5}'
+WHERE [ShipmentHeaderId] = {0}";
+            string fullQuery = string.Format(query, item.ShipmentHeaderId, item.ShipmentDate, item.TrackingNumber, item.ShipToETA, item.InvoiceNo, item.TransportationMode);
 
             using (var uow = new UnitOfWork())
             {
@@ -818,10 +873,18 @@ WHERE [PODetailId] = {0}";
                         int shipmentQty = ship.ShipmentQty;
 
                         // NEW insert
-                        string detailInsertQuery = @"INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
-                SELECT {0},{1},{2}, GETDATE()
-                SELECT @@IDENTITY AS 'pk'";
-                        string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty);
+                        string detailInsertQuery = @"
+
+INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
+SELECT {0},{1},{2}, GETDATE()
+
+UPDATE [PIMS].[dbo].[PODetail] 
+SET [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
+    ,[LastModifiedOn] = GETDATE()
+WHERE [PODetailId] = {1}
+
+SELECT @@IDENTITY AS 'pk'";
+                        string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty, ship.ShipmentDetailId);
 
                         int shipmentDetailId = 0;
                         using (var uow = new UnitOfWork())
@@ -852,12 +915,26 @@ WHERE [PODetailId] = {0}";
                         //if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
                         if (ship.ShipmentQty != ship.LastShipmentQty)
                         {
-                            // UPDATE
-                            string detailUpdateQuery = @"UPDATE [PIMS].[dbo].[ShipmentDetails] 
-SET [ShipmentQty] = {1}
---, [LastModifiedOn] = GETDATE() 
-WHERE [PODetailId] = {0}";
-                            string detailUpdateFullQuery = string.Format(detailUpdateQuery, ship.PODetailId, ship.ShipmentQty);
+                            //// UPDATE
+                            //string detailUpdateQuery = @"
+                            //UPDATE [PIMS].[dbo].[ShipmentDetails] 
+                            //SET [ShipmentQty] = {1}
+                            //--, [LastModifiedOn] = GETDATE() 
+                            //WHERE [PODetailId] = {0}";
+                            //string detailUpdateFullQuery = string.Format(detailUpdateQuery, item.PODetailId, item.OrderQty);
+                            string detailUpdateQuery = @"
+UPDATE [PIMS].[dbo].[ShipmentDetails] 
+SET [ShipmentQty] = {2}
+    , [LastModifiedOn] = GETDATE() 
+WHERE [ShipmentDetailId] = {0}
+
+UPDATE [PIMS].[dbo].[PODetail] 
+SET [LastModifiedOn] = GETDATE() 
+    --, [ReceivedQty] = CASE WHEN [ReceivedQty] IS NULL THEN (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1}) + {2} ELSE [ReceivedQty] - (SELECT [ShipmentQty] FROM [PIMS].[dbo].[ShipmentDetails] WHERE [ShipmentDetailId] = {0}) + {2} END 
+    , [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
+WHERE [PODetailId] = {1}
+";
+                            string detailUpdateFullQuery = string.Format(detailUpdateQuery, ship.ShipmentDetailId, ship.PODetailId, ship.ShipmentQty);
 
                             using (var uow = new UnitOfWork())
                             {
@@ -872,56 +949,17 @@ WHERE [PODetailId] = {0}";
 
             SqlData sqlData = new SqlData();
             GridData = await sqlData.GetShippingDetailData();
+
+            await InvokeAsync(StateHasChanged); // <-- refreshes
         }
 
-        public void CancelAddItem(MouseEventArgs args)
+        public void Grid_OnRowClick(GridRowClickEventArgs e)
         {
-            //...
-        }
-
-        public void UpdateAddItem(MouseEventArgs args)
-        {
-            //...
-        }
-
-        void UpdateOpenPOShipmentData(ShippingData poShipmentListGridDataItem)
-        {
-            //OpenPOShipmentData = await sqlData.GetOpenPOShipmentData();
-
-            //ShippingData openPOShipmentDataItem = OpenPOShipmentData.Where(c => c.Id == poShipmentListGridDataItem.Id).FirstOrDefault();
-            //if (openPOShipmentDataItem != null)
-            //{
-            //    openPOShipmentDataItem.ShipmentHeaderId = poShipmentListGridDataItem.ShipmentHeaderId;
-            //    openPOShipmentDataItem.ShipmentDate = poShipmentListGridDataItem.ShipmentDate;
-            //    openPOShipmentDataItem.InvoiceNo = poShipmentListGridDataItem.InvoiceNo;
-            //    openPOShipmentDataItem.TrackingNumber = poShipmentListGridDataItem.TrackingNumber;
-            //    openPOShipmentDataItem.ShipToETA = poShipmentListGridDataItem.ShipToETA;
-            //    openPOShipmentDataItem.PONumber = poShipmentListGridDataItem.PONumber;
-            //    openPOShipmentDataItem.ProductNo = poShipmentListGridDataItem.ProductNo;
-            //    openPOShipmentDataItem.ProductName = poShipmentListGridDataItem.ProductName;
-            //    openPOShipmentDataItem.OrderQty = poShipmentListGridDataItem.OrderQty;
-            //    openPOShipmentDataItem.ShipmentQty = poShipmentListGridDataItem.ShipmentQty;
-            //    openPOShipmentDataItem.ShipmentDetailId = poShipmentListGridDataItem.ShipmentDetailId;
-            //    openPOShipmentDataItem.PODetailId = poShipmentListGridDataItem.PODetailId;
-            //    openPOShipmentDataItem.ProductId = poShipmentListGridDataItem.ProductId;
-            //
-            //    openPOShipmentDataItem.POHeaderId = poShipmentListGridDataItem.POHeaderId;
-            //    openPOShipmentDataItem.SOHeaderId = poShipmentListGridDataItem.SOHeaderId;
-            //    openPOShipmentDataItem.SODetailId = poShipmentListGridDataItem.SODetailId;
-            //
-            //    openPOShipmentDataItem.VendorId = poShipmentListGridDataItem.VendorId;
-            //    openPOShipmentDataItem.VendorName = poShipmentListGridDataItem.VendorName;
-            //    openPOShipmentDataItem.CustomerId = poShipmentListGridDataItem.CustomerId;
-            //    openPOShipmentDataItem.CustomerName = poShipmentListGridDataItem.CustomerName;
-            //
-            //    openPOShipmentDataItem.SODate = poShipmentListGridDataItem.SODate;
-            //    openPOShipmentDataItem.PODate = poShipmentListGridDataItem.PODate;
-            //    openPOShipmentDataItem.EndDate = poShipmentListGridDataItem.EndDate;
-            //    openPOShipmentDataItem.StartDate = poShipmentListGridDataItem.StartDate;
-            //    openPOShipmentDataItem.SONumber = poShipmentListGridDataItem.SONumber;
-            //
-            //    openPOShipmentDataItem.ForProductNo = poShipmentListGridDataItem.ForProductNo;
-            //}
+            //GridCell cell = clickedCells.Find(x => x.colName == (e.Column as DxGridDataColumn).FieldName && x.rowIndex == e.VisibleIndex);
+            //if (cell == null)
+            //    clickedCells.Add(new GridCell((e.Column as DxGridDataColumn).FieldName, e.VisibleIndex));
+            //else
+            //    clickedCells.Remove(cell);
         }
 
         #endregion
@@ -930,19 +968,19 @@ WHERE [PODetailId] = {0}";
 
         #region Template POList Grid Functions
 
-        async void POListGrid_OnRowClick(GridRowClickEventArgs e)
+        public void POListGrid_CustomizeElement(GridCustomizeElementEventArgs e)
         {
-            //if (ItemGrid != null)
-            //{
-            //    ItemGrid.StartEditRowAsync(e.VisibleIndex);
-            //}
+            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
+            {
+                e.Style = "font-weight: 800";
+                e.Style = "color: red";
+            }
+        }
 
+        public async void POListGrid_OnRowClick(GridRowClickEventArgs e)
+        {
             if (POListGrid != null)
             {
-                //if (POListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
-                //    POHeaderIdSelected = (POListGrid.GetDataItem(e.VisibleIndex) as POOpenDetail).POHeaderId;
-                //LoadItemGridData((POListGrid.GetDataItem(e.VisibleIndex) as POOpenDetail).PONumber); 
-
                 if (POListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
                     POHeaderIdSelected = (POListGrid.GetDataItem(e.VisibleIndex) as ShippingData).POHeaderId;
                 await LoadItemGridData((POListGrid.GetDataItem(e.VisibleIndex) as ShippingData).PONumber);
@@ -952,34 +990,23 @@ WHERE [PODetailId] = {0}";
                 if (shipingData != null)
                 {
                     shipingData.TotalSum = incomingUnitsSum;
-                    //(POListGridData.Where(x => x.POHeaderId == POHeaderIdSelected).FirstOrDefault()).LastShipmentQty = incomingUnitsSum;
                 }
             }
         }
 
-        async Task POListGrid_OnRowDoubleClick(GridRowClickEventArgs e)
+        public async Task POListGrid_OnRowDoubleClick(GridRowClickEventArgs e)
         {
             //await e.Grid.SaveChangesAsync();
             //await e.Grid.StartEditRowAsync(e.VisibleIndex);
         }
 
-        void POListGrid_CustomizeElement(GridCustomizeElementEventArgs e)
-        {
-            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
-            {
-                e.Style = "font-weight: 800";
-                e.Style = "color: red";
-            }
-        }
-
-        async Task POListGrid_DataItemDeleting(GridDataItemDeletingEventArgs e)
+        public async Task POListGrid_DataItemDeleting(GridDataItemDeletingEventArgs e)
         {
             if (e.DataItem.GetType() == typeof(ShippingData))
             {
                 var deletingObject = (ShippingData)e.DataItem;
 
                 //// Delete from POListGridData
-                //POListGridData.Remove(POListGridData.First(c => c.POHeaderId == deletingObject.POHeaderId));
                 POListGridData = POListGridData.Where(c => c.POHeaderId != deletingObject.POHeaderId).ToList();
 
                 // Delete from POShipmentListGridData
@@ -993,29 +1020,61 @@ WHERE [PODetailId] = {0}";
 
         #region Template PO Items Grid Functions
 
-        void ItemGrid_OnRowClick(GridRowClickEventArgs e)
+        public void ItemGrid_CustomizeElement(GridCustomizeElementEventArgs e)
         {
-            if (POShipmentListGrid != null)
+            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
             {
-                //if (POShipmentListGrid.GetDataItem(e.VisibleIndex) is ShippingData)
-                //{
-                //    ShippingData ship = POShipmentListGrid.GetDataItem(e.VisibleIndex) as ShippingData;
-                //    if (ship.ShipmentQty == 0)
-                //        ship.ShipmentQty = ship.OrderQty;
-                //}
-                //
-                //POShipmentListGrid.StartEditRowAsync(e.VisibleIndex); 
+                //decimal qty = (int)e.Grid.GetRowValue(e.VisibleIndex, "OrderQty");
+                e.Style = "font-weight: 800";
+                e.Style = "color: red";
             }
+            if (e.ElementType == GridElementType.EditCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
+            {
+                //decimal qty = (int)e.Grid.GetRowValue(e.VisibleIndex, "OrderQty");
+                e.Style = "font-weight: 800";
+                e.Style = "color: red";
+            }
+
+            if (e.ElementType != GridElementType.DataCell) return;
+            GridCell cell = clickedCells.Find(x => x.colName == (e.Column as DxGridDataColumn).FieldName && x.rowIndex == e.VisibleIndex);
+            if (cell != null)
+            {
+                //e.CssClass = "highlighted-item";
+                e.Style = "border: 2px solid #4864a9";
+            }
+            else
+                e.CssClass = string.Empty;
         }
 
-        async Task ItemGrid_OnRowDoubleClick(GridRowClickEventArgs e)
+        public void ItemGrid_OnRowClick(GridRowClickEventArgs e)
+        {
+            //var args = e.Grid.Data.GetType().GetGenericArguments();
+            //if ((args.Count() == 1 && args.Single() == typeof(ShippingData)) ||
+            //        (args.Count() > 1 && args[0] == typeof(ShippingData)))
+            //{ }
+
+            GridCell cell = clickedCells.Find(x => x.colName == (e.Column as DxGridDataColumn).FieldName && x.rowIndex == e.VisibleIndex);
+            if (cell == null)
+            {
+                if ((e.Column as DxGridDataColumn).FieldName == "ShipmentQty")
+                {
+                    clickedCells.Add(new GridCell((e.Column as DxGridDataColumn).FieldName, e.VisibleIndex));
+                }
+                else
+                    clickedCells.Remove(cell);
+            }
+            else
+                clickedCells.Remove(cell);
+        }
+
+        public async Task ItemGrid_OnRowDoubleClick(GridRowClickEventArgs e)
         {
             ////await e.Grid.SaveChangesAsync();
             ////FocusedColumn = (e.Column as DxGridDataColumn).FieldName;
             //await e.Grid.StartEditRowAsync(e.VisibleIndex); 
         }
 
-        void OnSelectedDataItemsChanged(IReadOnlyList<object> selectedDataItems)
+        public void OnSelectedDataItemsChanged(IReadOnlyList<object> selectedDataItems)
         {
             SelectedDataItems = selectedDataItems;
             //onTicketSelectionChanged.InvokeAsync(selectedDataItems);
@@ -1035,29 +1094,13 @@ WHERE [PODetailId] = {0}";
             }
         }
 
-        void ItemGrid_CustomizeElement(GridCustomizeElementEventArgs e)
-        {
-            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
-            {
-                //decimal qty = (int)e.Grid.GetRowValue(e.VisibleIndex, "OrderQty");
-                e.Style = "font-weight: 800";
-                e.Style = "color: red";
-            }
-            if (e.ElementType == GridElementType.EditCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
-            {
-                //decimal qty = (int)e.Grid.GetRowValue(e.VisibleIndex, "OrderQty");
-                e.Style = "font-weight: 800";
-                e.Style = "color: red";
-            }
-        }
-
-        void ItemGrid_FilterCriteriaChanged(GridFilterCriteriaChangedEventArgs args)
+        public void ItemGrid_FilterCriteriaChanged(GridFilterCriteriaChangedEventArgs args)
         {
             //CriteriaOperator newCriteria = args.FilterCriteria;
             // ...
         }
 
-        void ItemGrid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
+        public void ItemGrid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
         {
             if (e.EditModel.GetType() == typeof(ShippingData))
             {
@@ -1076,7 +1119,7 @@ WHERE [PODetailId] = {0}";
             }
         }
 
-        async Task ItemGrid_OnEditStart(GridEditStartEventArgs e)
+        public async Task ItemGrid_OnEditStart(GridEditStartEventArgs e)
         {
             //await e.Grid.SaveChangesAsync();
             if (selectCheckboxToEdit)
@@ -1089,7 +1132,7 @@ WHERE [PODetailId] = {0}";
             }
         }
 
-        async Task ItemGrid_EditModelSaving(GridEditModelSavingEventArgs e)
+        public async Task ItemGrid_EditModelSaving(GridEditModelSavingEventArgs e)
         {
             if (e.EditModel.GetType() == typeof(ShippingData))
             {
@@ -1123,7 +1166,7 @@ WHERE [PODetailId] = {0}";
 
         // ============================================================ \\
 
-        private async Task OnButtonClick()
+        public async Task OnButtonClick()
         {
             try
             {
@@ -1155,7 +1198,7 @@ WHERE [PODetailId] = {0}";
 
         #region Popup Functions
 
-        async Task OnPopupDragCompleted(PopupDragCompletedEventArgs args)
+        public async Task OnPopupDragCompleted(PopupDragCompletedEventArgs args)
         {
             (positionX, positionY) = (args.End.X, args.End.Y);
             await SavePositionToLocalStorageAsync(args.End);

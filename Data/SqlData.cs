@@ -966,11 +966,18 @@ SELECT ROW_NUMBER() OVER (ORDER BY vw.[CustomerName],vw.[SONumber],vw.[SOLineNo]
 	  ,ISNULL(edidetail.[Editrnid], 0)	AS [EdiTrnId]
 	  ,ISNULL(edi.[Ponum], '')			AS [EDIPONumber]
 	  ,ISNULL(edi.[RefPoNum], '')		AS [EDIRefPONumber]
+	  ,ISNULL(sod.[Notes], '')			AS [SODetailNotes]
+	  ,ISNULL(pod.[Notes], '')			AS [PODetailNotes]
+	  ,ISNULL(sod.[Notes], '')			AS [Notes]	--  “Shipment Planning”
 FROM [PIMS].[dbo].[CustomerSoPoDetailVw] vw 
 	LEFT JOIN [PIMS].[dbo].[SODetailMaterial] som
 		ON vw.[SODetailMaterialId] = som.[SODetailMaterialId]
 	LEFT JOIN edi.[EdiTrn] edidetail
 		ON edidetail.[SoDetailId] = vw.SODetailId AND edidetail.[ProductId] = vw.[ProductId]
+	LEFT JOIN [PIMS].[dbo].[SODetail] sod
+		ON vw.[SoDetailId] = sod.[SODetailId]
+	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+		ON vw.[PoDetailId] = pod.[PODetailId]
 	LEFT JOIN [edi].[EdiHdr] edi
 		ON edi.[Edihdrid] = edidetail.[Edihdrid]";
 
@@ -1028,7 +1035,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY [ShipmentHeaderId],[ShipmentDetailId]) AS [Id
       ,ISNULL(poh.[PODate], '1900-01-01') AS [PODate]
       ,ISNULL(poh.[EndDate], '1900-01-01') AS [EndDate]
       ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
-      ,ISNULL(soh.[SONumber], '') AS [SONumber]  
+      ,ISNULL(soh.[SONumber], '') AS [SONumber]   
+      ,ISNULL(sDetail.[TransportationMode], '') AS [TransportationMode]  
 
   FROM [PIMS].[dbo].[ShipmentDetailvw] sDetail 
 	LEFT JOIN [PIMS].[dbo].[PODetail] pod
@@ -1092,6 +1100,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY openpo.[PONumber], ISNULL(shipment.[ShipmentD
       ,ISNULL(forprod.[ProductNo], '')      AS [ForProductNo]
       --,ISNULL(forprod.[ProductName], '')  AS [ForProductName]
       ,ISNULL(shipment.[ShipmentQty], 0)    AS [LastShipmentQty]
+      ,ISNULL(shipment.[TransportationMode], '') AS [TransportationMode]  
 FROM [PIMS].[dbo].[POOpenDetailVw] openpo
 	LEFT JOIN [PIMS].[dbo].[ShipmentDetailVw] shipment
 		ON openpo.[PODetailId] = shipment.[PODetailId]

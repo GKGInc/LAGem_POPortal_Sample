@@ -50,15 +50,24 @@ namespace LAGem_POPortal.Models
         public string PONumber { get; set; }
         public string QBSO { get; set; }
         public string Comments { get; set; }
+
+        public string HeaderNotes { get; set; }
+        public string DetailNotes { get; set; }
         public string Notes { get; set; }
 
         public int IntransitUnits { get; set; }
 
+        public string VendorName { get; set; } = "";
+        public string TransportationMode { get; set; } = "";
+
+
         // Linked SO columns
-        public DateTime? ShipmentDate { get; set; }
         public string TrackingNumber { get; set; }
+        public DateTime? ShipmentDate { get; set; }
         public DateTime? ShipToETA { get; set; }
         public int ShipmentQty { get; set; }
+        public string ShipmentDateJoined { get; set; }
+        public string ShipToETAJoined { get; set; }
 
 
         // Link columns
