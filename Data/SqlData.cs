@@ -525,201 +525,16 @@ ORDER BY ediView.[ShipYear] DESC, ediView.[ShipMonth] ASC, ediView.[ShipWeek] AS
         //"Orders"
         public async Task<List<SoEdiData>> GetSoEdiData() //
         {
-            bool useSP = true;
+            string storedProcedure = "[PIMS].[dbo].[SP_GetSoEdiData]";
 
-            if (!useSP)
-            {
-                string query = @"
-SELECT ROW_NUMBER() OVER (ORDER BY main.[SOShipYear] DESC
-    ,main.[SOShipMonth] DESC
-    ,main.[SOShipWeek] DESC
-	,main.[CustomerName] ASC
-	,main.[SONumber] DESC) AS [Id]
-
-	,[IsLinked]
-	,ISNULL([Edihdrid], 0)  AS [EdiHdrId]
-	,[CustomerName]
-	,[CustomerPO]
-	,ISNULL([RefPonum], '') AS [RefPonum]
-	,[SONumber]
-
-	,CASE WHEN [IsLinked] = 0 THEN [SOShipYear]  ELSE [EDIShipYear] END AS [ShipYear]
-    ,CASE WHEN [IsLinked] = 0 THEN [SOShipMonth] ELSE [EDIShipMonth] END AS [ShipMonth]
-    ,CASE WHEN [IsLinked] = 0 THEN [SOShipWeek]  ELSE [EDIShipWeek] END AS [ShipWeek]
-	,CASE WHEN [IsLinked] = 0 
-		THEN CAST(DATEADD(wk, DATEDIFF(wk,0,[SO_StartDate]), 0) AS DATE)
-		ELSE CAST(DATEADD(wk, DATEDIFF(wk,0,ISNULL([EDI_StartDate], '1900-01-01')), 0) AS DATE) END AS [MondayOfTheWeek]
-		
-	,CASE WHEN [IsLinked] = 0 
-		THEN ISNULL([SO_StartDate], '1900-01-01')
-		ELSE ISNULL([EDI_StartDate], '1900-01-01') END AS [StartDate]
-	,CASE WHEN [IsLinked] = 0 
-		THEN ISNULL([SO_EndDate], '1900-01-01')
-		ELSE ISNULL([EDI_EndDate], '1900-01-01') END AS [EndDate]
-	,CASE WHEN [IsLinked] = 0 
-		THEN ISNULL([SOQty], 0)
-		ELSE ISNULL([Ord_Qty], 0) END AS [OrderQty]
-	,CASE WHEN [IsLinked] = 0 
-		THEN ISNULL([SORetail], 0)
-		ELSE ISNULL([ExtPrice], 0) END AS [Price]
-
-    ,[SOHeaderId]
-
-	--,ISNULL([SOQty], 0)			AS [SOQty]
-	--,ISNULL([SORetail], 0.0)	AS [SORetail]
-	--,ISNULL([ShipmentQty], 0)	AS [SOShipmentQty]
-	--,ISNULL([NoOfItems], 0)		AS [EDINumberOfItems]
-	--,ISNULL([Ord_Qty], 0)		AS [EDIOrderQty]
-	--,ISNULL([ExtPrice], 0.0)	AS [EDIExtPrice]
-	--,ISNULL([Tradpartid], 0)	AS [EDITradingPartnerId]
-	--,ISNULL([Podte], '1900-01-01')	AS [EDIPODate]
-
-    ,ISNULL([Description], '')	AS [Description]
-    ,ISNULL([QBSO], '')			AS [QBSO]
-	,ISNULL([Comments], '')		AS [Comments]
-	,[PONumber]
-	,CASE WHEN [IsLinked] = 1 AND ([EDI_StartDate] IS NULL OR [EDI_EndDate] IS NULL) THEN 1 ELSE 0 END AS [EDIDateIssue]
-
-FROM (
-SELECT DISTINCT 
-	ISNULL(main.[CustomerName], '')	 AS [CustomerName]
-    ,ISNULL(ediH.Ponum,main.[CustomerPO]) AS [CustomerPO]
-	,CASE WHEN ediH.Ponum IS NULL THEN 0 ELSE 1 END AS [IsLinked]
-    ,ediH.[Ponum]
-	,ediH.[RefPonum]
-    ,main.[SONumber]
-    ,main.[StartDate]	AS [SO_StartDate]
-    ,main.[EndDate]		AS [SO_EndDate]
-    ,main.[SOHeaderId]
-    ,main.[SOShipYear]
-    ,main.[SOShipMonth]
-    ,main.[SOShipWeek]
-	,CAST(DATEADD(wk, DATEDIFF(wk,0,main.[StartDate]), 0) AS DATE) AS [MondayOfTheWeek]
-    ,main.[SOQty]
-    ,main.[SORetail]
-    ,ISNULL(main.[ShipmentQty], 0) AS [ShipmentQty]
-	,ediH.[Edihdrid]
-	,ediO.[Tradpartid]
-    ,ediO.[Podte]
-    ,ediH.[Description]
-    ,ediH.[Comments]
-    ,ediH.[QBSO]
-    ,CASE WHEN ediO.[StartDate]= '1900-01-01' THEN NULL ELSE ediO.[StartDate] END AS [EDI_StartDate]
-    ,CASE WHEN ediO.[CancelDate] = '1900-01-01' THEN NULL ELSE ediO.[CancelDate] END AS [EDI_EndDate]
-    ,ediO.[ShipYear]  AS [EDIShipYear]
-    ,ediO.[ShipMonth] AS [EDIShipMonth]
-    ,ediO.[ShipWeek]  AS [EDIShipWeek]
-    ,ediO.[NoOfItems]
-    ,ediO.[Ord_Qty]
-    ,ediO.[ExtPrice]
-	,ISNULL(det.POList, '') AS [PONumber]
-FROM [PIMS].[dbo].[CustomerSoSummaryVw] main -- SELECT * FROM [PIMS].[dbo].[CustomerSoSummaryVw] 
-	LEFT JOIN [PIMS].[dbo].[SODetail] sod
-		ON sod.[SOHeaderId] = main.[SOHeaderId]
-	LEFT JOIN [PIMS].[edi].[EdiHdr]	ediH
-		ON main.SOHeaderId = ediH.SoHeaderId
-	LEFT JOIN [PIMS].[edi].[EdiTrn]	ediD
-		ON ediD.[Edihdrid] = ediH.[Edihdrid] 
-			AND ediD.[SoDetailId] = sod.[SoDetailId]
-	LEFT JOIN [PIMS].[edi].[EdiOrderSummaryVw] ediO
-		ON ediO.[Ponum] = ediH.[Ponum] AND ediO.[SoHeaderId] = main.[SoHeaderId] 
-	LEFT JOIN (SELECT top_query.[SOShipYear] AS [ListSOShipYear],top_query.[SOShipWeek] AS [ListSOShipWeek], top_query.[SONumber],
-            		(SELECT STUFF([list],1,1,'') AS stuff_list
-            			FROM (SELECT ',' + CAST(vw.[VendorPO] AS VARCHAR(255)) AS [text()]
-            					FROM [PIMS].[dbo].[CustomerSoPoDetailVw] vw 
-            					LEFT JOIN [PIMS].[dbo].[SODetailMaterial] som
-            						ON vw.[SODetailMaterialId] = som.[SODetailMaterialId]
-            					WHERE vw.[SOShipYear] = top_query.[SOShipYear] 
-            						AND vw.[SOShipWeek] = top_query.[SOShipWeek] 
-            						AND som.[SoSubLineType] <> 'Packaging'
-            						AND vw.[SONumber] = top_query.[SONumber] 
-            					FOR XML PATH('')
-            					) sub_query([list])
-            			) AS POList
-            	FROM [PIMS].[dbo].[CustomerSoPoSummaryVw] top_query
-            	GROUP BY top_query.[SOShipYear], top_query.[SOShipWeek], top_query.[SONumber]) det
-        ON main.[SOShipYear] = det.[ListSOShipYear] 
-            AND main.[SOShipWeek] = det.[ListSOShipWeek]
-            AND main.[SONumber] = det.[SONumber]
-) main
-ORDER BY [SOShipYear] DESC
-    ,[SOShipMonth] DESC
-    ,[SOShipWeek] DESC
-	,[CustomerName] ASC
-	,[SONumber] DESC
-	,[EDI_EndDate] DESC";
-
-                return await GetSqlData<SoEdiData>(query);
-            }
-            else
-            {
-                string storedProcedure = "[PIMS].[dbo].[SP_GetSoEdiData]";
-
-                return await GetSqlData<SoEdiData>(storedProcedure);
-            }
+            return await GetSqlData<SoEdiData>(storedProcedure);
         }
         //"Orders"
-        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId, bool includePackaging, bool includeUnLinked, string groupPO = "") //
+        public async Task<List<SoEdiData>> GetSoEdiDetailData(int ediId, bool includePackaging, bool includeUnLinked, string groupPO = "", bool includeLinked = false) //
         {
-            bool useSP = true;
+            string storedProcedure = string.Format("[PIMS].[dbo].[SP_GetEdiSearchDetailData] {0}, {1}, {2}, '{3}', {4}", ediId, (includePackaging) ? 1 : 0, (includeUnLinked) ? 1 : 0, groupPO, (includeLinked) ? 1 : 0);
 
-            if (!useSP)
-            {
-                string query = @"
-SELECT DISTINCT edi.[Edihdrid]   AS [EdiHdrId]
-    ,edi.[Editrnid] AS [EdiTrnId]
-	,edi.[Ponum]    AS [CustomerPO]
-    ,edi.[Item]		AS [ItemNo]
-    ,edi.[Ord_qty]	AS [OrderQty]
-    ,edi.[Price]
-	,edi.[TP_Name]	AS [CustomerName]
-    ,ISNULL(edi.[StartDate], '1900-01-01')	AS [StartDate]
-    ,ISNULL(edi.[CancelDate], '1900-01-01')	AS [EndDate]
-    ,ISNULL(edi.[SoDetailId], 0)	AS [SoDetailId]
-    ,ISNULL(edi.[ProductId], 0)		AS [ProductId]
-	,ISNULL(soh.[SONumber], '')		AS [SONumber]
-	,ISNULL(sod.[ForSoDetailId], 0) AS [ForSoDetailId]
-	,ISNULL(sod.[OrderQty], 0)		AS [SOOrderQty]
-	,ISNULL(sod.[Cost], 0.0)		AS [Cost]
-	,ISNULL(prod.[SKU], '')			AS [SKU]
-	,ISNULL(prod.[ProductName], '') AS [Description]
-
-	,edi.[Ord_qty] * edi.[Price]    AS [ExtPrice]
-
-	--,prod.[ProductFullDescription] AS [Description]
-FROM [PIMS].[edi].[EdiOrderDetailvw] edi
-	LEFT JOIN [PIMS].[dbo].[SODetail] sod
-		ON edi.[SoDetailId] = sod.[SODetailId]
-			AND edi.[ProductId] = sod.[ProductId]
-	LEFT JOIN [PIMS].[dbo].[SOHeader] soh
-		ON soh.[SOHeaderId] = sod.[SOHeaderId]
-	--LEFT JOIN [PIMS].[dbo].[PODetail] pod
-	--	ON sod.[SODetailId] = pod.[SODetailId]
-	LEFT JOIN [PIMS].[dbo].[Product] prod
-		ON prod.[ProductId] = sod.[ProductId]
-
-	LEFT JOIN [PIMS].[dbo].[SODetailMaterial] sodm
-		ON sodm.SODetailId = sod.[SODetailId]
-	LEFT JOIN [PIMS].[dbo].[SODetailMaterial] som
-		ON sodm.[SODetailMaterialId] = som.[SODetailMaterialId]
-WHERE edi.[Edihdrid] = {0}";
-
-                if (!includePackaging)
-                    query += @" AND ISNULL(som.[SoSubLineType], '') <> 'Packaging'";
-
-                if (!includeUnLinked)
-                    query += @" AND edi.[SODetailId] IS NOT NULL";
-
-                string fullQuery = string.Format(query, ediId);
-
-                return await GetSqlData<SoEdiData>(fullQuery);
-            }
-            else
-            {
-                string storedProcedure = string.Format("[PIMS].[dbo].[SP_GetEdiSearchDetailData] {0}, {1}, {2}, '{3}'", ediId, (includePackaging) ? 1 : 0, (includeUnLinked) ? 1 : 0, groupPO);
-
-                return await GetSqlData<SoEdiData>(storedProcedure);
-            }
+            return await GetSqlData<SoEdiData>(storedProcedure);
         }
 
         //"I2 Orders", "Orders"
@@ -928,79 +743,153 @@ ORDER BY [soShipYear], [soShipWeek]";
             return await GetSqlData<CustomerSoPoData>(fullQuery);
         }
         //"I2 Orders", "Orders"
-        public async Task<List<CustomerSoPoData>> GetCustomerSoPoDetailData(int soHeaderId, bool includePackaging = true)
+        public async Task<List<CustomerSoPoData>> GetCustomerSoPoDetailData(int soHeaderId, bool includePackaging = true, string groupPO = "")
         {
-            string fullQuery = "";
-            string query = @"
-SELECT ROW_NUMBER() OVER (ORDER BY vw.[CustomerName],vw.[SONumber],vw.[SOLineNo]) AS [Id]
-      ,ISNULL(vw.[CustomerName], '')		AS [CustomerName]
-      ,ISNULL(edi.[Ponum],vw.[CustomerPO])	AS [CustomerPO]
-      ,vw.[SONumber]
-      ,ISNULL(vw.[ProgramName], '')			AS [ProgramName]
-      ,vw.[SOHeaderId]
-      ,vw.[SODetailId]
-      ,vw.[SODate]
-      ,vw.[StartDate]
-      ,vw.[EndDate]
-      ,vw.[SOLineNo]
-      ,vw.[ProductId]
-      ,vw.[ProductNo]
-      ,vw.[ProductName]
-      ,vw.[SOQty]
-      ,vw.[Cost]
-      ,vw.[Price]
-      ,vw.[VendorPO]
-      ,vw.[VendorName]
-      ,vw.[POQty]
-      ,ISNULL(vw.[ShipmentDate], '1900-01-01') AS [ShipmentDate]
-      ,ISNULL(vw.[TrackingNumber], '') AS [TrackingNumber]
-      ,ISNULL(vw.[ShipToETA], '1900-01-01') AS [ShipToETA]
-      ,ISNULL(vw.[ShipmentQty], 0) AS [ShipmentQty]
-      ,vw.[SOShipYear]
-      ,vw.[SOShipMonth]
-      ,vw.[SOShipWeek]
-	  ,CAST(DATEADD(wk, DATEDIFF(wk,0,vw.[StartDate]), 0) AS DATE) AS [MondayOfTheWeek]
-	  ,som.[SoSubLineTypeId]
-	  ,som.[SoSubLineType]
-	  ,ISNULL(edidetail.[Edihdrid], 0)	AS [EdiHdrId]
-	  ,ISNULL(edidetail.[Editrnid], 0)	AS [EdiTrnId]
-	  ,ISNULL(edi.[Ponum], '')			AS [EDIPONumber]
-	  ,ISNULL(edi.[RefPoNum], '')		AS [EDIRefPONumber]
-	  ,ISNULL(sod.[Notes], '')			AS [SODetailNotes]
-	  ,ISNULL(pod.[Notes], '')			AS [PODetailNotes]
-	  ,ISNULL(sod.[Notes], '')			AS [Notes]	--  “Shipment Planning”
-FROM [PIMS].[dbo].[CustomerSoPoDetailVw] vw 
-	LEFT JOIN [PIMS].[dbo].[SODetailMaterial] som
-		ON vw.[SODetailMaterialId] = som.[SODetailMaterialId]
-	LEFT JOIN edi.[EdiTrn] edidetail
-		ON edidetail.[SoDetailId] = vw.SODetailId AND edidetail.[ProductId] = vw.[ProductId]
-	LEFT JOIN [PIMS].[dbo].[SODetail] sod
-		ON vw.[SoDetailId] = sod.[SODetailId]
-	LEFT JOIN [PIMS].[dbo].[PODetail] pod
-		ON vw.[PoDetailId] = pod.[PODetailId]
-	LEFT JOIN [edi].[EdiHdr] edi
-		ON edi.[Edihdrid] = edidetail.[Edihdrid]";
+            string storedProcedure = string.Format("[PIMS].[dbo].[SP_GetCustomerSoPoDetailData] {0}, {1}, '{2}'", soHeaderId, (includePackaging) ? 1 : 0, groupPO);
 
-            fullQuery = query;
-            if (soHeaderId > 0 || !includePackaging)
-            {
-                if (soHeaderId > 0)
-                {
-                    fullQuery += string.Format(@"
-WHERE vw.[SOHeaderId] = {0}", soHeaderId);
-                    if (!includePackaging) fullQuery += @"
-    AND som.[SoSubLineType] <> 'Packaging' ";
-                }
-                else
-                {
-                    fullQuery += @"WHERE som.[SoSubLineType] <> 'Packaging'"; 
-                }
-            }
+            return await GetSqlData<CustomerSoPoData>(storedProcedure);
 
-            fullQuery = fullQuery + @"
-ORDER BY vw.[SONumber], vw.[SOLineNo]";
+            //            string fullQuery = "";
+            //            string query = "";
 
-            return await GetSqlData<CustomerSoPoData>(fullQuery);
+            //            if (string.IsNullOrWhiteSpace(groupPO))
+            //            {
+            //                query = @"
+            //SELECT ROW_NUMBER() OVER (ORDER BY vw.[CustomerName],vw.[SONumber],vw.[SOLineNo]) AS [Id]
+            //      ,ISNULL(vw.[CustomerName], '')		AS [CustomerName]
+            //      ,ISNULL(edi.[Ponum],vw.[CustomerPO])	AS [CustomerPO]
+            //      ,vw.[SONumber]
+            //      ,ISNULL(vw.[ProgramName], '')			AS [ProgramName]
+            //      ,vw.[SOHeaderId]
+            //      ,vw.[SODetailId]
+            //      ,vw.[SODate]
+            //      ,vw.[StartDate]
+            //      ,vw.[EndDate]
+            //      ,vw.[SOLineNo]
+            //      ,vw.[ProductId]
+            //      ,vw.[ProductNo]
+            //      ,vw.[ProductName]
+            //      ,vw.[SOQty]
+            //      ,vw.[Cost]
+            //      ,vw.[Price]
+            //      ,vw.[VendorPO]
+            //      ,vw.[VendorName]
+            //      ,vw.[POQty]
+            //      ,ISNULL(vw.[ShipmentDate], '1900-01-01') AS [ShipmentDate]
+            //      ,ISNULL(vw.[TrackingNumber], '') AS [TrackingNumber]
+            //      ,ISNULL(vw.[ShipToETA], '1900-01-01') AS [ShipToETA]
+            //      ,ISNULL(vw.[ShipmentQty], 0) AS [ShipmentQty]
+            //      ,vw.[SOShipYear]
+            //      ,vw.[SOShipMonth]
+            //      ,vw.[SOShipWeek]
+            //	  ,CAST(DATEADD(wk, DATEDIFF(wk,0,vw.[StartDate]), 0) AS DATE) AS [MondayOfTheWeek]
+            //	  ,som.[SoSubLineTypeId]
+            //	  ,som.[SoSubLineType]
+            //	  ,ISNULL(edidetail.[Edihdrid], 0)	AS [EdiHdrId]
+            //	  ,ISNULL(edidetail.[Editrnid], 0)	AS [EdiTrnId]
+            //	  ,ISNULL(edi.[Ponum], '')			AS [EDIPONumber]
+            //	  ,ISNULL(edi.[RefPoNum], '')		AS [EDIRefPONumber]
+            //	  ,ISNULL(sod.[Notes], '')			AS [SODetailNotes]
+            //	  ,ISNULL(pod.[Notes], '')			AS [PODetailNotes]
+            //	  ,ISNULL(sod.[Notes], '')			AS [Notes]	--  “Shipment Planning”
+            //FROM [PIMS].[dbo].[CustomerSoPoDetailVw] vw 
+            //	LEFT JOIN [PIMS].[dbo].[SODetailMaterial] som
+            //		ON vw.[SODetailMaterialId] = som.[SODetailMaterialId]
+            //	LEFT JOIN edi.[EdiTrn] edidetail
+            //		ON edidetail.[SoDetailId] = vw.SODetailId AND edidetail.[ProductId] = vw.[ProductId]
+            //	LEFT JOIN [PIMS].[dbo].[SODetail] sod
+            //		ON vw.[SoDetailId] = sod.[SODetailId]
+            //	LEFT JOIN [PIMS].[dbo].[PODetail] pod
+            //		ON vw.[PoDetailId] = pod.[PODetailId]
+            //	LEFT JOIN [edi].[EdiHdr] edi
+            //		ON edi.[Edihdrid] = edidetail.[Edihdrid]";
+
+            //                fullQuery = query;
+            //                if (soHeaderId > 0 || !includePackaging)
+            //                {
+            //                    if (soHeaderId > 0)
+            //                    {
+            //                        fullQuery += string.Format(@"
+            //WHERE vw.[SOHeaderId] = {0}", soHeaderId);
+            //                        if (!includePackaging) fullQuery += @"
+            //    AND som.[SoSubLineType] <> 'Packaging' ";
+            //                    }
+            //                    else
+            //                    {
+            //                        fullQuery += @"WHERE som.[SoSubLineType] <> 'Packaging'";
+            //                    }
+            //                }
+
+            //                fullQuery = fullQuery + @"
+            //ORDER BY vw.[SONumber], vw.[SOLineNo]";
+            //            }
+            //            else
+            //            {
+            //                query = @"
+            //SELECT ROW_NUMBER() OVER (ORDER BY [CustomerName],[SONumber],[SOLineNo]) AS [Id], *
+            //FROM (
+            //	SELECT DISTINCT ISNULL(vw.[CustomerName], '')		AS [CustomerName]
+            //      ,[GroupPO]							AS [CustomerPO]
+            //      ,vw.[SONumber]
+            //      ,ISNULL(vw.[ProgramName], '')			AS [ProgramName]
+            //      ,vw.[SOHeaderId]
+            //      ,vw.[SODetailId]
+            //      ,vw.[SODate]
+            //      ,vw.[StartDate]
+            //      ,vw.[EndDate]
+            //      ,vw.[SOLineNo]
+            //      ,vw.[ProductId]
+            //      ,vw.[ProductNo]
+            //      ,vw.[ProductName]
+            //      ,vw.[SOQty]
+            //      ,vw.[Cost]
+            //      ,vw.[Price]
+            //      ,vw.[VendorPO]
+            //      ,vw.[VendorName]
+            //      ,vw.[POQty]
+            //      ,ISNULL(vw.[ShipmentDate], '1900-01-01') AS [ShipmentDate]
+            //      ,ISNULL(vw.[TrackingNumber], '') AS [TrackingNumber]
+            //      ,ISNULL(vw.[ShipToETA], '1900-01-01') AS [ShipToETA]
+            //      ,ISNULL(vw.[ShipmentQty], 0) AS [ShipmentQty]
+            //      ,vw.[SOShipYear]
+            //      ,vw.[SOShipMonth]
+            //      ,vw.[SOShipWeek]
+            //	  ,CAST(DATEADD(wk, DATEDIFF(wk,0,vw.[StartDate]), 0) AS DATE) AS [MondayOfTheWeek]
+            //	  ,som.[SoSubLineTypeId]
+            //	  ,som.[SoSubLineType]
+            //	  ,0	AS [EdiHdrId]
+            //	  ,0	AS [EdiTrnId]
+            //	  ,ISNULL(edi.[GroupPO], '')		AS [EDIPONumber]
+            //	  ,ISNULL(edi.[RefPoNum], '')		AS [EDIRefPONumber]
+            //	  ,ISNULL(sod.[Notes], '')			AS [SODetailNotes]
+            //	  ,ISNULL(pod.[Notes], '')			AS [PODetailNotes]
+            //	  ,ISNULL(sod.[Notes], '')			AS [Notes]	--  “Shipment Planning”
+            //	FROM [PIMS].[dbo].[CustomerSoPoDetailVw] vw 
+            //		LEFT JOIN [PIMS].[dbo].[SODetailMaterial] som
+            //			ON vw.[SODetailMaterialId] = som.[SODetailMaterialId]
+            //		LEFT JOIN edi.[EdiTrn] edidetail
+            //			ON edidetail.[SoDetailId] = vw.SODetailId AND edidetail.[ProductId] = vw.[ProductId]
+            //		LEFT JOIN [PIMS].[dbo].[SODetail] sod
+            //			ON vw.[SoDetailId] = sod.[SODetailId]
+            //		LEFT JOIN [PIMS].[dbo].[PODetail] pod
+            //			ON vw.[PoDetailId] = pod.[PODetailId]
+            //		LEFT JOIN [edi].[EdiHdr] edi
+            //			ON edi.[Edihdrid] = edidetail.[Edihdrid]
+            //	WHERE edi.[GroupPO] = '{0}'";
+
+            //                fullQuery = string.Format(query, groupPO);
+            //                if (!includePackaging)
+            //                {
+            //                    if (!includePackaging) fullQuery += @"
+            //    AND som.[SoSubLineType] <> 'Packaging' ";
+            //                }
+
+            //                fullQuery = fullQuery + @"
+            //)result
+            //ORDER BY [SONumber], [SOLineNo]";
+            //            }
+
+            //            return await GetSqlData<CustomerSoPoData>(fullQuery);
         }
 
         //"Shipments"
@@ -1037,6 +926,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY [ShipmentHeaderId],[ShipmentDetailId]) AS [Id
       ,ISNULL(soh.[StartDate], '1900-01-01') AS [StartDate]	  
       ,ISNULL(soh.[SONumber], '') AS [SONumber]   
       ,ISNULL(sDetail.[TransportationMode], '') AS [TransportationMode]  
+	  ,ISNULL(pod.[ReceivedQty], 0)			AS [ReceivedQty]
+	  ,pod.[OrderQty] - ISNULL(pod.[ReceivedQty], 0) AS [RemQty]
 
   FROM [PIMS].[dbo].[ShipmentDetailvw] sDetail 
 	LEFT JOIN [PIMS].[dbo].[PODetail] pod
@@ -1064,10 +955,14 @@ ORDER BY [BusinessPartnerName]";
             return await GetSqlData<POOpenVendor>(query);
         }
         //"Shipments"
-        public async Task<List<ShippingData>> GetOpenPOShipmentData(string poNo = "") 
+        public async Task<List<ShippingData>> GetOpenPOShipmentData(string poNo = "", bool isNew = false) 
         {
             string fullQuery = "";
-            string query = @"
+            string query = "";
+
+            if (!isNew)
+            {
+                query = @"
 --POOpenDetail
 SELECT ROW_NUMBER() OVER (ORDER BY openpo.[PONumber], ISNULL(shipment.[ShipmentDetailId], 0), openpo.[ProductNo]) AS [Id]
       ,openpo.[BusinessPartnerId] AS [VendorId]
@@ -1101,6 +996,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY openpo.[PONumber], ISNULL(shipment.[ShipmentD
       --,ISNULL(forprod.[ProductName], '')  AS [ForProductName]
       ,ISNULL(shipment.[ShipmentQty], 0)    AS [LastShipmentQty]
       ,ISNULL(shipment.[TransportationMode], '') AS [TransportationMode]  
+	  ,ISNULL(pod.[ReceivedQty], 0)			AS [ReceivedQty]
+	  ,openpo.[OrderQty] - ISNULL(pod.[ReceivedQty], 0) AS [RemQty]
 FROM [PIMS].[dbo].[POOpenDetailVw] openpo
 	LEFT JOIN [PIMS].[dbo].[ShipmentDetailVw] shipment
 		ON openpo.[PODetailId] = shipment.[PODetailId]
@@ -1113,18 +1010,68 @@ FROM [PIMS].[dbo].[POOpenDetailVw] openpo
 	LEFT JOIN [PIMS].[dbo].[Product] forprod 
 		 ON forsod.ProductId = forprod.ProductId ";
 
-            if (!string.IsNullOrWhiteSpace(poNo))
-            {
-                query += @"
+                if (!string.IsNullOrWhiteSpace(poNo))
+                {
+                    query += @"
 WHERE openpo.[PONumber] = '{0}'";
 
-                fullQuery = string.Format(query, poNo) + @"
+                    fullQuery = string.Format(query, poNo) + @"
 ORDER BY openpo.[PONumber], ISNULL(shipment.[ShipmentDetailId], 0), openpo.[ProductNo]";
+                }
+                else
+                {
+                    fullQuery = query + @"
+ORDER BY openpo.[PONumber], ISNULL(shipment.[ShipmentDetailId], 0), openpo.[ProductNo]";
+                }
             }
             else
             {
-                fullQuery = query + @"
-ORDER BY openpo.[PONumber], ISNULL(shipment.[ShipmentDetailId], 0), openpo.[ProductNo]";
+                query = @"
+--POOpenDetail
+SELECT ROW_NUMBER() OVER (ORDER BY [PONumber], [ProductNo]) AS [Id], * 
+FROM (
+	SELECT DISTINCT openpo.[BusinessPartnerId] AS [VendorId]
+		,openpo.[BusinessPartnerName] AS [VendorName]
+		,ISNULL(openpo.[ProgramName], '') AS [ProgramName]
+		,openpo.[POHeaderId]
+		,openpo.[PONumber]	--
+		,openpo.[PODetailId]	--
+		,openpo.[ProductNo]	--
+		,openpo.[ProductName]	--
+		,openpo.[OrderQty]	--
+		--ShippingData
+		,0			AS [ShipmentHeaderId]
+		,'1900-01-01'	AS [ShipmentDate]
+		,''			AS [InvoiceNo]
+		,''			AS [TrackingNumber]
+		,'1900-01-01'	AS [ShipToETA]
+		,ISNULL(shipment.[BusinessPartnerName], '')       AS [BusinessPartnerName]
+		,0			AS [ShipmentQty]
+		,0			AS [ShipmentDetailId]
+		,ISNULL(shipment.[ProductId], 0)      AS [ProductId]
+		,ISNULL(sod.[SODetailId], 0)          AS [SODetailId]
+		,ISNULL(sod.[ForSoDetailId], 0)       AS [ForSoDetailId]
+		,ISNULL(forsod.ProductId, 0)          AS [ForProductId]
+		,ISNULL(forprod.[ProductNo], '')      AS [ForProductNo]
+		,0			AS [LastShipmentQty]
+		,''			AS [TransportationMode]  
+		,ISNULL(pod.[ReceivedQty], 0)			AS [ReceivedQty]
+		,CASE WHEN (openpo.[OrderQty] - ISNULL(pod.[ReceivedQty], 0)) < 0 THEN 0 ELSE (openpo.[OrderQty] - ISNULL(pod.[ReceivedQty], 0)) END AS [RemQty]
+	FROM [PIMS].[dbo].[POOpenDetailVw] openpo
+		LEFT JOIN [PIMS].[dbo].[ShipmentDetailVw] shipment
+			ON openpo.[PODetailId] = shipment.[PODetailId]
+		LEFT JOIN [PIMS].[dbo].[PODetail] pod
+			ON openpo.[PODetailId] = pod.[PODetailId]
+		LEFT JOIN [PIMS].[dbo].[SODetail] sod
+			ON pod.[SODetailId] = sod.[SODetailId]
+		LEFT JOIN [PIMS].[dbo].[SODetail] forsod
+			ON sod.[SODetailId] = forsod.[SODetailId]
+		LEFT JOIN [PIMS].[dbo].[Product] forprod 
+			 ON forsod.ProductId = forprod.ProductId 
+WHERE openpo.[PONumber] = '{0}'
+)result
+ORDER BY [PONumber], [ProductNo]";
+                fullQuery = string.Format(query, poNo);
             }
 
             return await GetSqlData<ShippingData>(fullQuery);

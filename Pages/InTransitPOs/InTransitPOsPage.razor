@@ -172,44 +172,28 @@
                         </DxFormLayoutItem>
                           <DxFormLayoutItem Caption="Open POs:" ColSpanMd="6">
                             @{
-                                //SqlData sqlData = new SqlData();
-                                //POOpenDetailData = sqlData.GetPOOpenDetailData(shipping.VendorId).Result;
-                                //var openPOsDirect = sqlData.GetPOOpenDetailData(shipping.VendorId).Result;
-                                //var openPOs = POOpenDetailData.Where(x => x.VendorId == shipping.VendorId).Select(x => x.PONumber).Distinct().ToList();
                                 openPOList = GetPOListData(shipping.VendorId);
                             }
-                            @* <DxComboBox Data="@openPOs"
-                                        NullText="Select PO..."
-                                        FilteringMode="DataGridFilteringMode.Contains"
-                                        @bind-Value="@shipping.POHeaderId"
-                                        TextFieldName="PONumber"
-                                        ValueFieldName="POHeaderId">             
-                            </DxComboBox> *@
-                            @* <DxComboBox Data="@openPOs"
-                                        NullText="Select PO..."
-                                        FilteringMode="DataGridFilteringMode.Contains"
-                                        TextFieldName="PONumber"
-                                        ValueFieldName="POHeaderId"
-                                        ValueChanged="(int newCellValue) => {
-                                                    shipping.POHeaderId = newCellValue;
-                                                    shipping.PONumber = openPOs.Where(c => c.POHeaderId == newCellValue).FirstOrDefault()?.PONumber;
-                                            }">                                        
-                            </DxComboBox> *@
                             <DxComboBox Data="@openPOList"
                                         NullText="Select PO..."
                                         FilteringMode="DataGridFilteringMode.Contains"
                                         TextFieldName="LookupText"
                                         ValueFieldName="LookupValue"
                                         Value="@POHeaderIdSelected"
+                                        ReadOnly="!isVendorEditable"
                                         ValueChanged="(int newCellValue) => {
                                                     shipping.POHeaderId = newCellValue;
                                                     POHeaderIdSelected = shipping.POHeaderId;
-                                                    //shipping.PONumber = POOpenDetailData.Where(c => c.POHeaderId == shipping.POHeaderId).FirstOrDefault()?.PONumber;
-                                                    //AddToPOListGridData(POOpenDetailData.Where(c => c.POHeaderId == shipping.POHeaderId).FirstOrDefault());
+                                                    ShipmentHeaderIdSelected = shipping.ShipmentHeaderId;
+
                                                     ShippingData poSelected = OpenPOShipmentData.Where(c => c.POHeaderId == shipping.POHeaderId).FirstOrDefault();
-                                                    //poSelected.PONumber = poSelected?.PONumber;
-                                                    AddToPOListGridData(poSelected);
-                                                    LoadItemGridData(poSelected.PONumber);
+                                                    AddToPOListGridDataByPO(poSelected, true); // New entry
+
+                                                    if (ShipmentHeaderIdSelected == 0)
+                                                        LoadItemGridDataByPO(poSelected.PONumber);
+                                                    else
+                                                        LoadItemGridDataByShipmentHeaderId(ShipmentHeaderIdSelected);
+
                                             }">
                                 @* Value="@shipping.POHeaderId" *@
                             </DxComboBox>
@@ -319,62 +303,31 @@
                                 <Columns>
                                     <DxGridSelectionColumn Width="75px"/>
                                     <DxGridDataColumn FieldName="ProductNo" Caption="Product No" ReadOnly="true" MinWidth="100" Width="100" />
-                                    <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" MinWidth="50" />
                                     <DxGridDataColumn FieldName="ForProductNo" Caption="For Product No" ReadOnly="true" MinWidth="110" Width="120" />
+
                                     <DxGridDataColumn FieldName="OrderQty" Caption="PO Order Units" DisplayFormat="n0" ReadOnly="true" MinWidth="50" Width="90" TextAlignment="GridTextAlignment.Right">
                                         <EditSettings>
                                             <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="true" NullText="Order Qty" />
                                         </EditSettings>
                                     </DxGridDataColumn>
+
+                                    <DxGridDataColumn FieldName="RemQty" Caption="Remaining Units" DisplayFormat="n0" ReadOnly="true" MinWidth="50" Width="90" TextAlignment="GridTextAlignment.Right">
+                                        <EditSettings>
+                                            <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="true" NullText="Rem Qty" />
+                                        </EditSettings>
+                                    </DxGridDataColumn>
+
                                     <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" ReadOnly="false" MinWidth="50" Width="90" TextAlignment="GridTextAlignment.Right">
                                         <EditSettings>
                                             <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="false" NullText="Ship Qty" InputCssClass="focus-text-box" />
                                         </EditSettings>
-                                        @* <EditSettings>
-                                            <DxSpinEditSettings ShowSpinButtons="false" ReadOnly="false" NullText="Ship Qty" />
-                                        </EditSettings> *@
-                                       @*  <CellEditTemplate Context="CellEditTemplateContext">
-                                            @{
-                                               var shipping = (ShippingData)EditFormContext.EditModel;
-                                            }
-                                            <CascadingValue Name="FocusOnEditStart" Value="CellEditTemplateContext.DataColumn.FieldName == FocusedColumn">
-
-                                            </CascadingValue>
-                                        </CellEditTemplate> *@
                                     </DxGridDataColumn>
-                                    @* <DxGridCommandColumn Width="150px" Visible="true"
-                                                         DeleteButtonVisible="false"
-                                                         EditButtonVisible="true"
-                                                         CancelButtonVisible="true"
-                                                         SaveButtonVisible="true"
-                                                         NewButtonVisible="false"
-                                                         FixedPosition="GridColumnFixedPosition.Right" /> *@
+
+                                    <DxGridDataColumn FieldName="ProductName" Caption="Product Name" ReadOnly="true" MinWidth="50" />
                                 </Columns>
-                                @* <ToolbarTemplate>
-                                    <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
-                                        <Items>
-                                            <DxToolbarItem BeginGroup="true" Alignment="ToolbarItemAlignment.Left">
-                                                <Template Context="toolbar_item_context">
-                                                    <div class="d-flex flex-row align-items-center">
-                                                        <div class="me-2">Select All Checkbox Mode:</div>
-                                                        <DxComboBox Label="" Data="@SelectAllCheckboxModes"
-                                                                    @bind-Value="@CurrentSelectAllCheckboxMode" />
-                                                    </div>
-                                                </Template>
-                                            </DxToolbarItem>
-                                        </Items>
-                                    </DxToolbar>
-                                </ToolbarTemplate> *@
                             </DxGrid>
                         </DxFormLayoutItem>
 
-                        @* <DxFormLayoutItem ColSpanMd="12">
-                            <DxButton Text="Cancel" SubmitFormOnClick="true" Click="@CancelAddItem" IconCssClass="oi oi-cancel" CssClass="dxbl-btn dxbl-btn-secondary"></DxButton>
-                            <DxButton Text="Save" SubmitFormOnClick="false" Click="@UpdateAddItem" IconCssClass="oi oi-save" CssClass="dxbl-btn dxbl-btn-primary"></DxButton>
-                        </DxFormLayoutItem> *@
-                        @* <DxFormLayoutItem >
-                            <DxButton Click="ItemGrid_Click" Text="BatchEdit"></DxButton>
-                        </DxFormLayoutItem> *@
                     </DxFormLayout>
                 </EditFormTemplate>
                 <ToolbarTemplate Context="GridToolbar">

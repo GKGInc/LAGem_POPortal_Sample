@@ -62,9 +62,13 @@ namespace LAGem_POPortal.Models
 
         public string SODetailNotes { get; set; }
         public string PODetailNotes { get; set; }
-        public string Notes { get; set; } 
+        public string Notes { get; set; }
 
-        
+        public string TransportationMode { get; set; }
+        public string ShipmentDateJoined { get; set; }
+        public string ShipToETAJoined { get; set; }
+
+
         // Link columns
         public bool IsItemLinked { get; set; }
         public string LinkedStatus { get; set; }

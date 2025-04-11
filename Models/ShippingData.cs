@@ -20,17 +20,19 @@ namespace LAGem_POPortal.Models
         public string PONumber { get; set; }
         public string ProductNo { get; set; }
         public string ProductName { get; set; }
+
         public int OrderQty { get; set; }
+        public int ReceivedQty { get; set; } = 0;
+        public int RemQty { get; set; } = 0;
         public int ShipmentQty { get; set; }
+
         public int ShipmentDetailId { get; set; }
         public int PODetailId { get; set; }
         public int ProductId { get; set; }
 
-
         public int POHeaderId { get; set; }
         public int SOHeaderId { get; set; }
         public int SODetailId { get; set; }
-
 
         public int VendorId { get; set; }
         public string VendorName { get; set; }
@@ -42,7 +44,6 @@ namespace LAGem_POPortal.Models
         public DateTime EndDate { get; set; }
         public DateTime StartDate { get; set; }
         public string SONumber { get; set; }
-
 
         public string ForProductNo { get; set; }
         public int LastShipmentQty { get; set; }

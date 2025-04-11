@@ -59,6 +59,7 @@ namespace LAGem_POPortal.Models
 
         public string VendorName { get; set; } = "";
         public string TransportationMode { get; set; } = "";
+        public string VendorPO { get; set; }
 
 
         // Linked SO columns

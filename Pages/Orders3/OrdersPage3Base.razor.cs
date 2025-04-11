@@ -14,6 +14,7 @@ using Microsoft.JSInterop;
 using DevExpress.CodeParser;
 using static DevExpress.Drawing.Printing.Internal.DXPageSizeInfo;
 using DevExpress.DashboardCommon;
+using DevExpress.XtraReports.Design.ParameterEditor;
 
 namespace LAGem_POPortal.Orders3
 {
@@ -384,6 +385,15 @@ namespace LAGem_POPortal.Orders3
 
             if (callbackProcessName == "SaveLinks")
             {
+                if (LinkSOOrderDetailGridData != null && LinkEdiOrderDetailGridData != null)
+                {
+                    if (LinkSOOrderDetailGridData.Count() == 0 || LinkEdiOrderDetailGridData.Count() == 0)
+                    {
+                        DisplayPopupMessage("No EDI LIne items where linked to SO Line Items.");
+                        return;
+                    }
+                }
+
                 //@PopupLinkingFormContext.CloseCallback
                 windowRefLinking.CloseAsync();
 
@@ -400,7 +410,7 @@ namespace LAGem_POPortal.Orders3
             if (callbackProcessName == "UnLinkPOSave")
             {
                 await OnUnLinkPOItemSave(unLinkingRow, false);
-            }            
+            }
             if (callbackProcessName == "SaveBlankOrderLinks")
             {
                 await ToggleSearchPopupVisibilityAsync();
@@ -722,7 +732,7 @@ namespace LAGem_POPortal.Orders3
         {
             // SOGridData = await sqlData.GetCustomerSoData();
         }
-        
+
         public async Task DetailGrid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
         {
             if (e.IsNew)
@@ -741,32 +751,96 @@ namespace LAGem_POPortal.Orders3
         }
         public async Task DetailGrid_EditModelSaving(GridEditModelSavingEventArgs e)
         {
-            e.Cancel = true; 
+            e.Cancel = true;
+
+            bool saveNewCommentToDetail = true;
             string query = "";
             string fullQuery = "";
 
             if (e.EditModel.GetType() == typeof(SoEdiData))
             {
                 var savingObject = (SoEdiData)e.EditModel;
-
-                //if (e.IsNew)
-                //    await InsertOrderDataAsync(savingObject);
-                //else
-                //{
-                //    if (savingObject.Id == 0)
-                //        await InsertOrderDataAsync(savingObject);
-                //    else
-                //        await UpdateOrderDataAsync(savingObject);
-                //}
+                bool isGroupedPo = savingObject.IsGroupPO;
+                string groupedPo = (savingObject.GroupPO == null) ? "" : savingObject.GroupPO;
 
                 if (e.IsNew || savingObject.Id == 0)
                 {
-                    //Insert
+                    //Insert "Comment" from EDI Tab
+                    string comment = savingObject.Notes;
+                    //if (!string.IsNullOrEmpty(expandedRow.Comments))
+                    //{
+                    //    comment = expandedRow.Comments + "." + comment;
+                    //}
+                    ////Update
+                    //query = @"UPDATE [PIMS].[dbo].[SOHeader] SET [Comments] = '{0}' WHERE [SOHeaderId] = {1}";
+                    //fullQuery = string.Format(query, comment, expandedRow.SOHeaderId);
 
+                    if (!saveNewCommentToDetail)
+                    {
+                        // see EDITabEditFormContext
+                        if (!string.IsNullOrEmpty(expandedRow.Notes))
+                        {
+                            comment = expandedRow.Comments + "." + comment;
+                        }
+                        //Update
+                        query = @"UPDATE [PIMS].[dbo].[SOHeader] SET [Comments] = '{0}' WHERE [SOHeaderId] = {1}";
+                        fullQuery = string.Format(query, comment, expandedRow.SOHeaderId);
+
+                        try
+                        {
+                            using (var uow = new UnitOfWork())
+                            {
+                                await uow.ExecuteNonQueryAsync(fullQuery);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            DisplayPopupMessage("Error Saving [DetailGrid_EditModelSaving] EDI Tab Comment:" + ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        foreach (SoEdiData data in EDIOrdersDetailGridData)
+                        {
+                            data.Notes += " " + comment;
+                        }
+
+                        query = @"
+UPDATE [PIMS].[edi].[EdiTrn] SET [Notes] = LTRIM(ISNULL([Notes],'') + '' + '{0}') WHERE [EdiHdrId] = {1}
+UPDATE [PIMS].[dbo].[SODetail] SET [Notes] = LTRIM(ISNULL([Notes],'') + '' + '{0}') WHERE [SOHeaderId] = {2}
+";
+                        fullQuery = string.Format(query, comment, expandedRow.EdiHdrId, expandedRow.SOHeaderId);
+
+                        try
+                        {
+                            using (var uow = new UnitOfWork())
+                            {
+                                await uow.ExecuteNonQueryAsync(fullQuery);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            DisplayPopupMessage("Error Saving [DetailGrid_EditModelSaving]:" + ex.Message);
+                        }
+                    }
+
+                    await OrdersDetailEDIGrid.CancelEditAsync();
+
+                    SqlData sqlData = new SqlData();
+                    EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(savingObject.EdiHdrId, false, false);
+
+                    //Update Jewelry/Packaging Tab data
+                    //SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.GroupPO); // Jewelry/Packaging Tab
+                    SOOrdersDetailGridData = (isGroupedPo) ? await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, groupedPo)
+                        : await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.CustomerPO); // Jewelry/Packaging Tab
+
+                    EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>().OrderBy(o => o.CustomerName);
+                    EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
+
+                    await InvokeAsync(StateHasChanged); // <-- refreshes
                 }
-                else
-                {
-                    //Update
+                else //Update
+                {                    
                     query = @"
 UPDATE [PIMS].[edi].[EdiTrn] SET [Notes] = '{0}' WHERE [EdiTrnId] = {1}
 UPDATE [PIMS].[dbo].[SODetail] SET [Notes] = '{0}' WHERE [SODetailId] = {2}
@@ -784,33 +858,97 @@ UPDATE [PIMS].[dbo].[SODetail] SET [Notes] = '{0}' WHERE [SODetailId] = {2}
                     {
                         DisplayPopupMessage("Error Saving [DetailGrid_EditModelSaving]:" + ex.Message);
                     }
+
+                    await OrdersDetailEDIGrid.CancelEditAsync();
+
+                    SqlData sqlData = new SqlData();
+                    EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(savingObject.EdiHdrId, false, false);
+
+                    SOOrdersDetailGridData = (isGroupedPo) ? await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, groupedPo)
+                        : await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.CustomerPO); // Jewelry/Packaging Tab
+
+                    EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>().OrderBy(o => o.CustomerName);
+                    EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
+
+                    await InvokeAsync(StateHasChanged); // <-- refreshes
                 }
-
-                await OrdersDetailEDIGrid.CancelEditAsync();
-
-                SqlData sqlData = new SqlData();
-                EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(savingObject.EdiHdrId, false, false);
-                OrdersHeaderGridData = await sqlData.GetSoEdiData();
             }
 
             if (e.EditModel.GetType() == typeof(CustomerSoPoData))
             {
                 var savingObject = (CustomerSoPoData)e.EditModel;
-
-                //if (e.IsNew)
-                //    await InsertOrderDataAsync(savingObject);
-                //else
-                //{
-                //    if (savingObject.Id == 0)
-                //        await InsertOrderDataAsync(savingObject);
-                //    else
-                //        await UpdateOrderDataAsync(savingObject);
-                //}
+                bool isGroupedPo = savingObject.IsGroupPO;
+                string groupedPo = groupedPo = (savingObject.GroupPO == null) ? "" : savingObject.GroupPO;
 
                 if (e.IsNew || savingObject.Id == 0)
                 {
-                    //Insert
+                    //Insert "Comment" from "Jewelry"
+                    string comment = savingObject.Notes;
+                    //if (!string.IsNullOrEmpty(expandedRow.Comments))
+                    //{
+                    //    comment = expandedRow.Comments + "." + comment;
+                    //}
+                    ////Update
+                    //query = @"UPDATE [PIMS].[dbo].[SOHeader] SET [Comments] = '{0}' WHERE [SOHeaderId] = {1}";
+                    //fullQuery = string.Format(query, comment, expandedRow.SOHeaderId);
 
+
+                    if (!saveNewCommentToDetail)
+                    {
+                        if (!string.IsNullOrEmpty(expandedRow.Notes))
+                        {
+                            comment = expandedRow.Notes + " " + comment;
+                        }
+                        //Update
+                        query = @"UPDATE [PIMS].[dbo].[SOHeader] SET [Notes] = '{0}' WHERE [SOHeaderId] = {1}";
+                        fullQuery = string.Format(query, comment, expandedRow.SOHeaderId);
+
+                        try
+                        {
+                            using (var uow = new UnitOfWork())
+                            {
+                                await uow.ExecuteNonQueryAsync(fullQuery);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            DisplayPopupMessage("Error Saving [DetailGrid_EditModelSaving] Jewelry Tab Comment:" + ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        query = @"
+UPDATE [PIMS].[edi].[EdiTrn] SET [Notes] = LTRIM(ISNULL([Notes],'') + '' + '{0}') WHERE [EdiHdrId] = {1}
+UPDATE [PIMS].[dbo].[SODetail] SET [Notes] = LTRIM(ISNULL([Notes],'') + '' + '{0}') WHERE [SOHeaderId] = {2}
+";
+                        fullQuery = string.Format(query, comment, expandedRow.EdiHdrId, expandedRow.SOHeaderId);
+
+                        try
+                        {
+                            using (var uow = new UnitOfWork())
+                            {
+                                await uow.ExecuteNonQueryAsync(fullQuery);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            DisplayPopupMessage("Error Saving [DetailGrid_EditModelSaving]:" + ex.Message);
+                        }
+                    }
+
+                    await OrdersDetailJewelryGrid.CancelEditAsync();
+
+                    SqlData sqlData = new SqlData();
+                    //Update EDI tab data
+                    EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(savingObject.EdiHdrId, false, false);
+
+                    //SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.GroupPO); // Jewelry/Packaging Tab
+                    SOOrdersDetailGridData = (isGroupedPo) ? await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, groupedPo)
+                        : await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.CustomerPO); // Jewelry/Packaging Tab
+                    EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>().OrderBy(o => o.CustomerName);
+                    EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
+
+                    await InvokeAsync(StateHasChanged); // <-- refreshes
                 }
                 else
                 {
@@ -832,16 +970,22 @@ UPDATE [PIMS].[dbo].[SODetail] SET [Notes] = '{0}' WHERE [SODetailId] = {2}
                     {
                         DisplayPopupMessage("Error Saving [DetailGrid_EditModelSaving]:" + ex.Message);
                     }
+
+                    await OrdersDetailJewelryGrid.CancelEditAsync();
+
+                    SqlData sqlData = new SqlData();
+                    //Update EDI tab data
+                    EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(savingObject.EdiHdrId, false, false);
+
+                    //SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.GroupPO); // Jewelry/Packaging Tab
+                    SOOrdersDetailGridData = (isGroupedPo) ? await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, groupedPo)
+                        : await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.CustomerPO); // Jewelry/Packaging Tab
+                    EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>().OrderBy(o => o.CustomerName);
+                    EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
+                    //OrdersHeaderGridData = await sqlData.GetSoEdiData();
+
+                    await InvokeAsync(StateHasChanged); // <-- refreshes
                 }
-
-                await OrdersDetailJewelryGrid.CancelEditAsync();
-
-                SqlData sqlData = new SqlData();
-                SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true); // Jewelry/Packaging Tab
-
-                EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>().OrderBy(o => o.CustomerName);
-                EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
-                OrdersHeaderGridData = await sqlData.GetSoEdiData();
             }
         }
         public async Task DetailGrid_DataItemDeleting(GridDataItemDeletingEventArgs e)
@@ -1184,7 +1328,7 @@ WHERE [SOHeaderId] = {0}";
         public async void OnSelectedSODataItemsChanged(IReadOnlyList<object> selectedDataItems) // SO Grid checkbox checked
         {
             ProcessSelectedSODataItemsChecked(selectedDataItems);
-            
+
             //int origCount = (SelectedSODataItems == null) ? 0 : SelectedSODataItems.Count();
             //int newCount = selectedDataItems.Count();
 
@@ -1312,9 +1456,13 @@ WHERE [SOHeaderId] = {0}";
 
             expandedRow = row;
 
+            bool isGroupedPo = expandedRow.IsGroupPO;
+            string groupedPo = expandedRow.GroupPO;
+
             SqlData sqlData = new SqlData();
-            EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(row.EdiHdrId, false, false); // EDI Tab
-            SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(row.SOHeaderId, true); // Jewelry/Packaging Tab
+            EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(row.EdiHdrId, false, false, groupedPo, true); // EDI Tab
+            SOOrdersDetailGridData = (isGroupedPo) ? await sqlData.GetCustomerSoPoDetailData(row.SOHeaderId, true, groupedPo) 
+                : await sqlData.GetCustomerSoPoDetailData(row.SOHeaderId, true, row.CustomerPO); // Jewelry/Packaging Tab
 
             EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>().OrderBy(o => o.CustomerName);
             EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
@@ -1421,6 +1569,13 @@ WHERE [SOHeaderId] = {0}";
 
         public async void LinkCustomerPOClick(SoEdiData row, string orderType = "SOOrder")
         {
+            //Clear any cached checked data
+            ClearLinkingStatus();
+            SelectedEDIDataItems = new List<object>();
+            SelectedSODataItems = new List<object>();
+            LinkEdiOrderDetailGridData = new List<SoEdiData>();
+            LinkSOOrderDetailGridData = new List<CustomerSoPoData>();
+
             if (orderType == "SOOrder")
             {
                 linkingRow = row;
@@ -1503,6 +1658,10 @@ WHERE [SOHeaderId] = {0}";
         }
         public async void OnSearchPOClick(EdiOrderDetailData row)
         {
+            //Clear any cached checked data
+            SelectedEDIDataItems = new List<object>();
+            SelectedSODataItems = new List<object>();
+
             if (isBlankOrder)
             {
                 selectedEdiRow = row;
@@ -1572,10 +1731,16 @@ WHERE [SOHeaderId] = {0}";
             if (LinkSOOrderDetailGridData != null &&
                 LinkEdiOrderDetailGridData != null)
             {
+                if (LinkSOOrderDetailGridData.Count() == 0 || LinkEdiOrderDetailGridData.Count() == 0)
+                {
+                    return;
+                }
+
                 bool isGroupedPo = selectedEdiRow.IsGroupPO;
                 string soItemNo = "";
                 string ediItemNo = "";
                 int ediTrnId = 0;
+                bool found = false;
 
                 try
                 {
@@ -1584,6 +1749,8 @@ WHERE [SOHeaderId] = {0}";
                         soItemNo = soItem.ProductNo;
                         ediItemNo = "";
                         ediTrnId = 0;
+                        found = false;
+                        SoEdiData selectedEdiItem = null;
 
                         if (soItem.SOQty > 0)
                         {
@@ -1591,6 +1758,8 @@ WHERE [SOHeaderId] = {0}";
                             {
                                 if (ediItem.ItemNo == soItemNo)
                                 {
+                                    found = true;
+                                    selectedEdiItem = ediItem;
                                     ediItemNo = ediItem.ItemNo;
                                     ediTrnId = ediItem.EdiTrnId;
 
@@ -1603,15 +1772,116 @@ WHERE [SOHeaderId] = {0}";
                                 }
                             }
 
-                            if (ediTrnId > 0)
+                            if (found)
                             {
-                                soItem.LinkedToId = ediTrnId;
-                                soItem.LinkedToName = ediItemNo;
-                                soItem.IsItemLinked = true;
-                                soItem.LinkedStatus = "Auto-Linked to " + ediItemNo;
+                                if (isGroupedPo)
+                                {
+                                    if (!string.IsNullOrWhiteSpace(ediItemNo))
+                                    {
+                                        soItem.LinkedToId = ediTrnId;
+                                        soItem.LinkedToName = ediItemNo;
+                                        soItem.IsItemLinked = true;
+                                        soItem.LinkedStatus = "Auto-Linked to " + ediItemNo;
+                                    }
+                                }
+                                else
+                                {
+                                    if (ediTrnId > 0)
+                                    {
+                                        soItem.LinkedToId = ediTrnId;
+                                        soItem.LinkedToName = ediItemNo;
+                                        soItem.IsItemLinked = true;
+                                        soItem.LinkedStatus = "Auto-Linked to " + ediItemNo;
+                                    }
+                                }
+
+                                if (useCheckboxLinking)
+                                {
+                                    if (isGroupedPo)
+                                    {
+                                        if (SelectedEDIDataItems == null)
+                                        {
+                                            SelectedEDIDataItems = new List<object>();
+                                            var list = SelectedEDIDataItems.Cast<SoEdiData>().ToList();
+                                            list.Add(selectedEdiItem);
+                                            SelectedEDIDataItems = list;
+                                        }
+                                        else
+                                        {
+                                            if (SelectedEDIDataItems.Cast<SoEdiData>().ToList().Where(x => x.LinkedToName == selectedEdiItem.LinkedToName).Count() == 0)
+                                            {
+                                                var list = SelectedEDIDataItems.Cast<SoEdiData>().ToList();
+                                                list.Add(selectedEdiItem);
+                                                SelectedEDIDataItems = list;
+                                            }
+                                        }
+
+                                        // Add entry to Checkbox list
+                                        if (SelectedSODataItems == null)
+                                        {
+                                            SelectedSODataItems = new List<object>();
+                                            var list = SelectedSODataItems.Cast<CustomerSoPoData>().ToList();
+                                            list.Add(soItem);
+                                            SelectedSODataItems = list;
+                                        }
+                                        else
+                                        {
+                                            if (SelectedSODataItems.Cast<CustomerSoPoData>().ToList().Where(x => x.SODetailId == soItem.SODetailId).Count() == 0)
+                                            {
+                                                var list = SelectedSODataItems.Cast<CustomerSoPoData>().ToList();
+                                                list.Add(soItem);
+                                                SelectedSODataItems = list;
+                                            }
+                                        }
+                                    }
+                                    else // !isGroupedPo
+                                    {
+                                        if (useCheckboxLinking)
+                                        {
+                                            if (SelectedEDIDataItems == null)
+                                            {
+                                                SelectedEDIDataItems = new List<object>();
+                                                var list = SelectedEDIDataItems.Cast<SoEdiData>().ToList();
+                                                list.Add(selectedEdiItem);
+                                                SelectedEDIDataItems = list;
+                                            }
+                                            else
+                                            {
+                                                if (SelectedEDIDataItems.Cast<SoEdiData>().ToList().Where(x => x.EdiTrnId == selectedEdiItem.EdiTrnId).Count() == 0)
+                                                {
+                                                    var list = SelectedEDIDataItems.Cast<SoEdiData>().ToList();
+                                                    list.Add(selectedEdiItem);
+                                                    SelectedEDIDataItems = list;
+                                                }
+                                            }
+
+                                            // Add entry to Checkbox list
+                                            if (SelectedSODataItems == null)
+                                            {
+                                                SelectedSODataItems = new List<object>();
+                                                var list = SelectedSODataItems.Cast<CustomerSoPoData>().ToList();
+                                                list.Add(soItem);
+                                                SelectedSODataItems = list;
+                                            }
+                                            else
+                                            {
+                                                if (SelectedSODataItems.Cast<CustomerSoPoData>().ToList().Where(x => x.SODetailId == soItem.SODetailId).Count() == 0)
+                                                {
+                                                    var list = SelectedSODataItems.Cast<CustomerSoPoData>().ToList();
+                                                    list.Add(soItem);
+                                                    SelectedSODataItems = list;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
+
+                    //int ediItemsSelected = (SelectedEDIDataItems == null) ? 0 : SelectedEDIDataItems.Count();
+                    //int soItemsSelected = (SelectedSODataItems == null) ? 0 : SelectedSODataItems.Count();
+
                 }
                 catch (Exception ex)
                 {
@@ -1727,7 +1997,7 @@ WHERE [SOHeaderId] = {0}";
                 {
                     foreach (SoEdiData item in SelectedEDIDataItems.Cast<SoEdiData>())
                     {
-                        await OnLinkPOItemClick(item, "unlink");                        
+                        await OnLinkPOItemClick(item, "unlink");
                     }
                 }
                 else
@@ -2012,7 +2282,7 @@ WHERE [SOHeaderId] = {0}";
         {
             bool isGroupedPo = selectedEdiRow.IsGroupPO;
 
-            if (process == "link")            
+            if (process == "link")
             {
                 if (isGroupedPo)
                 {
@@ -2543,12 +2813,15 @@ UPDATE [PIMS].[edi].[EdiHdr] SET [SoHeaderId] = NULL WHERE [Edihdrid] = {0}";
             OrdersHeaderGridData = await sqlData.GetSoEdiData();
             await InvokeAsync(StateHasChanged); // <-- refreshes
         }
-    
 
         public async Task UpdateGridCheckboxes()
         {
+            bool isChanges = false;
+
             if (SelectedEDIDataItems is IGridSelectionChanges edichanges)
             {
+                isChanges = true;
+
                 var invalid = edichanges.SelectedDataItems.Cast<SoEdiData>().Where(x => !x.IsItemLinked).ToList();
                 //invalid.ForEach(x => LinkEdiOrderDetailGrid.DeselectDataItem(x));
 
@@ -2565,6 +2838,8 @@ UPDATE [PIMS].[edi].[EdiHdr] SET [SoHeaderId] = NULL WHERE [Edihdrid] = {0}";
             }
             if (SelectedSODataItems is IGridSelectionChanges sochanges)
             {
+                isChanges = true;
+
                 var invalid = sochanges.SelectedDataItems.Cast<CustomerSoPoData>().Where(x => !x.IsItemLinked).ToList();
                 //invalid.ForEach(x => LinkSOOrderDetailGrid.DeselectDataItem(x));
 
@@ -2579,6 +2854,16 @@ UPDATE [PIMS].[edi].[EdiHdr] SET [SoHeaderId] = NULL WHERE [Edihdrid] = {0}";
                     dList.ForEach(x => LinkSOOrderDetailGrid.DeselectDataItem(x));
                 }
             }
+            if (!isChanges)
+            {
+                var editInvalid = LinkEdiOrderDetailGridData.Cast<SoEdiData>().Where(x => !x.IsItemLinked).ToList();
+                editInvalid.ForEach(x => LinkEdiOrderDetailGrid.DeselectDataItem(x));
+
+
+                var soInvalid = LinkSOOrderDetailGridData.Cast<CustomerSoPoData>().Where(x => !x.IsItemLinked).ToList();
+                soInvalid.ForEach(x => LinkSOOrderDetailGrid.DeselectDataItem(x));
+            }
+
         }
 
         public async Task SyncSelectedGridCheckboxes()
@@ -2739,25 +3024,32 @@ WHERE [Editrnid] = {1} AND [Edihdrid] = {0}";
                 }
             }
 
-            try
+            if (string.IsNullOrWhiteSpace(fullQuery))
             {
-                using (var uow = new UnitOfWork())
+                DisplayPopupMessage("No EDI LIne items where linked to SO Line Items.");
+            }
+            else
+            {
+                try
                 {
-                    await uow.ExecuteNonQueryAsync(fullQuery);
+                    using (var uow = new UnitOfWork())
+                    {
+                        await uow.ExecuteNonQueryAsync(fullQuery);
+                    }
                 }
+                catch (Exception ex)
+                {
+                    DisplayPopupMessage("Error Saving [SaveCustomerPOLinking]: [Query]=" + fullQuery + " [Message]=" + ex.Message);
+                }
+
+                //TogglePopupVisibilityAsync()
+                await windowRefLinking.CloseAsync();
+
+                SqlData sqlData = new SqlData();
+                OrdersHeaderGridData = await sqlData.GetSoEdiData();
+
+                await InvokeAsync(StateHasChanged); // <-- refreshes
             }
-            catch (Exception ex)
-            {
-                DisplayPopupMessage("Error Saving [SaveCustomerPOLinking]: [Query]=" + fullQuery + " [Message]=" + ex.Message);
-            }
-
-            //TogglePopupVisibilityAsync()
-            await windowRefLinking.CloseAsync();
-
-            SqlData sqlData = new SqlData();
-            OrdersHeaderGridData = await sqlData.GetSoEdiData();
-
-            await InvokeAsync(StateHasChanged); // <-- refreshes
         }
 
         #endregion

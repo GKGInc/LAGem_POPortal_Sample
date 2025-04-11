@@ -132,32 +132,73 @@
                             </div>
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
-                    @* <DxGridCommandColumn Context="CustomerPOContext" Width="45px">
+
+                    <DxGridDataColumn FieldName="CustomerPO" Caption="Customer PO" ReadOnly="true" />
+                    <DxGridDataColumn FieldName="Description" Caption="Description" ReadOnly="false" />
+                    <DxGridDataColumn FieldName="OrderQty" Caption="Order Qty" DisplayFormat="n0" ReadOnly="!isBlankOrder" />
+                    <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c" ReadOnly="!isBlankOrder" />
+                    <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" DisplayFormat="d" ReadOnly="!isBlankOrder" />
+                    <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" DisplayFormat="d" ReadOnly="!isBlankOrder" />
+                    <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" DisplayFormat="d" ReadOnly="false" Visible="false" />
+                    <DxGridDataColumn FieldName="IntransitUnits" Caption="Intransit Units" DisplayFormat="n0" ReadOnly="true" />
+
+                    <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="!isBlankOrder" />
+                    <DxGridDataColumn FieldName="QBSO" Caption="QB SO" ReadOnly="false" />
+
+                    <DxGridDataColumn FieldName="Comments" Caption="Comments" ReadOnly="false" />
+                    <DxGridDataColumn FieldName="PONumber" Caption="PO Numbers" ReadOnly="!isBlankOrder" />
+
+                    <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
+
+                    <DxGridCommandColumn Context="OrdersHeaderGridContext" Width="70px">
                         <HeaderTemplate>
-                            <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Un-Link" />
+                            <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Auto Forecast"
+                                      Click="@(() => {
+                                                isBlankOrder = true;
+                                                mainGridEditFormHeaderText = "Auto Forecast Order";
+                                                OrdersHeaderGrid.StartEditNewRowAsync();
+                                             })" />
                         </HeaderTemplate>
                         <CellDisplayTemplate>
-                            <div class="grid-cell-align-center">
-                                <DxButton IconCssClass="grid-icon grid-icon-undo"
-                                          RenderStyle="ButtonRenderStyle.Link" aria-label="Un-Link"
-                                          Click="@(() => {
-                                                var order = (SoEdiData)CustomerPOContext.DataItem;
-
-                                                if (order.IsLinked >= 1000000){
-                                                    isBlankOrder = true;
-                                                    mainGridEditFormHeaderText = "Auto Forecast Order";
-                                                    UnLinkCustomerPOClick((SoEdiData)CustomerPOContext.DataItem, "BlankOrder");
-                                                }
-                                                else
-                                                {
-                                                    isBlankOrder = false;
-                                                    mainGridEditFormHeaderText = "Un-Link Order";
-                                                    UnLinkCustomerPOClick((SoEdiData)CustomerPOContext.DataItem, "SOOrder");
-                                                }
-                                            })" />
-                            </div>
+                            @if (((System.Boolean)OrdersHeaderGridContext.GetRowValue("IsItemLinked")) == true || ((int)OrdersHeaderGridContext.GetRowValue("EdiHdrId") > 0))
+                            {
+                                <div class="grid-cell-align-center">
+                                    <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Edit"
+                                              Click="@(() => {
+                                                isBlankOrder = false;
+                                                OrdersHeaderGrid.StartEditRowAsync(OrdersHeaderGridContext.VisibleIndex);
+                                                mainGridEditFormHeaderText = "EDI Order Edit";
+                                            })">Edit</DxButton>
+                                </div>
+                            }
+                            else
+                            {
+                                if ((int)OrdersHeaderGridContext.GetRowValue("SOHeaderId") > 1000000)
+                                {
+                                    <div class="grid-cell-align-center">
+                                        <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Edit"
+                                                  Click="@(() => {
+                                                isBlankOrder = false;
+                                                OrdersHeaderGrid.StartEditRowAsync(OrdersHeaderGridContext.VisibleIndex);
+                                                mainGridEditFormHeaderText = "Auto Forecast Order Edit";
+                                            })">Edit</DxButton>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="grid-cell-align-center">
+                                        <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Edit"
+                                                  Click="@(() => {
+                                                isBlankOrder = false;
+                                                OrdersHeaderGrid.StartEditRowAsync(OrdersHeaderGridContext.VisibleIndex);
+                                                mainGridEditFormHeaderText = "SO Order Edit";
+                                            })">Edit</DxButton>
+                                    </div>
+                                }
+                            }
                         </CellDisplayTemplate>
-                    </DxGridCommandColumn> *@
+                    </DxGridCommandColumn>
+                                        
                     <DxGridCommandColumn Context="CustomerPOLinkedContext" Width="45px">
                         <HeaderTemplate>
                             <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Un-Link" />
@@ -194,90 +235,7 @@
                         </CellDisplayTemplate>
                     </DxGridCommandColumn>
 
-                    <DxGridDataColumn FieldName="CustomerPO" Caption="Customer PO" ReadOnly="true" />
-                    <DxGridDataColumn FieldName="Description" Caption="Description" ReadOnly="false" />
-                    <DxGridDataColumn FieldName="SONumber" Caption="SO Number" ReadOnly="!isBlankOrder" />
-                    <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" DisplayFormat="d" ReadOnly="!isBlankOrder" />
-                    <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" DisplayFormat="d" ReadOnly="!isBlankOrder" />
-                    <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" DisplayFormat="d" ReadOnly="false" Visible="false" />
-
-                    <DxGridDataColumn FieldName="OrderQty" Caption="Order Qty" DisplayFormat="n0" ReadOnly="!isBlankOrder" />
-                    @* <DxGridDataColumn FieldName="SORetail" Caption="Price" DisplayFormat="n3" ReadOnly="true" />
-                    <DxGridDataColumn FieldName="ShipmentQty" Caption="Shipment Qty" DisplayFormat="n0" ReadOnly="true" />
-                    <DxGridDataColumn FieldName="PONumber" Caption="PO Numbers" ReadOnly="true" /> *@
-                    @* <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking Numbers" ReadOnly="true" /> *@
-
-                    <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n2" ReadOnly="!isBlankOrder" />
-
-                    <DxGridDataColumn FieldName="IntransitUnits" Caption="Intransit Units" DisplayFormat="n0" ReadOnly="true" />
-
-                    <DxGridDataColumn FieldName="QBSO" Caption="QB SO" ReadOnly="false" />
-                    <DxGridDataColumn FieldName="Comments" Caption="Comments" ReadOnly="false" />
-                    <DxGridDataColumn FieldName="PONumber" Caption="PO Numbers" ReadOnly="!isBlankOrder" />
-                    <DxGridDataColumn FieldName="IsItemLinked" Caption="Is Linked" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
-
-                    @* <DxGridCommandColumn Width="100px" Visible="true"
-                    DeleteButtonVisible="false"
-                    EditButtonVisible="true"
-                    CancelButtonVisible="true"
-                    SaveButtonVisible="true"
-                    NewButtonVisible="true"
-                    FixedPosition="GridColumnFixedPosition.Right" /> *@
-                    <DxGridCommandColumn Context="OrdersHeaderGridContext" Width="70px">
-                        <HeaderTemplate>
-                            <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Auto Forecast"
-                                      Click="@(() => {
-                                                isBlankOrder = true;
-                                                mainGridEditFormHeaderText = "Auto Forecast Order";
-                                                OrdersHeaderGrid.StartEditNewRowAsync();
-                                             })" />
-                        </HeaderTemplate>
-                        <CellDisplayTemplate>
-                            @if (((System.Boolean)OrdersHeaderGridContext.GetRowValue("IsItemLinked")) == true || ((int)OrdersHeaderGridContext.GetRowValue("EdiHdrId") > 0))
-                            {
-                                <div class="grid-cell-align-center">
-                                    <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Edit"
-                                              Click="@(() => {
-                                                isBlankOrder = false;
-                                                OrdersHeaderGrid.StartEditRowAsync(OrdersHeaderGridContext.VisibleIndex);
-                                                mainGridEditFormHeaderText = "EDI Order Edit";
-                                            })">Edit</DxButton>
-                                </div>
-                            }
-                            else
-                            {
-                                @* <div class="grid-cell-align-center">
-                            <DxButton RenderStyle="ButtonRenderStyle.None" Text="Not Linked" />
-                            </div> *@
-
-                                if ((int)OrdersHeaderGridContext.GetRowValue("SOHeaderId") > 1000000)
-                                {
-                                    <div class="grid-cell-align-center">
-                                        <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Edit"
-                                                  Click="@(() => {
-                                                isBlankOrder = false;
-                                                OrdersHeaderGrid.StartEditRowAsync(OrdersHeaderGridContext.VisibleIndex);
-                                                mainGridEditFormHeaderText = "Auto Forecast Order Edit";
-                                            })">Edit</DxButton>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="grid-cell-align-center">
-                                        <DxButton RenderStyle="ButtonRenderStyle.Link" Text="Edit"
-                                                  Click="@(() => {
-                                                isBlankOrder = false;
-                                                OrdersHeaderGrid.StartEditRowAsync(OrdersHeaderGridContext.VisibleIndex);
-                                                mainGridEditFormHeaderText = "SO Order Edit";
-                                            })">Edit</DxButton>
-                                    </div>
-                                }
-                            }
-                        </CellDisplayTemplate>
-                    </DxGridCommandColumn>
-
                     <DxGridDataColumn FieldName="Archived" Caption="Archive" MinWidth="60" Width="65" ReadOnly="false" Visible="false" />
-                    @* <DxGridSelectionColumn Width="75px" /> *@
                     <DxGridSelectionColumn Width="75px">
                         <HeaderTemplate>
                             <text>Archive</text>
@@ -294,6 +252,7 @@
                         <text>@context.ColumnCaption: @context.GroupValueDisplayText</text>
                     }
                 </DataColumnGroupRowTemplate>
+
                 <EditFormTemplate Context="EditFormContext">
                     @{
                         var order = (SoEdiData)EditFormContext.EditModel;
@@ -490,10 +449,11 @@
                                         <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" MinWidth="85" DisplayFormat="d" Visible="false" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" MinWidth="85" Width="85" DisplayFormat="d" Visible="false"ReadOnly="true"  />
 
-                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c2" MinWidth="60" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ExtPrice" Caption="ExtPrice" DisplayFormat="c2" MinWidth="60" ReadOnly="true" />
+                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c" MinWidth="60" ReadOnly="true" />
+                                        <DxGridDataColumn FieldName="ExtPrice" Caption="ExtPrice" DisplayFormat="c" MinWidth="60" ReadOnly="true" />
 
                                         <DxGridDataColumn FieldName="Description" Caption="Description" MinWidth="60" ReadOnly="true" />
+                                        <DxGridDataColumn FieldName="VendorPO" Caption="Vendor PO" MinWidth="80" Width="95" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="VendorName" Caption="Factory" MinWidth="60" ReadOnly="true" />
 
                                         @*<DxGridDataColumn FieldName="ShipmentDate" Caption="Ship From Factory" DisplayFormat="d" MinWidth="85" ReadOnly="true" />*@
@@ -515,9 +475,13 @@
                                     <EditFormTemplate Context="EDITabEditFormContext">
                                         @{
                                             var ediDetail = (SoEdiData)EDITabEditFormContext.EditModel;
+                                            var soHeader = expandedRow;
                                         }
                                         <DxFormLayout CssClass="w-100">
                                             <DxFormLayoutItem Caption="Shipment Planning:" ColSpanMd="12">
+                                                @*<DxMemo @bind-Text="soHeader.Notes"
+                                                        ResizeMode="MemoResizeMode.VerticalAndHorizontal">
+                                                </DxMemo>*@
                                                 <DxMemo @bind-Text="ediDetail.Notes"
                                                         ResizeMode="MemoResizeMode.VerticalAndHorizontal">
                                                 </DxMemo>
@@ -584,17 +548,19 @@
                                         <DxGridDataColumn FieldName="ProductName" Caption="Product Name" MinWidth="80" Width="80" ReadOnly="true" Visible="false" />
 
                                         <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="c2" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c2" MinWidth="60" Width="65" ReadOnly="true" />
+                                        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="c" MinWidth="60" Width="65" ReadOnly="true" />
+                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c" MinWidth="60" Width="65" ReadOnly="true" />
 
                                         <DxGridDataColumn FieldName="VendorPO" Caption="Vendor PO" MinWidth="80" Width="95" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="VendorName" Caption="Vendor Name" MinWidth="80" ReadOnly="true" />
 
                                         <DxGridDataColumn FieldName="POQty" Caption="PO Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ShipmentDate" Caption="Ship From Factory" DisplayFormat="d" MinWidth="85" Width="90" />
+                                        @*<DxGridDataColumn FieldName="ShipmentDate" Caption="Ship From Factory" DisplayFormat="d" MinWidth="85" Width="90" />*@
+                                        <DxGridDataColumn FieldName="ShipmentDateJoined" Caption="Ship From Factory" DisplayFormat="d" MinWidth="85" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking No" MinWidth="80" Width="80" ReadOnly="true" />
 
-                                        <DxGridDataColumn FieldName="ShipToETA" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" Width="90" />
+                                        @*<DxGridDataColumn FieldName="ShipToETA" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" Width="90" />*@
+                                        <DxGridDataColumn FieldName="ShipToETAJoined" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" MinWidth="60" Width="90" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="Notes" Caption="Shipment Planning" DisplayFormat="n0" MinWidth="80" ReadOnly="false" />
 
@@ -607,9 +573,13 @@
                                     <EditFormTemplate Context="JewelryTabEditFormContext">
                                         @{
                                             var soDetail = (CustomerSoPoData)JewelryTabEditFormContext.EditModel;
+                                            var soHeader = expandedRow;
                                         }
                                         <DxFormLayout CssClass="w-100">
                                             <DxFormLayoutItem Caption="Shipment Planning:" ColSpanMd="12">
+                                                @*<DxMemo @bind-Text="soHeader.Notes"
+                                                        ResizeMode="MemoResizeMode.VerticalAndHorizontal">
+                                                </DxMemo>*@
                                                 <DxMemo @bind-Text="soDetail.Notes"
                                                         ResizeMode="MemoResizeMode.VerticalAndHorizontal">
                                                 </DxMemo>
@@ -658,17 +628,19 @@
                                         <DxGridDataColumn FieldName="ProductName" Caption="Product Name" MinWidth="80" Width="80" ReadOnly="true" Visible="false" />
 
                                         <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="c2" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c2" MinWidth="60" Width="65" ReadOnly="true" />
+                                        <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="c" MinWidth="60" Width="65" ReadOnly="true" />
+                                        <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c" MinWidth="60" Width="65" ReadOnly="true" />
 
                                         <DxGridDataColumn FieldName="VendorPO" Caption="Vendor PO" MinWidth="80" Width="90" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="VendorName" Caption="Vendor Name" MinWidth="80" ReadOnly="true" />
 
                                         <DxGridDataColumn FieldName="POQty" Caption="PO Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ShipmentDate" Caption="Ship Date" DisplayFormat="d" MinWidth="85" Width="85" />
+                                        @*<DxGridDataColumn FieldName="ShipmentDate" Caption="Ship From Factory" DisplayFormat="d" MinWidth="85" Width="90" />*@
+                                        <DxGridDataColumn FieldName="ShipmentDateJoined" Caption="Ship From Factory" DisplayFormat="d" MinWidth="85" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="TrackingNumber" Caption="Tracking No" MinWidth="80" Width="80" ReadOnly="true" />
 
-                                        <DxGridDataColumn FieldName="ShipToETA" Caption="Ship To ETA" DisplayFormat="d" MinWidth="85" Width="85" />
+                                        @*<DxGridDataColumn FieldName="ShipToETA" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" Width="90" />*@
+                                        <DxGridDataColumn FieldName="ShipToETAJoined" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="ShipmentQty" Caption="Ship Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
                                     </Columns>
                                 </DxGrid>
@@ -933,7 +905,7 @@
 
                                 <DxGridDataColumn FieldName="ItemsCount" Caption="Items" DisplayFormat="n0" ReadOnly="true" />
                                 <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" ReadOnly="true" />
-                                <DxGridDataColumn FieldName="ExtPrice" Caption="Ext Price" DisplayFormat="n3" ReadOnly="true" />
+                                <DxGridDataColumn FieldName="ExtPrice" Caption="Ext Price" DisplayFormat="c" ReadOnly="true" />
                                 
                                 <DxGridDataColumn FieldName="IsGroupPO" Caption="PO Group" MinWidth="60" Width="80" ReadOnly="true" />
                             </Columns>
@@ -1014,16 +986,17 @@
                                     <DxGridDataColumn FieldName="CustomerPO" Caption="EDI PO" MinWidth="60" Width="140" ReadOnly="true" Visible="false" />
 
                                     <DxGridDataColumn FieldName="ItemNo" Caption="Style#" MinWidth="90" ReadOnly="true" />
+                                    
+                                    <DxGridDataColumn FieldName="LinkedToName" Caption="Linked To" MinWidth="60" ReadOnly="true" />
+                                    <DxGridDataColumn FieldName="LinkedToId" Caption="Linked To Id" MinWidth="60" ReadOnly="true" Visible="false" />
+
                                     <DxGridDataColumn FieldName="OrderQty" Caption="Units" DisplayFormat="n0" MinWidth="60" Width="80" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" MinWidth="85" DisplayFormat="d" />
                                     <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" MinWidth="85" DisplayFormat="d" />
                                     <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" DisplayFormat="d" Visible="false" />
 
-                                    <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n3" MinWidth="60" ReadOnly="true" Visible="false" />
+                                    <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c" MinWidth="60" ReadOnly="true" Visible="false" />
                                     <DxGridDataColumn FieldName="Description" Caption="Description" MinWidth="60" ReadOnly="true" Visible="false" />
-
-                                    <DxGridDataColumn FieldName="LinkedToName" Caption="Linked To" MinWidth="60" ReadOnly="true" />
-                                    <DxGridDataColumn FieldName="LinkedToId" Caption="Linked To Id" MinWidth="60" ReadOnly="true" Visible="false" />
 
                                     <DxGridCommandColumn Context="EdiPOContext" Width="45px" Visible="!useCheckboxLinking">
                                         <HeaderTemplate>
@@ -1122,21 +1095,22 @@
                                     
                                     <DxGridDataColumn FieldName="ProductNo" Caption="Product No" MinWidth="80" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="ProductName" Caption="Product Name" MinWidth="80" Width="80" ReadOnly="true" Visible="false" />
+                                    
+                                    <DxGridDataColumn FieldName="LinkedToName" Caption="Linked To" MinWidth="60" ReadOnly="true" />
+                                    <DxGridDataColumn FieldName="LinkedToId" Caption="Linked To Id" MinWidth="60" ReadOnly="true" Visible="false" />
 
                                     <DxGridDataColumn FieldName="SONumber" Caption="SO Number" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
                                     <DxGridDataColumn FieldName="CustomerName" Caption="Customer Name" MinWidth="60" Width="60" ReadOnly="true" Visible="false" />
 
-                                    <DxGridDataColumn FieldName="SODate" Caption="SO Date" MinWidth="80" Width="80" DisplayFormat="d" Visible="false" />
+                                    <DxGridDataColumn FieldName="SODate" Caption="SO Date" DisplayFormat="d" MinWidth="80" Width="80" Visible="false" />
                                     <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" MinWidth="60" Width="80" ReadOnly="true" />
-                                    <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="n3" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
-                                    <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="n3" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
-
+                                    <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="c" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
+                                    @* <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="${0}" MinWidth="60" Width="65" ReadOnly="true" Visible="false" /> *@
+                                    <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c" MinWidth="60" Width="65" ReadOnly="true" Visible="false" />
+                                    
                                     <DxGridDataColumn FieldName="VendorPO" Caption="Vendor PO" MinWidth="80" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="VendorName" Caption="Vendor Name" MinWidth="80" ReadOnly="true" />
-
-                                    <DxGridDataColumn FieldName="LinkedToName" Caption="Linked To" MinWidth="60" ReadOnly="true" />
-                                    <DxGridDataColumn FieldName="LinkedToId" Caption="Linked To Id" MinWidth="60" ReadOnly="true" Visible="false" />
-                                                                        
+                                                                                                            
                                     <DxGridCommandColumn Context="CustomerPOContext" Width="45px" Visible="!useCheckboxLinking">
                                         <HeaderTemplate>
                                             Link
