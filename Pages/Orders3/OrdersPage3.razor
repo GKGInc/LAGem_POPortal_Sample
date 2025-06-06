@@ -445,6 +445,11 @@
 
                                         <DxGridDataColumn FieldName="ItemNo" Caption="Style#" MinWidth="90" Width="95" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="OrderQty" Caption="Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
+
+                                        @*<DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />*@
+                                        @*<DxGridDataColumn FieldName="AllocatedQty" Caption="Allocated Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />*@
+                                        <DxGridDataColumn FieldName="AllocatedQty" Caption="Incoming Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
+
                                         <DxGridDataColumn FieldName="StartDate" Caption="Ship Date" MinWidth="85" DisplayFormat="d" Visible="false" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="EndDate" Caption="Cancel Date" MinWidth="85" DisplayFormat="d" Visible="false" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="ShipWindow" Caption="Ship Window" MinWidth="85" Width="85" DisplayFormat="d" Visible="false"ReadOnly="true"  />
@@ -463,7 +468,6 @@
 
                                         @*<DxGridDataColumn FieldName="ShipToETA" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" ReadOnly="true" />*@
                                         <DxGridDataColumn FieldName="ShipToETAJoined" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" MinWidth="60" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="Notes" Caption="Shipment Planning" DisplayFormat="n0" MinWidth="80" ReadOnly="false" />
 
                                         <DxGridCommandColumn Width="70px" Visible="true"
@@ -548,6 +552,9 @@
                                         <DxGridDataColumn FieldName="ProductName" Caption="Product Name" MinWidth="80" Width="80" ReadOnly="true" Visible="false" />
 
                                         <DxGridDataColumn FieldName="SOQty" Caption="SO Qty" DisplayFormat="n0" MinWidth="60" Width="65" ReadOnly="true" />
+
+                                        <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" MinWidth="60" Width="90" ReadOnly="true" />
+
                                         <DxGridDataColumn FieldName="Cost" Caption="Cost" DisplayFormat="c" MinWidth="60" Width="65" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c" MinWidth="60" Width="65" ReadOnly="true" />
 
@@ -561,7 +568,6 @@
 
                                         @*<DxGridDataColumn FieldName="ShipToETA" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" Width="90" />*@
                                         <DxGridDataColumn FieldName="ShipToETAJoined" Caption="Expected Arrival" DisplayFormat="d" MinWidth="85" ReadOnly="true" />
-                                        <DxGridDataColumn FieldName="ShipmentQty" Caption="Incoming Units" DisplayFormat="n0" MinWidth="60" Width="90" ReadOnly="true" />
                                         <DxGridDataColumn FieldName="Notes" Caption="Shipment Planning" DisplayFormat="n0" MinWidth="80" ReadOnly="false" />
 
                                         <DxGridCommandColumn Width="80px" Visible="true"
@@ -806,6 +812,23 @@
                         </DxTabs>
                     }
                 </DetailRowTemplate>
+                <ToolbarTemplate Context="GridToolbar">
+                    <DxToolbar Context="GridToolbar" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                        <Items>
+                            @* <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Auto Fit Columns" RenderStyle="ButtonRenderStyle.Secondary" Click="Grid_FitWidths" /> *@
+                            @* <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Column Chooser" RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="grid-icon-column-chooser" Click="ColumnChooserButton_Click" /> *@
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" Text="Refresh Data" RenderStyle="ButtonRenderStyle.Secondary" Click="RefreshData_Click" />
+                            @* <DxToolbarItem BeginGroup="true" Alignment="ToolbarItemAlignment.Left">
+                                <Template Context="toolbar_item_context">
+                                    <div class="d-flex flex-row align-items-center h-100">
+                                        <DxCheckBox Checked="usePopupEditForm" CheckedChanged="new Func<bool, Task>(UsePopupEditForm_CheckedChanged)">Use Popup Edit Form</DxCheckBox>
+                                    </div>
+                                </Template>
+                            </DxToolbarItem> *@
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" RenderStyle="ButtonRenderStyle.None"  Text="@isLoadingMessage" Visible="@isLoadingVisible" />
+                        </Items>
+                    </DxToolbar>
+                </ToolbarTemplate>
             </DxGrid>
         </div>
 

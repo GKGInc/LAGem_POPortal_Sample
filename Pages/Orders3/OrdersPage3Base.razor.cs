@@ -150,6 +150,9 @@ namespace LAGem_POPortal.Orders3
         public IReadOnlyList<object> SelectedSODataItems { get; set; }
         public GridSelectAllCheckboxMode CurrentSelectAllSOCheckboxMode { get; set; }
 
+        public bool isLoadingVisible { get; set; } = false;
+        public string isLoadingMessage { get; set; } = "Loading data...";
+
         // ------------------------------------------------------------ \\
 
         public bool PopupVisible { get; set; } = false;
@@ -371,6 +374,32 @@ namespace LAGem_POPortal.Orders3
             int offset = 75;
             scrollHeight = height - 195 - offset;
             mainGridSectionHeight = (height - offset).ToString() + "px";
+        }
+
+        #endregion
+
+        // ============================================================ \\
+
+        #region Button Functions
+
+        public void Grid_FitWidths()
+        {
+            OrdersHeaderGrid.AutoFitColumnWidths();
+        }
+        public void ColumnChooserButton_Click()
+        {
+            OrdersHeaderGrid.ShowColumnChooser();
+        }
+        public async void RefreshData_Click()
+        {
+            await LoadGridHeaderData();
+
+            await InvokeAsync(StateHasChanged); // <-- refreshes
+        }
+        public async Task UsePopupEditForm_CheckedChanged(bool value)
+        {
+            usePopupEditForm = value;
+            await OrdersHeaderGrid.CancelEditAsync();
         }
 
         #endregion
@@ -625,6 +654,16 @@ namespace LAGem_POPortal.Orders3
                                 e.Style = "color: red";
                             }
                         }
+
+                        if (fieldName == "CustomerName" || fieldName == "CustomerPO" || fieldName == "PONumber" || fieldName == "ItemNo")
+                        {
+                            string isShipped = e.Grid.GetRowValue(e.VisibleIndex, "IsShipped").ToString();
+                            if (isShipped.ToLower() == "true")
+                            {
+                                e.Style = "background: #89c189";
+                            }
+                        }
+
                     }
                 }
 
@@ -749,6 +788,7 @@ namespace LAGem_POPortal.Orders3
                 }
             }
         }
+        // Comments
         public async Task DetailGrid_EditModelSaving(GridEditModelSavingEventArgs e)
         {
             e.Cancel = true;
@@ -760,8 +800,8 @@ namespace LAGem_POPortal.Orders3
             if (e.EditModel.GetType() == typeof(SoEdiData))
             {
                 var savingObject = (SoEdiData)e.EditModel;
-                bool isGroupedPo = savingObject.IsGroupPO;
-                string groupedPo = (savingObject.GroupPO == null) ? "" : savingObject.GroupPO;
+                bool isGroupedPo = expandedRow.IsGroupPO;
+                string groupedPo = (expandedRow.GroupPO == null) ? "" : expandedRow.GroupPO;
 
                 if (e.IsNew || savingObject.Id == 0)
                 {
@@ -827,12 +867,12 @@ UPDATE [PIMS].[dbo].[SODetail] SET [Notes] = LTRIM(ISNULL([Notes],'') + '' + '{0
                     await OrdersDetailEDIGrid.CancelEditAsync();
 
                     SqlData sqlData = new SqlData();
-                    EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(savingObject.EdiHdrId, false, false);
+                    EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(expandedRow.EdiHdrId, false, false);
 
                     //Update Jewelry/Packaging Tab data
                     //SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.GroupPO); // Jewelry/Packaging Tab
-                    SOOrdersDetailGridData = (isGroupedPo) ? await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, groupedPo)
-                        : await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.CustomerPO); // Jewelry/Packaging Tab
+                    SOOrdersDetailGridData = (isGroupedPo) ? await sqlData.GetCustomerSoPoDetailData(expandedRow.SOHeaderId, true, groupedPo)
+                        : await sqlData.GetCustomerSoPoDetailData(expandedRow.SOHeaderId, true, expandedRow.CustomerPO); // Jewelry/Packaging Tab
 
                     EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>().OrderBy(o => o.CustomerName);
                     EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
@@ -877,8 +917,8 @@ UPDATE [PIMS].[dbo].[SODetail] SET [Notes] = '{0}' WHERE [SODetailId] = {2}
             if (e.EditModel.GetType() == typeof(CustomerSoPoData))
             {
                 var savingObject = (CustomerSoPoData)e.EditModel;
-                bool isGroupedPo = savingObject.IsGroupPO;
-                string groupedPo = groupedPo = (savingObject.GroupPO == null) ? "" : savingObject.GroupPO;
+                bool isGroupedPo = expandedRow.IsGroupPO;
+                string groupedPo = groupedPo = (expandedRow.GroupPO == null) ? "" : expandedRow.GroupPO;
 
                 if (e.IsNew || savingObject.Id == 0)
                 {
@@ -940,11 +980,11 @@ UPDATE [PIMS].[dbo].[SODetail] SET [Notes] = LTRIM(ISNULL([Notes],'') + '' + '{0
 
                     SqlData sqlData = new SqlData();
                     //Update EDI tab data
-                    EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(savingObject.EdiHdrId, false, false);
+                    EDIOrdersDetailGridData = await sqlData.GetSoEdiDetailData(expandedRow.EdiHdrId, false, false);
 
                     //SOOrdersDetailGridData = await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.GroupPO); // Jewelry/Packaging Tab
-                    SOOrdersDetailGridData = (isGroupedPo) ? await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, groupedPo)
-                        : await sqlData.GetCustomerSoPoDetailData(savingObject.SOHeaderId, true, savingObject.CustomerPO); // Jewelry/Packaging Tab
+                    SOOrdersDetailGridData = (isGroupedPo) ? await sqlData.GetCustomerSoPoDetailData(expandedRow.SOHeaderId, true, groupedPo)
+                        : await sqlData.GetCustomerSoPoDetailData(expandedRow.SOHeaderId, true, expandedRow.CustomerPO); // Jewelry/Packaging Tab
                     EdiOrderDetailGridJewelryData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Customer Order" select o).Cast<CustomerSoPoData>().OrderBy(o => o.CustomerName);
                     EdiOrderDetailGridPackagingData = (from o in SOOrdersDetailGridData where o.SoSubLineType == "Packaging" select o).Cast<CustomerSoPoData>();
 
@@ -1441,13 +1481,20 @@ WHERE [SOHeaderId] = {0}";
 
         public async Task LoadGridHeaderData()
         {
+            isLoadingMessage = "Loading data...";
+            isLoadingVisible = true;
+
             SqlData sqlData = new SqlData();
             OrdersHeaderGridData = await sqlData.GetSoEdiData();
 
             BusinessPartnerListData = await sqlData.GetCustomerBusinessPartnerList();
             partnerList = GetPartnerData();
+
+            isLoadingMessage = "";
+            isLoadingVisible = false;
         }
 
+        // EDI / Jewelry tabs
         public async Task LoadGridDetailData(SoEdiData row)
         {
             //if (selectedRow != null && selectedRow.SOHeaderId == row.SOHeaderId)
