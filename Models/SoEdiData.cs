@@ -27,9 +27,12 @@ namespace LAGem_POPortal.Models
         public int ShipWeek { get; set; }
         public DateTime? MondayOfTheWeek { get; set; }
 
-        public DateTime? StartDate { get; set; }     //Customer Ship date       // Header/Detail
-        public DateTime? EndDate { get; set; }       //Factory Cancel Date      // Header/Detail
+        public DateTime? StartDate { get; set; }    //Customer Ship date       // Header/Detail
+        public DateTime? EndDate { get; set; }      //Factory Cancel Date      // Header/Detail
+        public DateTime? CancelDate { get; set; }   //Cancel Date              // Header/Detail
         public DateTime? ShipWindow { get; set; }
+        public DateTime? ShipDate { get; set; }
+        public bool IsShipped { get; set; } // 
 
         public int OrderQty { get; set; }   // Header/Detail
         public int SOHeaderId { get; set; }
@@ -82,5 +85,13 @@ namespace LAGem_POPortal.Models
         public bool Archived { get; set; }
         public bool IsGroupPO { get; set; }
         public string GroupPO { get; set; }
+
+
+        // Allocation fields
+        public int OrderQtyTotal { get; set; }
+        public int AllocatedQty { get; set; }
+        public int InTransitTotal { get; set; }
+        public string TransactionType { get; set; } = "";
+
     }
 }

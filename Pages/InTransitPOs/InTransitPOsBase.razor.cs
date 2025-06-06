@@ -17,6 +17,14 @@ using DevExpress.DashboardCommon;
 using DevExpress.XtraRichEdit.Services;
 using Microsoft.AspNetCore.Components.Web;
 using DevExpress.Blazor.Popup.Internal;
+using DevExpress.Utils.About;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using DevExpress.XtraCharts;
+using DevExpress.XtraReports.Design.ParameterEditor;
+using Azure;
+using System.Security.Cryptography.Xml;
+using System.Linq;
+using DevExpress.DataAccess.Sql;
 
 namespace LAGem_POPortal.Pages.InTransitPOs
 {
@@ -61,6 +69,9 @@ namespace LAGem_POPortal.Pages.InTransitPOs
         public IEnumerable<ShippingData> POShipmentListGridData { get; set; }
         public IEnumerable<ShippingData> TestGridData { get; set; }
         public List<Lookup> openPOList { get; set; }
+
+        public IGrid ProductFactoryPOsGrid { get; set; }
+        public IEnumerable<SoEdiData> ProductFactoryPOsGridData { get; set; }
 
         // ------------------------------------------------------------ \\
 
@@ -116,13 +127,20 @@ namespace LAGem_POPortal.Pages.InTransitPOs
         public bool WordWrapEnabled = false;
 
         public bool usePopupEditForm { get; set; } = true;
-        public GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow
+        public GridEditMode CurrentEditMode { get { return usePopupEditForm ? GridEditMode.PopupEditForm : GridEditMode.EditForm; } } // GridEditMode.EditRow // GridEditMode.EditCell
         public string mainGridEditFormHeaderText { get; set; } = "In Transit POs";
+        public string gridCss => "hide-toolbar my-partnertasks-grid";
 
+        public object SelectedDataItem { get; set; }
         public IReadOnlyList<object> SelectedDataItems { get; set; } // Items Selected in Edit Form
         public IReadOnlyList<object> SelectedDataPOListGridItems { get; set; }
         public IEnumerable<GridSelectAllCheckboxMode> SelectAllCheckboxModes { get; } = Enum.GetValues<GridSelectAllCheckboxMode>();
         public GridSelectAllCheckboxMode CurrentSelectAllCheckboxMode { get; set; }
+
+        public ShippingData ShippingProductSelectedDataItem { get; set; }
+
+        public bool isLoadingVisible { get; set; } = false;
+        public string isLoadingMessage { get; set; } = "Loading data...";
 
         // ------------------------------------------------------------ \\
 
@@ -134,11 +152,21 @@ namespace LAGem_POPortal.Pages.InTransitPOs
         public string popupOkButtonText { get; set; } = "Ok";
         public string popupCancelButtonText { get; set; } = "Cancel";
         public bool isPopupCancelButtonVisible { get; set; } = false;
+        public bool isPopupOkButtonEnabled { get; set; } = true;
 
         public string popupTitleText { get; set; } = "Notification";
         public string popupBodyText { get; set; } = "Sample Popup Message";
 
         public string callbackProcessName { get; set; } = null;
+        public bool isDataSaving { get; set; } = false;
+
+        // ------------------------------------------------------------ \\
+
+        public string productFactoryPOsGridPopupTitleText { get; set; } = "Notification";
+        public string productFactoryPOsGridPopupBodyText { get; set; } = "Sample Popup Message";
+
+        public bool productFactoryPOsGridDataPopupVisible { get; set; } = false;
+        public bool productFactoryPOsOkButtonEnabled { get; set; } = false;
 
         // ------------------------------------------------------------ \\
 
@@ -215,11 +243,19 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
         public async Task InitializeAsync()
         {
+            isLoadingMessage = "Loading data...";
+            isLoadingVisible = true;
+
             SqlData sqlData = new SqlData();
-            GridData = await sqlData.GetShippingDetailData();
-            POOpenVendorData = await sqlData.GetPOOpenVendorData();
+            GridData = await sqlData.GetShippingDetailData();           // Main grid data
+            POOpenVendorData = await sqlData.GetPOOpenVendorData();     // All POs data
             //POOpenDetailData = await sqlData.GetPOOpenDetailData();
-            OpenPOShipmentData = await sqlData.GetOpenPOShipmentData();
+            OpenPOShipmentData = await sqlData.GetOpenPOShipmentData(); // All shipping data
+
+            isLoadingMessage = "";
+            isLoadingVisible = false;
+
+            // ------------------------------------------------------------ \\
 
             isAutoFitPending = true;
 
@@ -291,10 +327,25 @@ namespace LAGem_POPortal.Pages.InTransitPOs
                 }
             }
 
+            // ------------------------------------------------------------ \\
+
             var dim = await js.InvokeAsync<BrowserDimension>("getDimensions");
             Height = dim.Height;
             Width = dim.Width;
+
+            try
+            {
+                Grid.BeginUpdate();
+                Grid.SortBy(CurrentSortInfoKey);
+                Grid.EndUpdate();
+            }
+            catch
+            {
+
+            }
         }
+
+        string CurrentSortInfoKey { get; set; } = "LastModifiedOn";
 
         public async Task AfterRenderAsync(bool firstRender)
         {
@@ -381,6 +432,7 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
         public async void OkPopupClick()
         {
+            isPopupOkButtonEnabled = false;
             PopupVisible = false;
 
             //if (callbackProcessName == "SaveLinks")
@@ -392,15 +444,75 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             //}
             if (callbackProcessName == "SaveShippingData-NEW")
             {
-                await InsertShippingDataAsync(savingShippingDataObject);
+                if (!isDataSaving)
+                {
+                    headerMessage = "Saving Data...";
+                    isDataSaving = true;
 
-                await Grid.CancelEditAsync();
+                    await Grid.CancelEditAsync();
+                    await InvokeAsync(StateHasChanged);
+
+                    try
+                    {
+                        await InsertShippingDataAsync(savingShippingDataObject);
+                    }
+                    catch (Exception ex)
+                    {
+                        DisplayPopupMessage("Error Saving Shipping Data (Insert):" + ex.Message);
+                    }
+                    isDataSaving = false;
+                    headerMessage = "";
+
+                    await RefreshData_Click();
+                }
+                else
+                {
+                    try
+                    {
+                        await Grid.CancelEditAsync();
+                        await InvokeAsync(StateHasChanged);
+                    }
+                    catch
+                    {
+
+                    }
+                }
             }
             if (callbackProcessName == "SaveShippingData-UDPATE")
             {
-                await UpdateShippingDataAsync(savingShippingDataObject);
+                if (!isDataSaving)
+                {
+                    headerMessage = "Saving Data...";
+                    isDataSaving = true;
 
-                await Grid.CancelEditAsync();
+                    await Grid.CancelEditAsync();
+                    await InvokeAsync(StateHasChanged);
+
+                    try
+                    {
+                        await UpdateShippingDataAsync(savingShippingDataObject);
+                    }
+                    catch (Exception ex)
+                    {
+                        DisplayPopupMessage("Error Saving Shipping Data (Update):" + ex.Message);
+                    }
+                    isDataSaving = false;
+                    headerMessage = "";
+
+                    await RefreshData_Click();
+                }
+                else
+                {
+                    try
+                    {
+                        await Grid.CancelEditAsync();
+                        await InvokeAsync(StateHasChanged);
+                    }
+                    catch
+                    {
+
+                    }
+                }
             }
         }
 
@@ -421,6 +533,7 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
         public void DisplayPopupMessage(string message, string title = "Notification", string callbackName = null)
         {
+            isPopupOkButtonEnabled = true;
             isPopupCancelButtonVisible = false;
             popupOkButtonText = "Ok";
             popupCancelButtonText = "Cancel";
@@ -433,6 +546,7 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
         public void DisplayPopupQuestion(string message, string title = "Alert", string callbackName = null)
         {
+            isPopupOkButtonEnabled = true;
             isPopupCancelButtonVisible = true;
             popupOkButtonText = "Yes";
             popupCancelButtonText = "No";
@@ -465,7 +579,9 @@ namespace LAGem_POPortal.Pages.InTransitPOs
         {
             List<Lookup> list = new List<Lookup>();
 
-            var polist = OpenPOShipmentData.Where(x => x.VendorId == vendorId).Select(x => x.PONumber).Distinct().ToList();
+            var polist = (vendorId > 0) ?
+                    OpenPOShipmentData.Where(x => x.VendorId == vendorId).Select(x => x.PONumber).Distinct().ToList()
+                    : OpenPOShipmentData.Select(x => x.PONumber).Distinct().ToList();
             foreach (string po in polist)
             {
                 Lookup l = new Lookup()
@@ -662,10 +778,18 @@ namespace LAGem_POPortal.Pages.InTransitPOs
         {
             Grid.ShowColumnChooser();
         }
-        public async void RefreshData_Click()
+        public async Task RefreshData_Click()
         {
+            isLoadingMessage = "Loading data...";
+            isLoadingVisible = true;
+
             SqlData sqlData = new SqlData();
-            GridData = await sqlData.GetShippingDetailData();
+            GridData = await sqlData.GetShippingDetailData();           // Main grid data
+            POOpenVendorData = await sqlData.GetPOOpenVendorData();     // All POs data
+            OpenPOShipmentData = await sqlData.GetOpenPOShipmentData(); // All shipping data
+
+            isLoadingMessage = "";
+            isLoadingVisible = false;
 
             await InvokeAsync(StateHasChanged); // <-- refreshes
         }
@@ -702,8 +826,78 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             }
         }
 
+        public void Grid_CustomGroup(GridCustomGroupEventArgs e)
+        {
+            if (e.FieldName == "TrackingNumber")
+            {
+                //e.SameGroup = Grid_CompareColumnValues(e.Value1, e.Value2) == 0;
+                e.SameGroup = Grid_CompareColumnValues(e.Value1, e.Value2) == 0;
+                e.Handled = true;
+            }
+        }
+        public int Grid_CompareColumnValues(object value1, object value2)
+        {
+            //double val1 = Math.Floor(Convert.ToDouble(value1) / 10);
+            //double val2 = Math.Floor(Convert.ToDouble(value2) / 10);
+            //var res = System.Collections.Comparer.Default.Compare(val1, val2);
+            //if (res < 0)
+            //    res = -1;
+            //else if (res > 0)
+            //    res = 1;
+            //if (res == 0 || (val1 > 9 && val2 > 9))
+            //    res = 0;
+
+            string val1 = (string)value1;
+            string val2 = (string)value2;
+            var res = System.Collections.Comparer.Default.Compare(val1, val2);
+
+            return res;
+        }
+        public void Grid_CustomizeGroupValueDisplayText(GridCustomizeGroupValueDisplayTextEventArgs e)
+        {
+            bool customizeTrackingNumber = false;
+
+            if (e.FieldName == "TrackingNumber" && customizeTrackingNumber)
+            {
+                IEnumerable<ShippingData> gridList = e.Grid.Data as IEnumerable<ShippingData>;
+
+                string displayText = "";
+                DateTime blankDate = new DateTime(1900, 1, 1);
+                string trackingNumber = e.Value.ToString();
+                if (trackingNumber != null) //if (!string.IsNullOrWhiteSpace(trackingNumber))
+                {
+                    List<ShippingData> trackingNumberList = gridList.Where(c => c.TrackingNumber != null && c.TrackingNumber == trackingNumber).ToList();
+
+                    string transportModes = string.Join(",", trackingNumberList.Select(x => x.TransportationMode).Distinct().ToList());
+                    //string shipDate = trackingNumberList.Where(x => x.ShipmentDate > blankDate).Select(x => x.ShipmentDate).DefaultIfEmpty(blankDate).Max().ToString("MM/dd");
+                    //string etaDate = trackingNumberList.Where(x => x.ShipToETA > blankDate).Select(x => x.ShipToETA).DefaultIfEmpty(blankDate).Max().ToString("MM/dd");
+                    string shipDate = string.Join(",", trackingNumberList.Where(x => x.ShipmentDate > blankDate).Select(x => x.ShipmentDate).Distinct().ToList().Select(x => x.ToString("MM/dd")));
+                    string etaDate = string.Join(",", trackingNumberList.Where(x => x.ShipToETA > blankDate).Select(x => x.ShipToETA).Distinct().ToList().Select(x => x.ToString("MM/dd")));
+                    int totalUnits = trackingNumberList.Select(x=> x.OrderQty).Sum();
+                    string invoiceNos = string.Join(",", trackingNumberList.Select(x => x.InvoiceNo).Distinct().ToList());
+
+                    if (string.IsNullOrWhiteSpace(trackingNumber))  trackingNumber = "None";
+                    if (string.IsNullOrWhiteSpace(transportModes))  transportModes = "None";
+                    if (string.IsNullOrWhiteSpace(shipDate))        shipDate = "None";
+                    if (string.IsNullOrWhiteSpace(etaDate))         etaDate = "None";
+                    if (string.IsNullOrWhiteSpace(invoiceNos))      invoiceNos = "None";
+
+                    displayText = string.Format("{0} [Transport Modes:{1}] [Ship:{2}] [ETA:{3}] [Total Units:{4}] [Invoices:{5}] ", trackingNumber, transportModes, shipDate, etaDate,  totalUnits, invoiceNos);
+                }
+
+                //double val = Math.Floor(Convert.ToDouble(e.Value) / 10);
+                //displayText = string.Format("{0:c} - {1:c} ", val * 10, (val + 1) * 10);
+                //if (val > 9)
+                //    displayText = string.Format(">= {0:c} ", 100);
+                e.DisplayText = displayText;
+            }
+        }
+
         public async Task Grid_CustomizeEditModel(GridCustomizeEditModelEventArgs e)
         {
+            if (e.EditModel == null)
+                return;
+
             if (e.IsNew)
             {
                 if (e.EditModel.GetType() == typeof(ShippingData))
@@ -752,7 +946,6 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
                         ShippingData poItem = OpenPOShipmentData.Where(c => c.ShipmentHeaderId == ((ShippingData)e.EditModel).ShipmentHeaderId).FirstOrDefault();
                         AddToPOListGridDataByShipmentHeaderId(poItem);
-
                     }
 
                     isVendorEditable = false;
@@ -806,9 +999,15 @@ namespace LAGem_POPortal.Pages.InTransitPOs
             //await UpdateDataAsync();
         }
 
+        //Saving...
         public async Task InsertShippingDataAsync(ShippingData item)
-        {
+        {            
+            bool onePushProcess = true;
+            string completeQuery = "";
+
             bool alwaysInsert = true; // true changed 040925
+            int detailSaveCount = 0;
+            int detailUpdateCount = 0;
 
             // Don't save if empty detail list
             if (POShipmentListGridData.Count() == 0)
@@ -870,10 +1069,6 @@ SELECT @@IDENTITY AS 'pk'";
 INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
 SELECT {0},{1},{2}, GETDATE()
 
---UPDATE [PIMS].[dbo].[PODetail] 
---SET [ReceivedQty] = CASE WHEN [ReceivedQty] IS NULL THEN (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1}) + {2} ELSE [ReceivedQty] + {2} END 
---WHERE [PODetailId] = {1}
-
 UPDATE [PIMS].[dbo].[PODetail]
 SET [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
     ,[LastModifiedOn] = GETDATE()
@@ -885,6 +1080,329 @@ SELECT @@IDENTITY AS 'pk'";
                         int shipmentDetailId = 0;
                         if (shipmentQty > 0)
                         {
+                            detailSaveCount++;
+
+                            if (!onePushProcess)
+                            {
+                                using (var uow = new UnitOfWork())
+                                {
+                                    DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(detailInsertFullQuery);
+
+                                    if (selectedData.ResultSet.Length > 0)
+                                    {
+                                        DevExpress.Xpo.DB.SelectStatementResult result = selectedData.ResultSet[0];
+
+                                        if (result.Rows.Count() > 0)
+                                        {
+                                            string rValue = result.Rows[0].Values[0].ToString();
+                                            int.TryParse(rValue, out shipmentDetailId);
+                                        }
+                                    }
+                                }
+                                if (shipmentDetailId > 0)
+                                {
+                                    //POShipmentListGridData.Where(c => c.Id == ship.Id).FirstOrDefault().ShipmentDetailId = shipmentDetailId;
+                                    ship.ShipmentDetailId = shipmentDetailId;
+                                }
+                                ship.LastShipmentQty = ship.ShipmentQty;
+                                //UpdateOpenPOShipmentData(ship);
+                            }
+                            else
+                            {
+                                completeQuery += detailInsertFullQuery + @"
+";
+                            }
+
+                            // EDI QTY Allocation
+                            if (ship.AllocatedQuatities != null)
+                            {
+                                string transactionType = "";
+
+                                string allocQtyUpdateQuery_replace = @"
+UPDATE [PIMS].[edi].[EdiTrn]
+SET [AllocatedQty] = {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [Editrnid] IN (SELECT trn.[Editrnid]
+FROM [PIMS].[edi].[EdiTrn] trn
+LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
+	ON trn.[Edihdrid] = hdr.[Edihdrid]
+WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+";
+                                string allocQtyUpdateQuery_adjust = @"
+UPDATE [PIMS].[edi].[EdiTrn]
+SET [AllocatedQty] = ISNULL([AllocatedQty], 0) + {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [Editrnid] IN (SELECT trn.[Editrnid]
+FROM [PIMS].[edi].[EdiTrn] trn
+LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
+	ON trn.[Edihdrid] = hdr.[Edihdrid]
+WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+";
+                                string allocQtyUpdateFullQuery = "";
+
+                                foreach (SoEdiData alloc in ship.AllocatedQuatities)
+                                {
+                                    transactionType = alloc.TransactionType;
+                                    // "Multi": On "New" or "Edit": Replace
+                                    // "Single": On "New": Add To Existing. On "Edit" Adjust with difference
+
+                                    int soHeaderId = alloc.SOHeaderId;
+                                    int soDetailId = alloc.SoDetailId;
+                                    int ediHdrId = alloc.EdiHdrId;
+                                    int ediTrnId = alloc.EdiTrnId;
+                                    int inTransitUnits = alloc.IntransitUnits;  // Original Qty
+                                    int allocQty = alloc.AllocatedQty;          // Adjusted Qty
+                                    int adjustQty = allocQty - inTransitUnits;
+                                    //int productId = alloc.ProductId;
+                                    //string itemNo = alloc.ItemNo;
+                                    //allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId); 
+                                    if (transactionType == "Multi")
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);
+                                    else
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId);
+                                }
+                                try
+                                {
+                                    if (!onePushProcess)
+                                    {
+                                        using (var uow = new UnitOfWork())
+                                        {
+                                            await uow.ExecuteNonQueryAsync(allocQtyUpdateFullQuery);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        completeQuery += allocQtyUpdateFullQuery + @"
+";
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    DisplayPopupMessage("Error (Insert) AllocatedQuatities:" + ex.Message + ". AllocQtyQuery:" + allocQtyUpdateFullQuery);
+                                }
+                            }
+                        }
+                    }
+                    else // update...
+                    {
+                        if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
+                        {
+                            detailUpdateCount++;
+
+                            string detailUpdateQuery = @"
+UPDATE [PIMS].[dbo].[ShipmentDetails] 
+SET [ShipmentQty] = {2}
+    , [LastModifiedOn] = GETDATE() 
+WHERE [ShipmentDetailId] = {0}
+
+UPDATE [PIMS].[dbo].[PODetail] 
+SET [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
+    ,[LastModifiedOn] = GETDATE()
+WHERE [PODetailId] = {1}
+";
+                            string detailUpdateFullQuery = string.Format(detailUpdateQuery, ship.ShipmentDetailId, ship.PODetailId, ship.ShipmentQty);
+
+                            if (!onePushProcess)
+                            {
+                                try
+                                {
+                                    using (var uow = new UnitOfWork())
+                                    {
+                                        await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    DisplayPopupMessage("Error (Update) PODetail/ShipmentDetails:" + ex.Message + ". DetailUpdateQuery:" + detailUpdateFullQuery);
+                                }
+                                ship.LastShipmentQty = ship.ShipmentQty;
+                                //UpdateOpenPOShipmentData(ship);
+                            }
+                            else
+                            {
+                                completeQuery += detailUpdateFullQuery + @"
+";
+                            }
+
+                            // EDI QTY Allocation
+                            if (ship.AllocatedQuatities != null)
+                            {
+                                string transactionType = "";
+
+                                string allocQtyUpdateFullQuery = "";
+
+                                string allocQtyUpdateQuery_replace = @"
+UPDATE [PIMS].[edi].[EdiTrn]
+SET [AllocatedQty] = {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [Editrnid] IN (SELECT trn.[Editrnid]
+FROM [PIMS].[edi].[EdiTrn] trn
+LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
+	ON trn.[Edihdrid] = hdr.[Edihdrid]
+WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+";
+                                string allocQtyUpdateQuery_adjust = @"
+UPDATE [PIMS].[edi].[EdiTrn]
+SET [AllocatedQty] = ISNULL([AllocatedQty], 0) + {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [Editrnid] IN (SELECT trn.[Editrnid]
+FROM [PIMS].[edi].[EdiTrn] trn
+LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
+	ON trn.[Edihdrid] = hdr.[Edihdrid]
+WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+";
+
+                                foreach (SoEdiData alloc in ship.AllocatedQuatities)
+                                {
+                                    transactionType = alloc.TransactionType;
+                                    // "Multi": On "New" or "Edit": Replace
+                                    // "Single": On "New": Add To Existing. On "Edit" Adjust with difference
+
+                                    int soHeaderId = alloc.SOHeaderId;
+                                    int soDetailId = alloc.SoDetailId;
+                                    int ediHdrId = alloc.EdiHdrId;
+                                    int ediTrnId = alloc.EdiTrnId;
+                                    int inTransitUnits = alloc.IntransitUnits;  // Original Qty
+                                    int allocQty = alloc.AllocatedQty;          // Adjusted Qty
+                                    int adjustQty = allocQty - inTransitUnits;
+                                    //int productId = alloc.ProductId;
+                                    //string itemNo = alloc.ItemNo;
+                                    if (transactionType == "Multi")
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);
+                                    else
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId);
+                                }
+
+                                try
+                                {
+                                    if (!onePushProcess)
+                                    {
+                                        using (var uow = new UnitOfWork())
+                                        {
+                                            await uow.ExecuteNonQueryAsync(allocQtyUpdateFullQuery);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        completeQuery += allocQtyUpdateFullQuery + @"
+";
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    DisplayPopupMessage("Error (Insert) AllocatedQuatities:" + ex.Message + ". AllocQtyDetailUpdateQuery:" + allocQtyUpdateFullQuery);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (onePushProcess && !string.IsNullOrWhiteSpace(completeQuery))
+            {
+                try
+                {
+                    using (var uow = new UnitOfWork())
+                    {
+                        await uow.ExecuteNonQueryAsync(completeQuery);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DisplayPopupMessage("Error (OnePush Insert) AllocatedQuatities:" + ex.Message + ". AllocQtyDetailUpdateQuery:" + completeQuery);
+                }
+            }
+
+            if (detailSaveCount == 0 && detailUpdateCount == 0)
+            {
+                string message = "No data saved." + Environment.NewLine + "Only 0 quantities.";
+                DisplayPopupMessage(message);
+            }
+
+            headerMessage = "Refreshing Data...";
+            SqlData sqlData = new SqlData();
+            GridData = await sqlData.GetShippingDetailData();
+            OpenPOShipmentData = await sqlData.GetOpenPOShipmentData();
+
+            await InvokeAsync(StateHasChanged); // <-- refreshes
+            headerMessage = "";
+        }
+        //Saving...
+        public async Task UpdateShippingDataAsync(ShippingData item)
+        {
+            bool onePushProcess = true;
+            string completeQuery = "";
+            bool alwaysUpdate = true;
+
+            // Don't save if empty detail list
+            if (POShipmentListGridData.Count() == 0)
+                return;
+
+            int detailSaveCount = 0;
+            int detailUpdateCount = 0;
+
+            string query = @"
+UPDATE [PIMS].[dbo].[ShipmentHeader] SET
+    [ShipmentDate] = '{1}'
+    ,[TrackingNumber] = '{2}'
+    ,[ShipToETA] = '{3}'
+    ,[InvoiceNo] = '{4}'
+    ,[LastModifiedOn] = GETDATE()
+    ,[TransportationMode] = '{5}'
+WHERE [ShipmentHeaderId] = {0}";
+            string fullQuery = string.Format(query, item.ShipmentHeaderId, item.ShipmentDate, item.TrackingNumber, item.ShipToETA, item.InvoiceNo, item.TransportationMode);
+
+            if (!onePushProcess)
+            {
+                using (var uow = new UnitOfWork())
+                {
+                    await uow.ExecuteNonQueryAsync(fullQuery);
+                }
+            }
+            else
+            {
+                completeQuery += fullQuery + @"
+";
+            }
+
+            // Get list of Rows Selected. See SelectedDataItems list
+            List<string> productlist = new List<string>();
+            List<int> soDetailIds = new List<int>();
+            if (SelectedDataItems != null && SelectedDataItems.Count > 0)
+            {
+                productlist = SelectedDataItems.Select(x => (x as ShippingData).ProductNo).Distinct().ToList();
+                soDetailIds = SelectedDataItems.Select(x => (x as ShippingData).SODetailId).Distinct().ToList();
+            }
+
+            // Save POShipmentListGrid data
+            foreach (ShippingData ship in POShipmentListGridData)
+            {
+                if (soDetailIds.Contains(ship.SODetailId) || alwaysUpdate)
+                {
+                    if (ship.ShipmentDetailId == 0 && ship.ShipmentQty != ship.LastShipmentQty)
+                    {
+                        detailSaveCount++;
+
+                        int shipmentHeaderId = item.ShipmentHeaderId;
+                        int poDetailId = ship.PODetailId;
+                        int shipmentQty = ship.ShipmentQty;
+
+                        // NEW insert
+                        string detailInsertQuery = @"
+INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
+SELECT {0},{1},{2}, GETDATE()
+
+UPDATE [PIMS].[dbo].[PODetail] 
+SET [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
+    ,[LastModifiedOn] = GETDATE()
+WHERE [PODetailId] = {1}
+
+SELECT @@IDENTITY AS 'pk'";
+                        string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty, ship.ShipmentDetailId);
+
+                        if (!onePushProcess)
+                        {
+                            int shipmentDetailId = 0;
                             using (var uow = new UnitOfWork())
                             {
                                 DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(detailInsertFullQuery);
@@ -908,143 +1426,88 @@ SELECT @@IDENTITY AS 'pk'";
                             ship.LastShipmentQty = ship.ShipmentQty;
                             //UpdateOpenPOShipmentData(ship);
                         }
-                    }
-                    else
-                    {
-                        if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
+                        else
                         {
-                            //                            // UPDATE
-                            //                            string detailUpdateQuery = @"
-                            //UPDATE [PIMS].[dbo].[ShipmentDetails] 
-                            //SET [ShipmentQty] = {1}
-                            //--, [LastModifiedOn] = GETDATE() 
-                            //WHERE [PODetailId] = {0}";
-                            //string detailUpdateFullQuery = string.Format(detailUpdateQuery, item.PODetailId, item.OrderQty);
-                            string detailUpdateQuery = @"
---UPDATE [PIMS].[dbo].[PODetail] 
---SET [ReceivedQty] = CASE WHEN [ReceivedQty] IS NULL THEN (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1}) + {2} ELSE [ReceivedQty] - (SELECT [ShipmentQty] FROM [PIMS].[dbo].[ShipmentDetails] WHERE [ShipmentDetailId] = {0}) + {2} END 
---WHERE [PODetailId] = {1}
-
-UPDATE [PIMS].[dbo].[ShipmentDetails] 
-SET [ShipmentQty] = {2}
-    , [LastModifiedOn] = GETDATE() 
-WHERE [ShipmentDetailId] = {0}
-
-UPDATE [PIMS].[dbo].[PODetail] 
-SET [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
-    ,[LastModifiedOn] = GETDATE()
-WHERE [PODetailId] = {1}
+                            completeQuery += detailInsertFullQuery + @"
 ";
-                            string detailUpdateFullQuery = string.Format(detailUpdateQuery, ship.ShipmentDetailId, ship.PODetailId, ship.ShipmentQty);
-
-                            using (var uow = new UnitOfWork())
-                            {
-                                await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
-                            }
-                            ship.LastShipmentQty = ship.ShipmentQty;
-                            //UpdateOpenPOShipmentData(ship);
                         }
-                    }
-                }
-            }
 
-            SqlData sqlData = new SqlData();
-            GridData = await sqlData.GetShippingDetailData();
-            OpenPOShipmentData = await sqlData.GetOpenPOShipmentData();
-
-            await InvokeAsync(StateHasChanged); // <-- refreshes
-        }
-        public async Task UpdateShippingDataAsync(ShippingData item)
-        {
-            // Don't save if empty detail list
-            if (POShipmentListGridData.Count() == 0)
-                return;
-
-            string query = @"
-UPDATE [PIMS].[dbo].[ShipmentHeader] SET
-    [ShipmentDate] = '{1}'
-    ,[TrackingNumber] = '{2}'
-    ,[ShipToETA] = '{3}'
-    ,[InvoiceNo] = '{4}'
-    ,[LastModifiedOn] = GETDATE()
-    ,[TransportationMode] = '{5}'
-WHERE [ShipmentHeaderId] = {0}";
-            string fullQuery = string.Format(query, item.ShipmentHeaderId, item.ShipmentDate, item.TrackingNumber, item.ShipToETA, item.InvoiceNo, item.TransportationMode);
-
-            using (var uow = new UnitOfWork())
-            {
-                await uow.ExecuteNonQueryAsync(fullQuery);
-            }
-
-            // Get list of Rows Selected. See SelectedDataItems list
-            List<string> productlist = new List<string>();
-            if (SelectedDataItems != null && SelectedDataItems.Count > 0)
-                productlist = SelectedDataItems.Select(x => (x as ShippingData).ProductNo).Distinct().ToList();
-            List<int> soDetailIds = new List<int>();
-            if (SelectedDataItems != null && SelectedDataItems.Count > 0)
-                soDetailIds = SelectedDataItems.Select(x => (x as ShippingData).SODetailId).Distinct().ToList();
-
-            // Save POShipmentListGrid data
-            foreach (ShippingData ship in POShipmentListGridData)
-            {
-                if (soDetailIds.Contains(ship.SODetailId))
-                {
-                    if (ship.ShipmentDetailId == 0 && ship.ShipmentQty != ship.LastShipmentQty)
-                    {
-                        int shipmentHeaderId = item.ShipmentHeaderId;
-                        int poDetailId = ship.PODetailId;
-                        int shipmentQty = ship.ShipmentQty;
-
-                        // NEW insert
-                        string detailInsertQuery = @"
-
-INSERT INTO [PIMS].[dbo].[ShipmentDetails] ([ShipmentHeaderId],[PODetailId],[ShipmentQty],[CreatedOn])
-SELECT {0},{1},{2}, GETDATE()
-
-UPDATE [PIMS].[dbo].[PODetail] 
-SET [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
-    ,[LastModifiedOn] = GETDATE()
-WHERE [PODetailId] = {1}
-
-SELECT @@IDENTITY AS 'pk'";
-                        string detailInsertFullQuery = string.Format(detailInsertQuery, shipmentHeaderId, poDetailId, shipmentQty, ship.ShipmentDetailId);
-
-                        int shipmentDetailId = 0;
-                        using (var uow = new UnitOfWork())
+                        // EDI QTY Allocation
+                        if (ship.AllocatedQuatities != null)
                         {
-                            DevExpress.Xpo.DB.SelectedData selectedData = uow.ExecuteQuery(detailInsertFullQuery);
+                            string transactionType = "";
 
-                            if (selectedData.ResultSet.Length > 0)
+                            string allocQtyUpdateQuery_replace = @"
+UPDATE [PIMS].[edi].[EdiTrn]
+SET [AllocatedQty] = {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [Editrnid] IN (SELECT trn.[Editrnid]
+FROM [PIMS].[edi].[EdiTrn] trn
+LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
+	ON trn.[Edihdrid] = hdr.[Edihdrid]
+WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+";
+                            string allocQtyUpdateQuery_adjust = @"
+UPDATE [PIMS].[edi].[EdiTrn]
+SET [AllocatedQty] = ISNULL([AllocatedQty], 0) + {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [Editrnid] IN (SELECT trn.[Editrnid]
+FROM [PIMS].[edi].[EdiTrn] trn
+LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
+	ON trn.[Edihdrid] = hdr.[Edihdrid]
+WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+";
+                            string allocQtyUpdateFullQuery = "";
+
+                            foreach (SoEdiData alloc in ship.AllocatedQuatities)
                             {
-                                DevExpress.Xpo.DB.SelectStatementResult result = selectedData.ResultSet[0];
+                                transactionType = alloc.TransactionType;
+                                // "Multi": On "New" or "Edit": Replace
+                                // "Single": On "New": Add To Existing. On "Edit" Adjust with difference
 
-                                if (result.Rows.Count() > 0)
+                                int soHeaderId = alloc.SOHeaderId;
+                                int soDetailId = alloc.SoDetailId;
+                                int ediHdrId = alloc.EdiHdrId;
+                                int ediTrnId = alloc.EdiTrnId;
+                                int inTransitUnits = alloc.IntransitUnits;  // Original Qty
+                                int allocQty = alloc.AllocatedQty;          // Adjusted Qty
+                                int adjustQty = allocQty - inTransitUnits;
+                                //int productId = alloc.ProductId;
+                                //string itemNo = alloc.ItemNo;
+                                //allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);   
+                                if (transactionType == "Multi")
+                                    allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);
+                                else
+                                    allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId); 
+                            }
+
+                            try
+                            {
+                                if (!onePushProcess)
                                 {
-                                    string rValue = result.Rows[0].Values[0].ToString();
-                                    int.TryParse(rValue, out shipmentDetailId);
+                                    using (var uow = new UnitOfWork())
+                                    {
+                                        await uow.ExecuteNonQueryAsync(allocQtyUpdateFullQuery);
+                                    }
+                                }
+                                else
+                                {
+                                    completeQuery += allocQtyUpdateFullQuery + @"
+";
                                 }
                             }
+                            catch (Exception ex)
+                            {
+                                DisplayPopupMessage("Error (Update) AllocatedQuatities:" + ex.Message + ". AllocQtyDetailUpdateQuery:" + allocQtyUpdateFullQuery);
+                            }
                         }
-                        if (shipmentDetailId > 0)
-                        {
-                            //POShipmentListGridData.Where(c => c.Id == ship.Id).FirstOrDefault().ShipmentDetailId = shipmentDetailId;
-                            ship.ShipmentDetailId = shipmentDetailId;
-                        }
-                        ship.LastShipmentQty = ship.ShipmentQty;
-                        //UpdateOpenPOShipmentData(ship);
                     }
-                    else
+                    else // adjust existing
                     {
-                        //if (ship.OrderQty != ship.ShipmentQty && ship.ShipmentQty != ship.LastShipmentQty)
-                        if (ship.ShipmentQty != ship.LastShipmentQty)
+                        if (ship.ShipmentQty != ship.LastShipmentQty || alwaysUpdate)
                         {
-                            //// UPDATE
-                            //string detailUpdateQuery = @"
-                            //UPDATE [PIMS].[dbo].[ShipmentDetails] 
-                            //SET [ShipmentQty] = {1}
-                            //--, [LastModifiedOn] = GETDATE() 
-                            //WHERE [PODetailId] = {0}";
-                            //string detailUpdateFullQuery = string.Format(detailUpdateQuery, item.PODetailId, item.OrderQty);
+                            detailUpdateCount++;
+
                             string detailUpdateQuery = @"
 UPDATE [PIMS].[dbo].[ShipmentDetails] 
 SET [ShipmentQty] = {2}
@@ -1053,28 +1516,127 @@ WHERE [ShipmentDetailId] = {0}
 
 UPDATE [PIMS].[dbo].[PODetail] 
 SET [LastModifiedOn] = GETDATE() 
-    --, [ReceivedQty] = CASE WHEN [ReceivedQty] IS NULL THEN (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1}) + {2} ELSE [ReceivedQty] - (SELECT [ShipmentQty] FROM [PIMS].[dbo].[ShipmentDetails] WHERE [ShipmentDetailId] = {0}) + {2} END 
     , [ReceivedQty] = (SELECT SUM([ShipmentQty]) FROM [PIMS].[dbo].[ShipmentDetails] WHERE [PODetailId] = {1})
 WHERE [PODetailId] = {1}
 ";
                             string detailUpdateFullQuery = string.Format(detailUpdateQuery, ship.ShipmentDetailId, ship.PODetailId, ship.ShipmentQty);
 
-                            using (var uow = new UnitOfWork())
+                            if (!onePushProcess)
                             {
-                                await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
+                                using (var uow = new UnitOfWork())
+                                {
+                                    await uow.ExecuteNonQueryAsync(detailUpdateFullQuery);
+                                }
+                                ship.LastShipmentQty = ship.ShipmentQty;
+                                //UpdateOpenPOShipmentData(ship);
                             }
-                            ship.LastShipmentQty = ship.ShipmentQty;
-                            //UpdateOpenPOShipmentData(ship);
+                            else
+                            {
+                                completeQuery += detailUpdateFullQuery + @"
+";
+                            }
+
+                            // EDI QTY Allocation Allocated Qty
+                            if (ship.AllocatedQuatities != null)
+                            {
+                                string transactionType = "";
+
+                                string allocQtyUpdateQuery_replace = @"
+UPDATE [PIMS].[edi].[EdiTrn]
+SET [AllocatedQty] = {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [Editrnid] IN (SELECT trn.[Editrnid]
+FROM [PIMS].[edi].[EdiTrn] trn
+LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
+	ON trn.[Edihdrid] = hdr.[Edihdrid]
+WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+";
+                                string allocQtyUpdateQuery_adjust = @"
+UPDATE [PIMS].[edi].[EdiTrn]
+SET [AllocatedQty] = ISNULL([AllocatedQty], 0) + {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [Editrnid] IN (SELECT trn.[Editrnid]
+FROM [PIMS].[edi].[EdiTrn] trn
+LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
+	ON trn.[Edihdrid] = hdr.[Edihdrid]
+WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+";
+                                string allocQtyUpdateFullQuery = "";
+
+                                foreach (SoEdiData alloc in ship.AllocatedQuatities)
+                                {
+                                    transactionType = alloc.TransactionType;
+                                    // "Multi": On "New" or "Edit": Replace
+                                    // "Single": On "New": Add To Existing. On "Edit" Adjust with difference
+
+                                    int soHeaderId = alloc.SOHeaderId;
+                                    int soDetailId = alloc.SoDetailId;
+                                    int ediHdrId = alloc.EdiHdrId;
+                                    int ediTrnId = alloc.EdiTrnId;
+                                    int inTransitUnits = alloc.IntransitUnits;  // Original Qty
+                                    int allocQty = alloc.AllocatedQty;          // Adjusted Qty
+                                    int adjustQty = allocQty - inTransitUnits;
+                                    //int productId = alloc.ProductId;
+                                    //string itemNo = alloc.ItemNo;
+                                    if (transactionType == "Multi")
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);
+                                    else
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId); 
+                                }
+
+                                try
+                                {
+                                    if (!onePushProcess)
+                                    {
+                                        using (var uow = new UnitOfWork())
+                                        {
+                                            await uow.ExecuteNonQueryAsync(allocQtyUpdateFullQuery);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        completeQuery += allocQtyUpdateFullQuery + @"
+";
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    DisplayPopupMessage("Error (Update) AllocatedQuatities:" + ex.Message + ". AllocQtyDetailUpdateQuery:" + allocQtyUpdateFullQuery);
+                                }
+                            }
                         }
                     }
                 }
             }
 
+            if (onePushProcess && !string.IsNullOrWhiteSpace(completeQuery))
+            {
+                try
+                {
+                    using (var uow = new UnitOfWork())
+                    {
+                        await uow.ExecuteNonQueryAsync(completeQuery);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DisplayPopupMessage("Error (OnePush Update) AllocatedQuatities:" + ex.Message + ". AllocQtyDetailUpdateQuery:" + completeQuery);
+                }
+            }
+
+            if (detailSaveCount == 0 && detailUpdateCount == 0)
+            {
+                string message = "No data saved." + Environment.NewLine + "Only 0 quantities.";
+                DisplayPopupMessage(message);
+            }
+
+            headerMessage = "Refreshing Data...";
             SqlData sqlData = new SqlData();
             GridData = await sqlData.GetShippingDetailData();
             OpenPOShipmentData = await sqlData.GetOpenPOShipmentData();
 
             await InvokeAsync(StateHasChanged); // <-- refreshes
+            headerMessage = "";
         }
 
         public void Grid_OnRowClick(GridRowClickEventArgs e)
@@ -1168,16 +1730,17 @@ WHERE [PODetailId] = {1}
 
             if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
             {
-                GridCell cell = clickedCells.Find(x => x.colName == (e.Column as DxGridDataColumn).FieldName && x.rowIndex == e.VisibleIndex);
-                if (cell != null)
-                {
-                    //e.CssClass = "highlighted-item";
-                    e.Style = "border: 2px solid #4864a9; color: red";
-                }
-                else
-                {
-                    e.Style = "color: red";
-                }
+                //GridCell cell = clickedCells.Find(x => x.colName == (e.Column as DxGridDataColumn).FieldName && x.rowIndex == e.VisibleIndex);
+                //if (cell != null)
+                //{
+                //    //e.CssClass = "highlighted-item";
+                //    e.Style = "border: 2px solid #4864a9; color: red";
+                //}
+                //else
+                //{
+                //    e.Style = "color: red";
+                //}
+                e.Style = "border: 2px solid #a5bdfa; color: red";
             }
             if (e.ElementType == GridElementType.EditCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "ShipmentQty")
             {
@@ -1185,7 +1748,7 @@ WHERE [PODetailId] = {1}
                 if (cell != null)
                 {
                     //e.CssClass = "highlighted-item";
-                    e.Style = "border: 2px solid #4864a9; color: red";
+                    e.Style = "border: 2px solid #a5bdfa; color: red";
                 }
                 else
                 {
@@ -1225,7 +1788,7 @@ WHERE [PODetailId] = {1}
             //    clickedCells.Remove(cell);
 
             GridCell cell = clickedCells.Find(x => x.colName == (e.Column as DxGridDataColumn).FieldName && x.rowIndex == e.VisibleIndex);
-            if (cell == null)
+            if (cell != null)
             {
                 if ((e.Column as DxGridDataColumn).FieldName == "ShipmentQty")
                 {
@@ -1276,8 +1839,6 @@ WHERE [PODetailId] = {1}
             if (e.EditModel.GetType() == typeof(ShippingData))
             {
                 var editObject = (ShippingData)e.EditModel;
-                if (editObject.ShipmentDetailId == 0)
-                    editObject.isNew = true;
 
                 if (e.IsNew)
                 {
@@ -1285,7 +1846,10 @@ WHERE [PODetailId] = {1}
                 }
                 else
                 {
-                    editObject.isUpdate = true;
+                    if (editObject.ShipmentDetailId == 0)
+                        editObject.isNew = true;
+                    else
+                        editObject.isUpdate = true;
                 }
             }
         }
@@ -1300,6 +1864,92 @@ WHERE [PODetailId] = {1}
             }
             else
             {
+            }
+        }
+
+        // End edit
+        public async Task ItemGrid_OnEditEnd(ShippingData savingObject) 
+        {
+            ShippingProductSelectedDataItem = savingObject;
+            bool isNew = savingObject.isNew;
+
+            if (savingObject.isUpdate || savingObject.ShipmentDetailId > 0)
+            {
+                if (savingObject.ShipmentQty > savingObject.LastShipmentQty)
+                    savingObject.ShipmentQty = savingObject.LastShipmentQty;
+            }
+            else
+            {
+                if (savingObject.ShipmentQty > savingObject.RemQty)
+                    savingObject.ShipmentQty = savingObject.RemQty;
+            }
+
+            // check for EDI PO distribution (Only if more than on factory PO)
+            string poNumber = savingObject.PONumber;
+            int productId = savingObject.ProductId;
+            string productNo = savingObject.ProductNo;
+            //string productName = savingObject.ProductName; // Product Description
+            //string forProductNo = savingObject.ForProductNo;
+
+            if (!string.IsNullOrEmpty(poNumber) && 
+                !string.IsNullOrEmpty(productNo) && 
+                savingObject.ShipmentQty > 0)
+            {
+                SqlData sqlData = new SqlData();
+                List<SoEdiData> productFactoryPOsData = await sqlData.GetProductFactoryPOs(poNumber,productNo);
+
+                int shipmentQty = savingObject.ShipmentQty;
+                int inTransitTotal = 0;
+
+                foreach (SoEdiData item in productFactoryPOsData)
+                {
+                    item.ShipmentQty = shipmentQty;
+                    inTransitTotal = item.InTransitTotal;
+
+                    if (productFactoryPOsData.Count == 1)
+                    {
+                        item.AllocatedQty = shipmentQty;
+                        item.TransactionType = "Single"; // On "New": Add To Existing. On "Edit" Adjust with difference
+                    }
+                    else
+                    {
+                        item.TransactionType = "Multi"; // On "New" or "Edit": Replace
+                    }
+                }
+                savingObject.AllocatedQuatities = productFactoryPOsData;
+
+                //if (productFactoryPOsData.Count > 0) // 0 for testing. 1 for normal
+                if (productFactoryPOsData.Count > 1) // 0 for testing. 1 for normal
+                {
+                    //productFactoryPOsGridPopupTitleText = "Product No " + productNo + " [Incoming Units = " + shipmentQty + "]";
+                    //productFactoryPOsGridPopupBodyText = shipmentQty.ToString(); //"Available Qty: " + shipmentQty;
+                    if (isNew)
+                    {
+                        productFactoryPOsGridPopupTitleText = "Product No " + productNo + " [Incoming Units = " + inTransitTotal + " (+" + shipmentQty + ") " + "]";
+                        productFactoryPOsGridPopupBodyText = (inTransitTotal + shipmentQty).ToString(); 
+                    }
+                    else
+                    {
+                        productFactoryPOsGridPopupTitleText = "Product No " + productNo + " [Incoming Units = " + inTransitTotal + "]";
+                        productFactoryPOsGridPopupBodyText = inTransitTotal.ToString();
+                    }
+
+                    ProductFactoryPOsGridData = productFactoryPOsData;
+                    productFactoryPOsGridDataPopupVisible = true;
+                    productFactoryPOsOkButtonEnabled = false;
+
+                    await InvokeAsync(StateHasChanged); // <-- refreshes
+                }
+                else
+                {
+                    int index = POShipmentListGrid.GetFocusedRowIndex();
+
+                    if (index >= 0)
+                    {
+                        (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuatities = productFactoryPOsData.ToList();
+                    }
+
+                }
             }
         }
 
@@ -1322,8 +1972,37 @@ WHERE [PODetailId] = {1}
                     savingObject.isUpdate = true;
                 }
 
-                if (savingObject.ShipmentQty > savingObject.RemQty)
-                    savingObject.ShipmentQty = savingObject.RemQty;
+                //if (savingObject.ShipmentQty > savingObject.RemQty)
+                //    savingObject.ShipmentQty = savingObject.RemQty;
+                //
+                //// check for EDI PO distribution (Only if more than on factory PO)
+                //int productId = savingObject.ProductId;
+                //string productNo = savingObject.ProductNo;
+                ////string productName = savingObject.ProductName; // Product Description
+                ////string forProductNo = savingObject.ForProductNo;
+                //
+                //if (!string.IsNullOrEmpty(productNo) && savingObject.ShipmentQty > 0)
+                //{
+                //    SqlData sqlData = new SqlData();
+                //    List<SoEdiData> productFactoryPOsData = await sqlData.GetProductFactoryPOs(productNo);
+                //
+                //    int shipmentQty = savingObject.ShipmentQty;
+                //
+                //    foreach (SoEdiData item in productFactoryPOsData)
+                //    {
+                //        item.ShipmentQty = shipmentQty;
+                //    }
+                //    savingObject.AllocatedQuatities = productFactoryPOsData;
+                //
+                //    if (productFactoryPOsData.Count > 0) // 0 for testing. 1 for normal
+                //    {
+                //        productFactoryPOsGridPopupTitleText = "Product No " + productNo + " [" + shipmentQty + "]";
+                //        productFactoryPOsGridPopupBodyText = "Available Qty: " + shipmentQty;
+                //
+                //        ProductFactoryPOsGridData = productFactoryPOsData;
+                //        productFactoryPOsGridDataPopupVisible = true;
+                //    }
+                //}
 
                 POShipmentListGridData.Where(c => c.Id == savingObject.Id).FirstOrDefault().ShipmentQty = savingObject.ShipmentQty;
 
@@ -1332,6 +2011,249 @@ WHERE [PODetailId] = {1}
                 if (shipingData != null)
                 {
                     shipingData.TotalSum = incomingUnitsSum;
+                }
+            }
+        }
+
+        public void ItemGrid_OnFocusedRowChanged(GridFocusedRowChangedEventArgs e)
+        {
+            var shippingData = e.DataItem as ShippingData;
+
+        }
+        
+        public void ItemGrid_OnKeyDownGrid(KeyboardEventArgs e) // <DxGrid @ref="POShipmentListGrid" ... @onkeydown="ItemGrid_OnKeyDownGrid"
+        {
+            List<string> keyList = new List<string>() { "ArrowRight", "Enter", "Tab" }; //"ArrowLeft"
+
+            if (keyList.Contains(e.Key))
+            {
+                //// Get next FocusRow
+                //int index = POShipmentListGrid.GetFocusedRowIndex();
+                //if (index > POShipmentListGrid.GetVisibleRowCount())
+                //    index = 1;
+                //else
+                //    index++;
+
+                //POShipmentListGrid.SetFocusedRowIndex(index);
+
+                ////POShipmentListGrid.CancelEditAsync();
+
+                //js.InvokeVoidAsync("focusEditor");
+            }
+
+            //if (e.Key != "Enter")
+            //    return;
+
+            //if (ProductFactoryPOsGrid.GetVisibleRowCount() != 1)
+            //    return;
+            //var item = ProductFactoryPOsGrid.GetDataItem(0) as ShippingData;
+            //if (item != null)
+            //{
+            //    //AddSelected(item);
+            //}
+        }
+
+        public void HandleKeyDown(KeyboardEventArgs e) // <div tabindex="0" @onkeydown="HandleKeyDown">
+        {
+            List<string> keyList = new List<string>() { "ArrowRight", "Enter", "Tab" }; //"ArrowLeft"
+
+            if (keyList.Contains(e.Key))
+            {
+                //// Get next FocusRow
+                //int index = POShipmentListGrid.GetFocusedRowIndex();
+                //if (index > POShipmentListGrid.GetVisibleRowCount())
+                //    index = 1;
+                //else
+                //    index++;
+
+                //POShipmentListGrid.SetFocusedRowIndex(index);
+            }
+        }
+
+        public void GridCell_OnKeyDownGrid(KeyboardEventArgs e)
+        {
+            List<string> keyList = new List<string>() { "ArrowRight", "Enter", "Tab" };
+
+            if (keyList.Contains(e.Key))
+            {
+                POShipmentListGrid.CancelEditAsync();
+
+                //// Get next FocusRow
+                //int index = POShipmentListGrid.GetFocusedRowIndex();
+                //if (index > POShipmentListGrid.GetVisibleRowCount())
+                //    index = 1;
+                //else
+                //    index++;
+
+                //POShipmentListGrid.SetFocusedRowIndex(index);
+            }
+        }
+
+        // ============================================================ \\
+
+        public void ProductFactoryPOsGrid_CustomizeElement(GridCustomizeElementEventArgs e)
+        {
+            if (e.ElementType == GridElementType.DataCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "AllocatedQty")
+            {
+                e.Style = "border: 2px solid #4864a9; color: red";
+            }
+            if (e.ElementType == GridElementType.EditCell && (e.Column as DevExpress.Blazor.DxGridDataColumn).FieldName == "AllocatedQty")
+            {
+                GridCell cell = clickedCells.Find(x => x.colName == (e.Column as DxGridDataColumn).FieldName && x.rowIndex == e.VisibleIndex);
+                if (cell != null)
+                {
+                    e.Style = "border: 2px solid #4864a9; color: red";
+                }
+                else
+                {
+                    e.Style = "color: red";
+                }
+            }
+        }
+
+        public async Task ProductFactoryPOsGrid_OnEditEnd_old(SoEdiData productFactoryPOsGridData) // End edit
+        {
+            if (productFactoryPOsGridData != null)
+            {
+                // Test for qty 
+                string editItemNo = productFactoryPOsGridData.ItemNo;
+                string poNumber = productFactoryPOsGridData.CustomerPO; //productFactoryPOsGridData.PONumber;
+
+                int allocQty = productFactoryPOsGridData.AllocatedQty;
+                int totalShipmentQty = ProductFactoryPOsGridData.ToList()[0].ShipmentQty;
+                int subTotal = 0;
+                int remQty = 0;
+
+                // Qty cannot be greater than OrderQty (+ any previous received qty)
+                if (productFactoryPOsGridData.AllocatedQty > (productFactoryPOsGridData.OrderQty - productFactoryPOsGridData.IntransitUnits))
+                {
+                    productFactoryPOsGridData.AllocatedQty = (productFactoryPOsGridData.OrderQty - productFactoryPOsGridData.IntransitUnits);
+                }
+
+                foreach (SoEdiData item in ProductFactoryPOsGridData)
+                {
+                    if (item.CustomerPO != poNumber)
+                        subTotal += item.AllocatedQty;
+                }
+
+                if ((subTotal + allocQty) > totalShipmentQty)
+                {
+                    productFactoryPOsGridData.AllocatedQty = (totalShipmentQty - subTotal);
+                }
+
+                remQty = (totalShipmentQty - (subTotal + productFactoryPOsGridData.AllocatedQty));
+                productFactoryPOsGridPopupBodyText = remQty.ToString();
+                productFactoryPOsOkButtonEnabled = (remQty == 0) ? true : false;
+
+                foreach (SoEdiData item in ProductFactoryPOsGridData)
+                {
+                    if (item.CustomerPO == poNumber)
+                    {
+                        item.AllocatedQty = productFactoryPOsGridData.AllocatedQty;
+                        break;
+                    }
+                }
+            }
+        }
+        public async Task ProductFactoryPOsGrid_OnEditEnd(SoEdiData productFactoryPOsGridData) // End edit
+        {
+            if (productFactoryPOsGridData != null)
+            {
+                bool isNew = ShippingProductSelectedDataItem.isNew;
+
+                // Test for qty 
+                string editItemNo = productFactoryPOsGridData.ItemNo;
+                string poNumber = productFactoryPOsGridData.CustomerPO; //productFactoryPOsGridData.PONumber;
+
+                int allocQty = productFactoryPOsGridData.AllocatedQty;
+                int totalShipmentQty = ProductFactoryPOsGridData.ToList()[0].ShipmentQty;
+                int inTransitTotalQty = ProductFactoryPOsGridData.ToList()[0].InTransitTotal;
+                int totalAllocatableQty = 0;
+                int subTotal = 0;
+                int remQty = 0;
+
+                if (isNew)
+                    totalAllocatableQty = inTransitTotalQty + totalShipmentQty;
+                else
+                    totalAllocatableQty = inTransitTotalQty;
+
+                // Qty cannot be greater than OrderQty (+ any previous received qty)
+                if (productFactoryPOsGridData.AllocatedQty > productFactoryPOsGridData.OrderQty)
+                {
+                    productFactoryPOsGridData.AllocatedQty = productFactoryPOsGridData.OrderQty;
+                    allocQty = productFactoryPOsGridData.AllocatedQty;
+                }
+
+                foreach (SoEdiData item in ProductFactoryPOsGridData)
+                {
+                    if (item.CustomerPO != poNumber)
+                        subTotal += item.AllocatedQty;
+                }
+
+                if ((subTotal + allocQty) > totalAllocatableQty)
+                {
+                    productFactoryPOsGridData.AllocatedQty = (totalAllocatableQty - subTotal);
+                }
+
+                remQty = totalAllocatableQty - productFactoryPOsGridData.AllocatedQty - subTotal;
+                productFactoryPOsGridPopupBodyText = remQty.ToString();
+                productFactoryPOsOkButtonEnabled = (remQty == 0) ? true : false;
+
+                foreach (SoEdiData item in ProductFactoryPOsGridData)
+                {
+                    if (item.CustomerPO == poNumber)
+                    {
+                        item.AllocatedQty = productFactoryPOsGridData.AllocatedQty;
+                        break;
+                    }
+                }
+            }
+        }
+
+        public async Task POShipmentListGridRowFocus(int index) // End edit
+        {
+            //POShipmentListGrid.SetFocusedRowIndex(index);
+
+            ShippingData fi = POShipmentListGrid.GetDataItem(index) as ShippingData;
+            //await POShipmentListGrid.SetFocusedDataItemAsync(fi);
+
+            //SelectedDataItem = fi;
+            //await InvokeAsync(StateHasChanged);
+        }
+
+        public async void OkProductFactoryPOsPopupClick()
+        {
+            productFactoryPOsGridDataPopupVisible = false;
+
+            int index = POShipmentListGrid.GetFocusedRowIndex();
+
+            if (index >= 0)
+            {
+                (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuatities = ProductFactoryPOsGridData.ToList();
+            }
+
+            await ProductFactoryPOsGrid.CancelEditAsync();
+
+            // Use ProductFactoryPOsGridData to update EdiTrn data
+
+        }
+
+        public void CancelProductFactoryPOsPopupClick()
+        {
+            productFactoryPOsGridDataPopupVisible = false;
+
+            int index = POShipmentListGrid.GetFocusedRowIndex();
+
+            if (index >= 0)
+            {
+                try
+                {
+                    (POShipmentListGrid.GetDataItem(index) as ShippingData).ShipmentQty = (POShipmentListGrid.GetDataItem(index) as ShippingData).LastShipmentQty;
+                    (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuatities = null;
+                }
+                catch
+                {
+
                 }
             }
         }

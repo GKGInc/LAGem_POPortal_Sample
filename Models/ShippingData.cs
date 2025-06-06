@@ -53,7 +53,13 @@ namespace LAGem_POPortal.Models
         public bool isDirty { get; set; }
         public int TotalSum { get; set; } = 0;
 
-        public string TransportationMode { get; set; }       
+        public string TransportationMode { get; set; }
+        public DateTime LastModifiedOn { get; set; }
+        public List<SoEdiData> AllocatedQuatities { get; set; }
+        public int InTransitTotal { get; set; } = 0;        
 
+        public int GroupId { get; set; }
+        public string GroupLabel { get; set; }
+        public int POCount { get; set; } = 0;
     }
 }
