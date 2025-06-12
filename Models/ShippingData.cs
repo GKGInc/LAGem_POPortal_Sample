@@ -55,7 +55,7 @@ namespace LAGem_POPortal.Models
 
         public string TransportationMode { get; set; }
         public DateTime LastModifiedOn { get; set; }
-        public List<SoEdiData> AllocatedQuatities { get; set; }
+        public List<SoEdiData> AllocatedQuantities { get; set; }
         public int InTransitTotal { get; set; } = 0;        
 
         public int GroupId { get; set; }

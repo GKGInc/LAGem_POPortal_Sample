@@ -25,6 +25,7 @@ using Azure;
 using System.Security.Cryptography.Xml;
 using System.Linq;
 using DevExpress.DataAccess.Sql;
+using System;
 
 namespace LAGem_POPortal.Pages.InTransitPOs
 {
@@ -1117,7 +1118,7 @@ SELECT @@IDENTITY AS 'pk'";
                             }
 
                             // EDI QTY Allocation
-                            if (ship.AllocatedQuatities != null)
+                            if (ship.AllocatedQuantities != null)
                             {
                                 string transactionType = "";
 
@@ -1155,7 +1156,7 @@ WHERE [SODetailId] = {3}
 ";
                                 string allocQtyUpdateFullQuery = "";
 
-                                foreach (SoEdiData alloc in ship.AllocatedQuatities)
+                                foreach (SoEdiData alloc in ship.AllocatedQuantities)
                                 {
                                     transactionType = alloc.TransactionType;
                                     // "Multi": On "New" or "Edit": Replace
@@ -1240,7 +1241,7 @@ WHERE [PODetailId] = {1}
                             }
 
                             // EDI QTY Allocation
-                            if (ship.AllocatedQuatities != null)
+                            if (ship.AllocatedQuantities != null)
                             {
                                 string transactionType = "";
 
@@ -1277,7 +1278,7 @@ SET [AllocatedQty] = (SELECT [AllocatedQty] FROM [PIMS].[edi].[EdiTrn] WHERE [Ed
 WHERE [SODetailId] = {3}
 ";
 
-                                foreach (SoEdiData alloc in ship.AllocatedQuatities)
+                                foreach (SoEdiData alloc in ship.AllocatedQuantities)
                                 {
                                     transactionType = alloc.TransactionType;
                                     // "Multi": On "New" or "Edit": Replace
@@ -1459,7 +1460,7 @@ SELECT @@IDENTITY AS 'pk'";
                         }
 
                         // EDI QTY Allocation
-                        if (ship.AllocatedQuatities != null)
+                        if (ship.AllocatedQuantities != null)
                         {
                             string transactionType = "";
 
@@ -1495,7 +1496,7 @@ WHERE [SODetailId] = {3}
 ";
                             string allocQtyUpdateFullQuery = "";
 
-                            foreach (SoEdiData alloc in ship.AllocatedQuatities)
+                            foreach (SoEdiData alloc in ship.AllocatedQuantities)
                             {
                                 transactionType = alloc.TransactionType;
                                 // "Multi": On "New" or "Edit": Replace
@@ -1573,7 +1574,7 @@ WHERE [PODetailId] = {1}
                             }
 
                             // EDI QTY Allocation Allocated Qty
-                            if (ship.AllocatedQuatities != null)
+                            if (ship.AllocatedQuantities != null)
                             {
                                 string transactionType = "";
 
@@ -1609,7 +1610,7 @@ WHERE [SODetailId] = {3}
 ";
                                 string allocQtyUpdateFullQuery = "";
 
-                                foreach (SoEdiData alloc in ship.AllocatedQuatities)
+                                foreach (SoEdiData alloc in ship.AllocatedQuantities)
                                 {
                                     transactionType = alloc.TransactionType;
                                     // "Multi": On "New" or "Edit": Replace
@@ -1647,7 +1648,7 @@ WHERE [SODetailId] = {3}
                                 }
                                 catch (Exception ex)
                                 {
-                                    DisplayPopupMessage("Error (Update) AllocatedQuatities:" + ex.Message + ". AllocQtyDetailUpdateQuery:" + allocQtyUpdateFullQuery);
+                                    DisplayPopupMessage("Error (Update) AllocatedQuantities:" + ex.Message + ". AllocQtyDetailUpdateQuery:" + allocQtyUpdateFullQuery);
                                 }
                             }
                         }
@@ -1666,7 +1667,7 @@ WHERE [SODetailId] = {3}
                 }
                 catch (Exception ex)
                 {
-                    DisplayPopupMessage("Error (OnePush Update) AllocatedQuatities:" + ex.Message + ". AllocQtyDetailUpdateQuery:" + completeQuery);
+                    DisplayPopupMessage("Error (OnePush Update) AllocatedQuantities:" + ex.Message + ". AllocQtyDetailUpdateQuery:" + completeQuery);
                 }
             }
 
@@ -1962,7 +1963,9 @@ WHERE [SODetailId] = {3}
                         item.TransactionType = "Multi"; // On "New" or "Edit": Replace
                     }
                 }
-                savingObject.AllocatedQuatities = productFactoryPOsData;
+                savingObject.AllocatedQuantities = productFactoryPOsData;
+
+                savingObject.POCount = productFactoryPOsData.Count;
 
                 //if (productFactoryPOsData.Count > 0) // 0 for testing. 1 for normal
                 if (productFactoryPOsData.Count > 1) // 0 for testing. 1 for normal
@@ -1992,9 +1995,8 @@ WHERE [SODetailId] = {3}
 
                     if (index >= 0)
                     {
-                        (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuatities = productFactoryPOsData.ToList();
+                        (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuantities = productFactoryPOsData.ToList();
                     }
-
                 }
             }
         }
@@ -2210,6 +2212,8 @@ WHERE [SODetailId] = {3}
                 // Test for qty 
                 string editItemNo = productFactoryPOsGridData.ItemNo;
                 string poNumber = productFactoryPOsGridData.CustomerPO; //productFactoryPOsGridData.PONumber;
+                int edihdrid = productFactoryPOsGridData.EdiHdrId;
+                int editrnid = productFactoryPOsGridData.EdiTrnId;
 
                 int allocQty = productFactoryPOsGridData.AllocatedQty;
                 int totalShipmentQty = ProductFactoryPOsGridData.ToList()[0].ShipmentQty;
@@ -2232,7 +2236,10 @@ WHERE [SODetailId] = {3}
 
                 foreach (SoEdiData item in ProductFactoryPOsGridData)
                 {
-                    if (item.CustomerPO != poNumber)
+                    if (item.CustomerPO == poNumber && item.EdiHdrId == edihdrid && item.EdiTrnId == editrnid)
+                    {
+                    }
+                    else
                         subTotal += item.AllocatedQty;
                 }
 
@@ -2247,7 +2254,7 @@ WHERE [SODetailId] = {3}
 
                 foreach (SoEdiData item in ProductFactoryPOsGridData)
                 {
-                    if (item.CustomerPO == poNumber)
+                    if (item.CustomerPO == poNumber && item.EdiHdrId == edihdrid && item.EdiTrnId == editrnid)
                     {
                         item.AllocatedQty = productFactoryPOsGridData.AllocatedQty;
                         break;
@@ -2275,7 +2282,9 @@ WHERE [SODetailId] = {3}
 
             if (index >= 0)
             {
-                (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuatities = ProductFactoryPOsGridData.ToList();
+                (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuantities = ProductFactoryPOsGridData.ToList();
+
+                (POShipmentListGrid.GetDataItem(index) as ShippingData).POCount = (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuantities.Count;
             }
 
             await ProductFactoryPOsGrid.CancelEditAsync();
@@ -2295,7 +2304,7 @@ WHERE [SODetailId] = {3}
                 try
                 {
                     (POShipmentListGrid.GetDataItem(index) as ShippingData).ShipmentQty = (POShipmentListGrid.GetDataItem(index) as ShippingData).LastShipmentQty;
-                    (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuatities = null;
+                    (POShipmentListGrid.GetDataItem(index) as ShippingData).AllocatedQuantities = null;
                 }
                 catch
                 {
