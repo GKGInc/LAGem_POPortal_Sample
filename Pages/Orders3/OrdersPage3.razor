@@ -825,7 +825,7 @@
                                     </div>
                                 </Template>
                             </DxToolbarItem> *@
-                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" RenderStyle="ButtonRenderStyle.None"  Text="@isLoadingMessage" Visible="@isLoadingVisible" />
+                            <DxToolbarItem Alignment="ToolbarItemAlignment.Left" RenderStyle="ButtonRenderStyle.Danger" Text="@isLoadingMessage" Visible="@isLoadingVisible" />
                         </Items>
                     </DxToolbar>
                 </ToolbarTemplate>
@@ -859,7 +859,7 @@
                                 <DxButton IconCssClass="grid-icon grid-icon-add" RenderStyle="ButtonRenderStyle.Primary" aria-label="Add" Text="Search EDI PO" Click="@(() => OnSearchButtonClick(@searchText))" />
                             </div>
                             <div style="margin-right: 10px;">
-                                <DxTextBox @ref=searchBoxRef Text="@searchText" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))"></DxTextBox>
+                                <DxTextBox @ref=searchBoxRef Text="@searchText" TextChanged="@((newValue) => OnSearchPOTextChanged(newValue))" @onkeyup="@OnSearchPOonKeyUp"></DxTextBox>
                             </div>
                             <div style="margin-right: 10px;">
                                 <DxCheckBox Checked="unLinkedPOsOnly" CheckedChanged="new Func<bool, Task>(SearchUnLinkedPOsOnly_CheckedChanged)">Un-Linked POs Only</DxCheckBox>
@@ -938,7 +938,7 @@
                 </DxFormLayout>
             </BodyContentTemplate>
             <FooterContentTemplate>
-                <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@PopupLinkingFormContext.CloseCallback" />
+                <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@PopupLinkingFormContext.CloseCallback" Visible="false" />
                 <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Cancel" Click="@PopupLinkingFormContext.CloseCallback" />
             </FooterContentTemplate>
         </DxWindow>
@@ -994,7 +994,7 @@
                                     SelectedDataItems="@SelectedEDIDataItems"
                                     SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedEDIDataItemsChanged(selectedItems))"  
                                     ShowGroupPanel="false"
-                                    ShowSearchBox="true"
+                                    ShowSearchBox="false"
                                     SearchText=""
                                     SearchTextParseMode="CurrentSearchTextParseMode"
                                     CustomizeElement="LinkingGrid_CustomizeElement"
@@ -1021,7 +1021,7 @@
                                     <DxGridDataColumn FieldName="Price" Caption="Price" DisplayFormat="c" MinWidth="60" ReadOnly="true" Visible="false" />
                                     <DxGridDataColumn FieldName="Description" Caption="Description" MinWidth="60" ReadOnly="true" Visible="false" />
 
-                                    <DxGridCommandColumn Context="EdiPOContext" Width="45px" Visible="!useCheckboxLinking">
+                                    @* <DxGridCommandColumn Context="EdiPOContext" Width="45px" Visible="!useCheckboxLinking">
                                         <HeaderTemplate>
                                             Link
                                         </HeaderTemplate>
@@ -1032,7 +1032,7 @@
                                                           Click="@(() => OnLinkPOItemClick((SoEdiData)EdiPOContext.DataItem, "link"))" />
                                             </div>
                                         </CellDisplayTemplate>
-                                    </DxGridCommandColumn>
+                                    </DxGridCommandColumn> *@
                                     <DxGridCommandColumn Context="EdiPOContext" Width="45px" Visible="!useCheckboxLinking">
                                         <HeaderTemplate>
                                             Un link
@@ -1062,11 +1062,20 @@
                                     </DxGridDataColumn>
                                     <DxGridDataColumn FieldName="LinkedStatus" Caption="Linked Status" MinWidth="60" ReadOnly="true" Visible="false" />
                                     
-                                    <DxGridSelectionColumn Context="ProductLinkSection_EDIData_checkbox" Width="75px" Visible="useCheckboxLinking" >
+                                    <DxGridSelectionColumn Context="ProductLinkSection_EDIData_checkbox" Width="75px" Visible="useCheckboxLinking">
                                         <HeaderTemplate>
                                             <text>Link/ Unlink</text>
                                         </HeaderTemplate> 
                                     </DxGridSelectionColumn>
+
+                                    <DxGridDataColumn FieldName="IsItemLinked" Caption="Link/ Unlink" Context="ProductLinkSection_EDIData_IsItemLinked" Width="75px" >
+                                        <CellDisplayTemplate>
+                                            @* <DxCheckBox Checked="@((bool)ProductLinkSection_EDIData_IsItemLinked.Value)" Enabled="false" /> *@
+                                            <DxCheckBox Checked="@((bool)ProductLinkSection_EDIData_IsItemLinked.Value)" 
+                                                        CheckedChanged="@((bool value) => ProcessSelectedEDIDataOnClick(ProductLinkSection_EDIData_IsItemLinked.DataItem as SoEdiData, value))"
+                                                        Enabled="isEdiDataLinkable" />
+                                        </CellDisplayTemplate>
+                                    </DxGridDataColumn>
 
                                 </Columns>
                             </DxGrid>
@@ -1099,7 +1108,7 @@
                                     SelectedDataItems="@SelectedSODataItems"
                                     SelectedDataItemsChanged="@((IReadOnlyList<object> selectedItems) => OnSelectedSODataItemsChanged(selectedItems))"  
                                     ShowGroupPanel="false"
-                                    ShowSearchBox="true"
+                                    ShowSearchBox="false"
                                     SearchText=""
                                     SearchTextParseMode="CurrentSearchTextParseMode"
                                     CustomizeElement="LinkingGrid_CustomizeElement"
@@ -1110,7 +1119,16 @@
                                     TextWrapEnabled="true"
                                     ValidationEnabled="false">
                                 <Columns>
-                                    <DxGridSelectionColumn Width="75px" Context="ProductLinkSection_SOData_checkbox" Visible="useCheckboxLinking" >
+                                    <DxGridDataColumn FieldName="IsItemLinked" Caption="Link/ Unlink" Context="ProductLinkSection_SOData_IsItemLinked" Width="75px" >
+                                        <CellDisplayTemplate>
+                                            @* <DxCheckBox Checked="@((bool)ProductLinkSection_SOData_IsItemLinked.Value)" Enabled="false" /> *@
+                                            <DxCheckBox Checked="@((bool)ProductLinkSection_SOData_IsItemLinked.Value)"
+                                                        CheckedChanged="@((bool value) => ProcessSelectedSODataOnClick(ProductLinkSection_SOData_IsItemLinked.DataItem as CustomerSoPoData, value))"
+                                                        Enabled="isSoDataLinkable" />
+                                        </CellDisplayTemplate>
+                                    </DxGridDataColumn>
+
+                                    <DxGridSelectionColumn Width="75px" Context="ProductLinkSection_SOData_checkbox" Visible="useCheckboxLinking">
                                         <HeaderTemplate>
                                             <text>Link/ Unlink</text>
                                         </HeaderTemplate> 
@@ -1134,7 +1152,7 @@
                                     <DxGridDataColumn FieldName="VendorPO" Caption="Vendor PO" MinWidth="80" ReadOnly="true" />
                                     <DxGridDataColumn FieldName="VendorName" Caption="Vendor Name" MinWidth="80" ReadOnly="true" />
                                                                                                             
-                                    <DxGridCommandColumn Context="CustomerPOContext" Width="45px" Visible="!useCheckboxLinking">
+                                   @*  <DxGridCommandColumn Context="CustomerPOContext" Width="45px" Visible="!useCheckboxLinking" >
                                         <HeaderTemplate>
                                             Link
                                         </HeaderTemplate>
@@ -1144,16 +1162,9 @@
                                                 <DxButton IconCssClass="grid-icon grid-icon-add"
                                                           RenderStyle="ButtonRenderStyle.Secondary" aria-label="Link"
                                                           Click="@(() => OnLinkPOItemClick((CustomerSoPoData)CustomerPOContext.DataItem, "link"))" />
-                                                @*if ((int)CustomerPOContext.GetRowValue("SOQty") > 0){
-                                                <DxButton IconCssClass="grid-icon grid-icon-add"
-                                                RenderStyle="ButtonRenderStyle.Secondary" aria-label="Link"
-                                                Click="@(() => OnLinkPOItemClick((CustomerSoPoData)CustomerPOContext.DataItem, "link"))" />
-                                                }
-                                                else{
-                                                } *@
                                             </div>
                                         </CellDisplayTemplate>
-                                    </DxGridCommandColumn>
+                                    </DxGridCommandColumn> *@
                                     <DxGridCommandColumn Context="CustomerPOContext" Width="45px" Visible="!useCheckboxLinking">
                                         <HeaderTemplate>
                                             Un-Link
@@ -1192,7 +1203,9 @@
                 </DxFormLayout>
             </BodyContentTemplate>
             <FooterContentTemplate>
-                <label style="text-align: left; width: 100%; color: red; font-weight: bolder;">@linkingItemText</label>
+                @* <label style="text-align: left; width: 100%; color: red; font-weight: bolder;">@linkingItemText</label> *@
+                <label CssClass="popup-button my-1 ms-2" style="color: red; font-weight: bolder;">@linkingItemText</label>
+                @* <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Danger" RenderStyleMode="ButtonRenderStyleMode.Text" Text="@linkingItemText" Enabled="false" /> *@
                 <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Info" Text="Cancel Linking" Visible="@isCurrentlyLinking" Click="@(() => CancelLinkingClick())" />
                 <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Secondary" Text="Cancel" Click="@PopupLinkingFormContext.CloseCallback" />
                 <DxButton CssClass="popup-button my-1 ms-2" RenderStyle="ButtonRenderStyle.Primary" Text="OK" Click="@(() => OnLinkingPopupOkClick())" />
@@ -1275,4 +1288,12 @@
         height:@mainGridSectionHeight;
     }
 
+
+    .hide-selection-checkbox .dxbs-grid-selection-cell {
+        display: none;
+    }
+
+    .non-selectable-row .dxbs-grid-selection-cell {
+        pointer-events: none;
+    }
 </style>

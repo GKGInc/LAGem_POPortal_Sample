@@ -335,9 +335,12 @@ namespace LAGem_POPortal.Pages.InTransitPOs
 
             try
             {
-                Grid.BeginUpdate();
-                Grid.SortBy(CurrentSortInfoKey);
-                Grid.EndUpdate();
+                if (Grid != null)
+                {
+                    Grid.BeginUpdate();
+                    Grid.SortBy(CurrentSortInfoKey);
+                    Grid.EndUpdate();
+                }
             }
             catch
             {
@@ -1127,6 +1130,12 @@ FROM [PIMS].[edi].[EdiTrn] trn
 LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
 	ON trn.[Edihdrid] = hdr.[Edihdrid]
 WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+
+UPDATE [PIMS].[dbo].[SODetail]
+SET [AllocatedQty] = {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [SODetailId] = {3}
+
 ";
                                 string allocQtyUpdateQuery_adjust = @"
 UPDATE [PIMS].[edi].[EdiTrn]
@@ -1137,6 +1146,12 @@ FROM [PIMS].[edi].[EdiTrn] trn
 LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
 	ON trn.[Edihdrid] = hdr.[Edihdrid]
 WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+
+UPDATE [PIMS].[dbo].[SODetail]
+SET [AllocatedQty] = (SELECT [AllocatedQty] FROM [PIMS].[edi].[EdiTrn] WHERE [Edihdrid] = {1} AND [EdiTrnId] = {2})
+    ,[LastModifiedOn] = GETDATE()
+WHERE [SODetailId] = {3}
+
 ";
                                 string allocQtyUpdateFullQuery = "";
 
@@ -1157,9 +1172,9 @@ WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
                                     //string itemNo = alloc.ItemNo;
                                     //allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId); 
                                     if (transactionType == "Multi")
-                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId, soDetailId);
                                     else
-                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId);
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId, soDetailId);
                                 }
                                 try
                                 {
@@ -1240,6 +1255,11 @@ FROM [PIMS].[edi].[EdiTrn] trn
 LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
 	ON trn.[Edihdrid] = hdr.[Edihdrid]
 WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+
+UPDATE [PIMS].[dbo].[SODetail]
+SET [AllocatedQty] = {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [SODetailId] = {3}
 ";
                                 string allocQtyUpdateQuery_adjust = @"
 UPDATE [PIMS].[edi].[EdiTrn]
@@ -1250,6 +1270,11 @@ FROM [PIMS].[edi].[EdiTrn] trn
 LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
 	ON trn.[Edihdrid] = hdr.[Edihdrid]
 WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+
+UPDATE [PIMS].[dbo].[SODetail]
+SET [AllocatedQty] = (SELECT [AllocatedQty] FROM [PIMS].[edi].[EdiTrn] WHERE [Edihdrid] = {1} AND [EdiTrnId] = {2})
+    ,[LastModifiedOn] = GETDATE()
+WHERE [SODetailId] = {3}
 ";
 
                                 foreach (SoEdiData alloc in ship.AllocatedQuatities)
@@ -1268,9 +1293,9 @@ WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
                                     //int productId = alloc.ProductId;
                                     //string itemNo = alloc.ItemNo;
                                     if (transactionType == "Multi")
-                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId, soDetailId);
                                     else
-                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId);
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId, soDetailId);
                                 }
 
                                 try
@@ -1327,6 +1352,7 @@ WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
             await InvokeAsync(StateHasChanged); // <-- refreshes
             headerMessage = "";
         }
+
         //Saving...
         public async Task UpdateShippingDataAsync(ShippingData item)
         {
@@ -1446,6 +1472,11 @@ FROM [PIMS].[edi].[EdiTrn] trn
 LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
 	ON trn.[Edihdrid] = hdr.[Edihdrid]
 WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+
+UPDATE [PIMS].[dbo].[SODetail]
+SET [AllocatedQty] = {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [SODetailId] = {3}
 ";
                             string allocQtyUpdateQuery_adjust = @"
 UPDATE [PIMS].[edi].[EdiTrn]
@@ -1456,6 +1487,11 @@ FROM [PIMS].[edi].[EdiTrn] trn
 LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
 	ON trn.[Edihdrid] = hdr.[Edihdrid]
 WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+
+UPDATE [PIMS].[dbo].[SODetail]
+SET [AllocatedQty] = (SELECT [AllocatedQty] FROM [PIMS].[edi].[EdiTrn] WHERE [Edihdrid] = {1} AND [EdiTrnId] = {2})
+    ,[LastModifiedOn] = GETDATE()
+WHERE [SODetailId] = {3}
 ";
                             string allocQtyUpdateFullQuery = "";
 
@@ -1476,9 +1512,9 @@ WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
                                 //string itemNo = alloc.ItemNo;
                                 //allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);   
                                 if (transactionType == "Multi")
-                                    allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);
+                                    allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId, soDetailId);
                                 else
-                                    allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId); 
+                                    allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, adjustQty, ediHdrId, ediTrnId, soDetailId); 
                             }
 
                             try
@@ -1550,6 +1586,11 @@ FROM [PIMS].[edi].[EdiTrn] trn
 LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
 	ON trn.[Edihdrid] = hdr.[Edihdrid]
 WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+
+UPDATE [PIMS].[dbo].[SODetail]
+SET [AllocatedQty] = {0}
+    ,[LastModifiedOn] = GETDATE()
+WHERE [SODetailId] = {3}
 ";
                                 string allocQtyUpdateQuery_adjust = @"
 UPDATE [PIMS].[edi].[EdiTrn]
@@ -1560,6 +1601,11 @@ FROM [PIMS].[edi].[EdiTrn] trn
 LEFT JOIN [PIMS].[edi].[EdiHdr] hdr
 	ON trn.[Edihdrid] = hdr.[Edihdrid]
 WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
+
+UPDATE [PIMS].[dbo].[SODetail]
+SET [AllocatedQty] = (SELECT [AllocatedQty] FROM [PIMS].[edi].[EdiTrn] WHERE [Edihdrid] = {1} AND [EdiTrnId] = {2})
+    ,[LastModifiedOn] = GETDATE()
+WHERE [SODetailId] = {3}
 ";
                                 string allocQtyUpdateFullQuery = "";
 
@@ -1579,9 +1625,9 @@ WHERE hdr.[Edihdrid] = {1} AND trn.[EdiTrnId] = {2})
                                     //int productId = alloc.ProductId;
                                     //string itemNo = alloc.ItemNo;
                                     if (transactionType == "Multi")
-                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId);
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_replace, allocQty, ediHdrId, ediTrnId, soDetailId);
                                     else
-                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, allocQty, ediHdrId, ediTrnId); 
+                                        allocQtyUpdateFullQuery += string.Format(allocQtyUpdateQuery_adjust, adjustQty, ediHdrId, ediTrnId, soDetailId); 
                                 }
 
                                 try

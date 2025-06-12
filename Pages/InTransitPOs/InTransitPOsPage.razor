@@ -449,8 +449,9 @@
                                             <DxButton IconCssClass="grid-icon grid-icon-new" RenderStyle="ButtonRenderStyle.Link" aria-label="Link" />
                                         </HeaderTemplate>
                                         <CellDisplayTemplate>
-                                                @if ((int)ShippingDataPoCountContext.GetRowValue("POCount") > 0 && (int)ShippingDataPoCountContext.GetRowValue("ShipmentQty") > 0)
+                                                @if ((int)ShippingDataPoCountContext.GetRowValue("POCount") > 1 && (int)ShippingDataPoCountContext.GetRowValue("ShipmentQty") > 0)
                                             {
+                                                // Display Icon only of more than one available allocation
                                                 <div class="grid-cell-align-center">
                                                     <DxButton IconCssClass="grid-icon grid-icon-new"
                                                                 RenderStyle="ButtonRenderStyle.Link" aria-label="Edit"
